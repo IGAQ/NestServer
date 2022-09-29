@@ -28,7 +28,8 @@ module.exports = {
                 singleQuote: false,
                 semi: true,
                 trailingComma: "es5",
-                printWidth: 100
+                printWidth: 100,
+                arrowParens: "avoid"
             },
         ],
     },

@@ -13,6 +13,14 @@ export class UsersService implements IUsersService {
     ];
 
     public async findUserByUsername(username: string): Promise<User | undefined> {
-        return this._users.find((u) => u.username === username);
+        return this._users.find(u => u.username === username);
+    }
+
+    public async findUserById(userId: number): Promise<User | undefined> {
+        return this._users.find(u => u.userId === userId);
+    }
+
+    public async addUser(user: User): Promise<void> {
+        throw new Error("Not Implemented");
     }
 }
