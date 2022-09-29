@@ -1,7 +1,7 @@
 import { AuthDto } from "../models";
 
 export interface IAuthService {
-    signup(dto: AuthDto): Promise<{ email: string }>;
+    signup(dto: AuthDto): Promise<{ msg: string }>;
 
-    signin(): { msg: string };
+    signin(dto: AuthDto): Promise<{ msg: string }>;
 }
