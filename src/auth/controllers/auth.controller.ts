@@ -7,12 +7,12 @@ import { IAuthService } from "../services/auth.service.interface";
 export class AuthController {
     constructor(@Inject("IAuthService") private _authService: IAuthService) {}
 
-    @Post()
+    @Post("signup")
     signup() {
         return this._authService.signup();
     }
 
-    @Post()
+    @Post("signin")
     signin() {
         return this._authService.signin();
     }
