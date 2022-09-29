@@ -9,4 +9,7 @@ export default class User {
 
     @ApiProperty({ type: String })
     password: string;
+
+    @ApiProperty({ type: String })
+    email: string;
 }

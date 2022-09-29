@@ -1,1 +1,1 @@
-export * from './registerUserPayload.dto';
+export * from "./registerUserPayload.dto";

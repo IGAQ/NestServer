@@ -9,17 +9,20 @@ export class UsersService implements IUsersService {
         {
             userId: 1,
             username: "john",
-            password: "john123",
+            password: "$2b$10$BGP81ZvOBntrlEHHw8qxaunw8sfn24DPO4v/WGNZW8QLNA/1MTZG6", // john123
+            email: "john@gmail.com",
         },
         {
             userId: 2,
             username: "chris",
-            password: "secret",
+            password: "$2b$10$QeRnByFoI7VTlOks5aLMbuVRXnMLyZ8FyuiezNOUIXuvPEc8cXSlu", // secret
+            email: "chris@gmail.com",
         },
         {
             userId: 3,
             username: "maria",
-            password: "guess",
+            password: "$2b$10$MMks.gHnjpz2Of38.buHC.jhL6BuDoRLaJBYhyvMP6/UGSMx.Fanm", // guess
+            email: "maria@gmail.com",
         },
     ];
 
@@ -36,6 +39,7 @@ export class UsersService implements IUsersService {
         newUser.userId = this._users.length + 1;
         newUser.username = user.username;
         newUser.password = user.password;
+        newUser.email = user.email;
 
         this._users.push(newUser);
     }

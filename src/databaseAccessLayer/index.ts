@@ -5,11 +5,11 @@ let prismaClient;
 
 const isDevelopment = process.env.IS_DEVELOPMENT ?? true;
 if (isDevelopment) {
-	prismaClient = new PrismaClientDevelopment();
+    prismaClient = new PrismaClientDevelopment();
 } else {
-	prismaClient = new PrismaClientProduction({
-		log: ['query', 'info', 'warn', 'error'],
-	});
+    prismaClient = new PrismaClientProduction({
+        log: ["query", "info", "warn", "error"],
+    });
 }
 
 export default prismaClient;
