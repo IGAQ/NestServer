@@ -1,7 +1,7 @@
 import { Test } from "@nestjs/testing";
-import { AuthController } from "./auth.controller";
-import { AuthServiceTest } from "../services/auth.service.test";
 import { IAuthService } from "../services/auth.service.interface";
+import { AuthServiceTest } from "../services/auth.service.test";
+import { AuthController } from "./auth.controller";
 
 describe("AuthController", () => {
     let authController: AuthController;
@@ -22,11 +22,11 @@ describe("AuthController", () => {
         authService = moduleRef.get<IAuthService>("IAuthService");
     });
 
-    describe("signup", () => {
-        it("should return a message from the signup method", () => {
-            expect(authController.signup()).toStrictEqual(authService.signup());
-        });
-    });
+    // describe("signup", () => {
+    //     it("should return a message from the signup method", () => {
+    //         expect(authController.signup()).toStrictEqual(authService.signup());
+    //     });
+    // });
 
     describe("signin", () => {
         it("should return a message from the signin method", () => {

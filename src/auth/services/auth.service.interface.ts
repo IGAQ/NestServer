@@ -1,5 +1,7 @@
+import { AuthDto } from "../dto";
+
 export interface IAuthService {
-    signup(): { msg: string };
+    signup(dto: AuthDto): Promise<{ email: string }>;
 
     signin(): { msg: string };
 }
