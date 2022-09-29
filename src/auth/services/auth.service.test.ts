@@ -1,11 +1,14 @@
-import { Injectable } from "@nestjs/common";
-import * as bcrypt from 'bcrypt';
-import { AuthDto } from "../dto/auth.dto";
+import { Inject, Injectable } from "@nestjs/common";
+import * as bcrypt from "bcrypt";
+import { AuthDto } from "../dto";
 import { IAuthService } from "./auth.service.interface";
+import { IUsersService } from "../../users/services/usersService/users.service.interface";
 
 @Injectable({})
 export class AuthServiceTest implements IAuthService {
-    async signup(dto: AuthDto) {
+    constructor(@Inject("IUsersService") private _usersService: IUsersService) {}
+
+    public async signup(dto: AuthDto) {
         const salt = await bcrypt.genSaltSync(10);
         const hash = await bcrypt.hashSync(dto.password, salt);
 
@@ -16,7 +19,7 @@ export class AuthServiceTest implements IAuthService {
         return user;
     }
 
-    signin() {
+    public signin() {
         return { msg: "I am signed in" };
     }
 }
