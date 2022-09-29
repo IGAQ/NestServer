@@ -32,6 +32,11 @@ export class UsersService implements IUsersService {
     }
 
     public async addUser(user: RegisterUserPayloadDto): Promise<void> {
-        throw new Error("Not Implemented");
+        const newUser = new User();
+        newUser.userId = this._users.length + 1;
+        newUser.username = user.username;
+        newUser.password = user.password;
+
+        this._users.push(newUser);
     }
 }
