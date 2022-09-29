@@ -6,7 +6,7 @@ import { IAuthService } from "../services/auth.service.interface";
 @ApiTags("auth")
 @Controller("auth")
 export class AuthController {
-    constructor(@Inject("IAuthService") private _authService: IAuthService) { }
+    constructor(@Inject("IAuthService") private _authService: IAuthService) {}
 
     @Post("signup")
     public signup(@Body() dto: AuthDto) {
