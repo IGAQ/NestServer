@@ -1,7 +1,8 @@
 import { Injectable } from "@nestjs/common";
+import { IAuthService } from "./auth.service.interface";
 
 @Injectable({})
-export class AuthService {
+export class AuthService implements IAuthService {
     signup() {
         return { msg: "I am signed up" };
     }
