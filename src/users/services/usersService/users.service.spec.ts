@@ -1,6 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { UsersService } from "./users.service";
-import User from "../../models/User";
+import User from "../../models/user";
+import { RegisterUserPayloadDto } from "../../models";
 
 describe("UsersService", () => {
     let service: UsersService;
@@ -37,7 +38,7 @@ describe("UsersService", () => {
             expect(awaitedResult).toBeInstanceOf(User);
         });
         it("addUser should be async and return nothing", async () => {
-            const user = new User();
+            const user = new RegisterUserPayloadDto();
             const result = service.addUser(user);
 
             expect(result).toBeInstanceOf(Promise);

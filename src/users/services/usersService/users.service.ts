@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
-import User from "../../models/User";
+import User from "../../models/user";
 import { IUsersService } from "./users.service.interface";
+import { RegisterUserPayloadDto } from "../../models";
 
 @Injectable()
 export class UsersService implements IUsersService {
@@ -9,6 +10,16 @@ export class UsersService implements IUsersService {
             userId: 1,
             username: "john",
             password: "john123",
+        },
+        {
+            userId: 2,
+            username: "chris",
+            password: "secret",
+        },
+        {
+            userId: 3,
+            username: "maria",
+            password: "guess",
         },
     ];
 
@@ -20,7 +31,7 @@ export class UsersService implements IUsersService {
         return this._users.find(u => u.userId === userId);
     }
 
-    public async addUser(user: User): Promise<void> {
+    public async addUser(user: RegisterUserPayloadDto): Promise<void> {
         throw new Error("Not Implemented");
     }
 }

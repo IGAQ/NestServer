@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import * as bcrypt from 'bcrypt';
-import { AuthDto } from "../dto/auth.dto";
+import { AuthDto } from "../models/auth.dto";
 import { IAuthService } from "./auth.service.interface";
 
 @Injectable({})
@@ -12,7 +12,7 @@ export class AuthService implements IAuthService {
         const user = {
             email: dto.email,
             password: hash,
-        };
+        } as AuthDto;
         return user;
     }
 

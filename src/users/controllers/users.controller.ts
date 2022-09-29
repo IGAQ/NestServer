@@ -1,6 +1,6 @@
 import { Controller, Get, Inject } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
-import User from "../models/User";
+import User from "../models/user";
 import { UsersService } from "../services/UsersService/users.service";
 
 @ApiTags("users")

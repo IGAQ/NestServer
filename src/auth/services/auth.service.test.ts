@@ -1,6 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 import * as bcrypt from "bcrypt";
-import { AuthDto } from "../dto";
+import { AuthDto } from "../models";
 import { IAuthService } from "./auth.service.interface";
 import { IUsersService } from "../../users/services/usersService/users.service.interface";
 
