@@ -1,0 +1,66 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/databaseAccessLayer/prismaClients/development"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL_TEST")
+}
+
+model User {
+  userId    Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  email String @unique
+
+  username           String
+  normalizedUsername String
+
+  passwordHash String
+  passwordSalt String
+
+  firstName String?
+  lastName  String?
+
+  role  Role   @default(USER)
+  posts Post[]
+
+  @@map(name: "users")
+}
+
+model Post {
+  postId    Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  title       String
+  description String?
+
+  authorUser   User @relation(fields: [authorUserId], references: [userId])
+  authorUserId Int
+
+  @@map(name: "posts")
+}
+
+enum Role {
+  USER
+  ADMIN
+  MODERATOR
+}
+
+//model Role {
+//  roleId        Int      @id @default(autoincrement())
+//  createdAt     DateTime @default(now())
+//  updatedAt     DateTime @updatedAt
+//
+//  name          String   @unique
+//
+//  users         User[]
+//
+//  @@map(name: "roles")
+//}

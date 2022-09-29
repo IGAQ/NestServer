@@ -9,11 +9,15 @@ async function bootstrap() {
     app.useGlobalPipes(new ValidationPipe({
         whitelist: true,
     }));
+    
+    app.enableCors({
+        origin: "*",
+        methods: ["GET", "POST", "DELETE", "PUT", "PATCH"],
+        optionsSuccessStatus: 200,
+    });
 
     await swaggerSetup(app);
 
-    await app.listen(3000);
-
-
+    await app.listen(process.env.PORT || 8080);
 }
 bootstrap();
