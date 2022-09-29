@@ -12,9 +12,7 @@ export class UsersService implements IUsersService {
         },
     ];
 
-    public async findUserByUsername(
-        username: string,
-    ): Promise<User | undefined> {
+    public async findUserByUsername(username: string): Promise<User | undefined> {
         return this._users.find((u) => u.username === username);
     }
 }
