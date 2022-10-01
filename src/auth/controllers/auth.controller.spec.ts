@@ -2,6 +2,7 @@ import { Test } from "@nestjs/testing";
 import { AuthServiceTest } from "../services/auth.service.test";
 import { AuthController } from "./auth.controller";
 import { UsersService } from "../../users/services/usersService/users.service";
+import { AuthDto } from "../models";
 
 describe("AuthController", () => {
     let authController: AuthController;
@@ -59,27 +60,35 @@ describe("AuthController", () => {
         });
     });
 
-    describe("signup", () => {
-        it("if signup is successful, should return a success message", async () => {
-            expect(
-                await authController.signup({
-                    email: "ian@gmail.com",
-                    password: "ian123",
-                    username: "ian",
-                })
-            ).toEqual({ msg: "I am signed up" });
-        });
-    });
-
     // describe("signup", () => {
-    //     it("should return a message from the signup method", () => {
-    //         expect(authController.signup()).toStrictEqual(authService.signup());
+    //     it("if signup is successful, should return a success message", async () => {
+    //         expect(
+    //             await authController.signup({
+    //                 email: "ian@gmail.com",
+    //                 password: "ian123",
+    //                 username: "ian",
+    //             })
+    //         ).toEqual({ msg: "I am signed up" });
     //     });
     // });
 
-    // describe("signin", () => {
-    //     it("should return a message from the signin method", () => {
-    //         expect(authController.signin()).toStrictEqual(authService.signin());
+    // describe("bad signup", () => {
+    //     it("if signup has invalid email, should return an error message", async () => {
+    //         const dto = new AuthDto();
+    //         dto.email = "ian";
+    //         dto.password = "ian123";
+    //         dto.username = "";
+    //         expect(
+    //             await authController.signup({
+    //                 email: dto.email,
+    //                 password: dto.password,
+    //                 username: dto.username,
+    //             })
+    //         ).toEqual({
+    //             statusCode: 400,
+    //             message: ["email must be an email"],
+    //             error: "Bad Request",
+    //         });
     //     });
     // });
 });
