@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Role } from "./role";
+import { Post } from "../../posts/models";
 
 export class User {
 	@ApiProperty({ type: Number })
@@ -30,4 +31,7 @@ export class User {
 
 	@ApiProperty({ type: Role })
 	role: Role;
+
+	@ApiProperty({ type: Role })
+	posts: Post[];
 }
