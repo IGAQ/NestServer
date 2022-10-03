@@ -35,7 +35,6 @@ describe("UsersServiceTest", () => {
             expect(awaitedResult).toMatchObject({
                 userId: 1,
                 username: "john",
-                password: "$2b$10$BGP81ZvOBntrlEHHw8qxaunw8sfn24DPO4v/WGNZW8QLNA/1MTZG6", // john123
                 email: "john@gmail.com",
             });
         });
@@ -49,7 +48,6 @@ describe("UsersServiceTest", () => {
             expect(awaitedResult).toMatchObject({
                 userId: 1,
                 username: "john",
-                password: "$2b$10$BGP81ZvOBntrlEHHw8qxaunw8sfn24DPO4v/WGNZW8QLNA/1MTZG6", // john123
                 email: "john@gmail.com",
             });
         });

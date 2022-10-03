@@ -30,7 +30,6 @@ describe("AuthController", () => {
         app.useGlobalPipes(new ValidationPipe({
             whitelist: true,
         }));
-        // await bootstrap(app, false);
         await app.init();
 
         authController = moduleRef.get<AuthController>(AuthController);
