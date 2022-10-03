@@ -1,4 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { Role } from "./role";
 
 export class User {
 	@ApiProperty({ type: Number })
@@ -27,6 +28,6 @@ export class User {
 	@ApiProperty({ type: String })
 	lastName: string;
 
-	@ApiProperty({ type: String })
-	role: any;
+	@ApiProperty({ type: Role })
+	role: Role;
 }
