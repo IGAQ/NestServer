@@ -6,7 +6,8 @@ import {
     Inject,
     Param,
     ParseIntPipe,
-    Post, UseInterceptors,
+    Post,
+    UseInterceptors,
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { UserDto } from "../models";
@@ -27,18 +28,18 @@ export class UsersController {
     }
 
     @Get(":userId")
-    public async getUserById(@Param('userId', new ParseIntPipe()) userId: number): Promise<UserDto | Error> {
+    public async getUserById(
+        @Param("userId", new ParseIntPipe()) userId: number
+    ): Promise<UserDto | Error> {
         const user = await this._usersService.findUserById(userId);
-        if (user === undefined)
-            throw new HttpException("User not found", 404);
+        if (user === undefined) throw new HttpException("User not found", 404);
         return new UserDto(user);
     }
 
     @Get("/username/:username")
-    public async getUserByUsername(@Param('username') username: string): Promise<UserDto | Error> {
+    public async getUserByUsername(@Param("username") username: string): Promise<UserDto | Error> {
         const user = await this._usersService.findUserByUsername(username);
-        if (user === undefined)
-            throw new HttpException("User not found", 404);
+        if (user === undefined) throw new HttpException("User not found", 404);
         return new UserDto(user);
     }
 }
