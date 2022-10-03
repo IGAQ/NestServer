@@ -1,5 +1,5 @@
 import { Test } from "@nestjs/testing";
-import * as request from 'supertest';
+import * as request from "supertest";
 import { UsersServiceTest } from "../../users/services/users.service.test";
 import { AuthServiceTest } from "../services/auth.service.test";
 import { AuthController } from "./auth.controller";
@@ -27,9 +27,11 @@ describe("AuthController", () => {
 
         app = moduleRef.createNestApplication();
 
-        app.useGlobalPipes(new ValidationPipe({
-            whitelist: true,
-        }));
+        app.useGlobalPipes(
+            new ValidationPipe({
+                whitelist: true,
+            })
+        );
         await app.init();
 
         authController = moduleRef.get<AuthController>(AuthController);
@@ -44,7 +46,7 @@ describe("AuthController", () => {
                     password: "secret",
                     username: "chris",
                 })
-                .set('Accept', 'application/json');
+                .set("Accept", "application/json");
             expect(result.body).toEqual({ msg: "I am signed in" });
         });
         it("if signin user does not exist, should return an error message", async () => {
@@ -55,7 +57,7 @@ describe("AuthController", () => {
                     password: "secret",
                     username: "bob",
                 })
-                .set('Accept', 'application/json');
+                .set("Accept", "application/json");
             expect(result.body).toMatchObject({ msg: "User not found" });
         });
         it("if signin password is incorrect, should return an error message", async () => {
@@ -66,7 +68,7 @@ describe("AuthController", () => {
                     password: "wrongpassword",
                     username: "chris",
                 })
-                .set('Accept', 'application/json');
+                .set("Accept", "application/json");
             expect(result.body).toMatchObject({ msg: "Incorrect password" });
         });
     });
@@ -80,7 +82,7 @@ describe("AuthController", () => {
                     password: "ian123",
                     username: "ian",
                 })
-                .set('Accept', 'application/json');
+                .set("Accept", "application/json");
 
             expect(result.body).toMatchObject({ msg: "I am signed up" });
         });
@@ -96,7 +98,7 @@ describe("AuthController", () => {
             const result = await request(app.getHttpServer())
                 .post(`/auth/signup`)
                 .send(dto)
-                .set('Accept', 'application/json');
+                .set("Accept", "application/json");
 
             expect(result.body).toMatchObject({
                 statusCode: 400,
