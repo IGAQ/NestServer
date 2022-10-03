@@ -1,7 +1,7 @@
 import { Controller, Get, Inject } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
-import User from "../models/user";
-import { UsersService } from "../services/UsersService/users.service";
+import { UserDto } from "../models";
+import { UsersServiceTest } from "../services/usersService/users.service.test";
 
 @ApiTags("users")
 @Controller("users")
@@ -9,11 +9,10 @@ export class UsersController {
     /**
      *
      */
-    constructor(@Inject("IUsersService") private _usersService: UsersService) {}
+    constructor(@Inject("IUsersService") private _usersService: UsersServiceTest) {}
 
     @Get()
-    public async index(): Promise<User[]> {
-        throw new Error("Not Implemented");
-        // return this._usersService.getAll();
+    public async index(): Promise<UserDto[]> {
+        return await this._usersService.findAll();
     }
 }
