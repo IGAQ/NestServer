@@ -1,17 +1,22 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { UsersServiceTest } from "./users.service.test";
-import User from "../models/user.dto";
+import { UserDto } from "../models";
 import { RegisterUserPayloadDto } from "../models";
 
-describe("UsersService", () => {
+describe("UsersServiceTest", () => {
     let service: UsersServiceTest;
 
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
-            providers: [UsersServiceTest],
+            providers: [
+                {
+                    provide: "IUsersService",
+                    useClass: UsersServiceTest,
+                },
+            ],
         }).compile();
 
-        service = module.get<UsersServiceTest>(UsersServiceTest);
+        service = module.get<UsersServiceTest>("IUsersService");
     });
 
     it("should be defined", () => {
@@ -20,13 +25,19 @@ describe("UsersService", () => {
 
     describe("they are all giving successful promises", () => {
         it("findUserByUsername should be async return an object of User", async () => {
-            const result = service.findUserByUsername("testUser");
+            const result = service.findUserByUsername("john");
 
             expect(result).toBeInstanceOf(Promise);
 
             const awaitedResult = await result;
 
-            expect(awaitedResult).toBeInstanceOf(User);
+            console.log(awaitedResult);
+            expect(awaitedResult).toMatchObject({
+                userId: 1,
+                username: "john",
+                password: "$2b$10$BGP81ZvOBntrlEHHw8qxaunw8sfn24DPO4v/WGNZW8QLNA/1MTZG6", // john123
+                email: "john@gmail.com",
+            });
         });
         it("findUserById should be async and return an object of User", async () => {
             const result = service.findUserById(1);
@@ -35,7 +46,12 @@ describe("UsersService", () => {
 
             const awaitedResult = await result;
 
-            expect(awaitedResult).toBeInstanceOf(User);
+            expect(awaitedResult).toMatchObject({
+                userId: 1,
+                username: "john",
+                password: "$2b$10$BGP81ZvOBntrlEHHw8qxaunw8sfn24DPO4v/WGNZW8QLNA/1MTZG6", // john123
+                email: "john@gmail.com",
+            });
         });
         it("addUser should be async and return nothing", async () => {
             const user = new RegisterUserPayloadDto();
