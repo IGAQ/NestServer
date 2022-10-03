@@ -21,9 +21,11 @@ describe("UsersController", () => {
 
         app = moduleRef.createNestApplication();
 
-        app.useGlobalPipes(new ValidationPipe({
-            whitelist: true,
-        }));
+        app.useGlobalPipes(
+            new ValidationPipe({
+                whitelist: true,
+            })
+        );
         await app.init();
 
         usersController = moduleRef.get<UsersController>(UsersController);
@@ -37,7 +39,7 @@ describe("UsersController", () => {
         it("should return an array of users", async () => {
             const result = await request(app.getHttpServer())
                 .get(`/users/`)
-                .set('Accept', 'application/json');
+                .set("Accept", "application/json");
 
             expect(Array.isArray(result.body)).toBe(true);
         });
@@ -45,7 +47,7 @@ describe("UsersController", () => {
         it("should return a user by id", async () => {
             const result = await request(app.getHttpServer())
                 .get(`/users/1`)
-                .set('Accept', 'application/json');
+                .set("Accept", "application/json");
 
             expect(result.body).toMatchObject({
                 userId: 1,
@@ -59,7 +61,7 @@ describe("UsersController", () => {
         it("should return a user by username", async () => {
             const result = await request(app.getHttpServer())
                 .get(`/users/username/john`)
-                .set('Accept', 'application/json');
+                .set("Accept", "application/json");
 
             expect(result.body).toMatchObject({
                 userId: 1,
@@ -75,7 +77,7 @@ describe("UsersController", () => {
         it("should return an error message if the user does not exist userById", async () => {
             const result = await request(app.getHttpServer())
                 .get(`/users/666`)
-                .set('Accept', 'application/json');
+                .set("Accept", "application/json");
 
             expect(result.body).toMatchObject({
                 message: "User not found",
@@ -86,7 +88,7 @@ describe("UsersController", () => {
         it("should return an error message if the user does not exist userByUsername", async () => {
             const result = await request(app.getHttpServer())
                 .get(`/users/username/666`)
-                .set('Accept', 'application/json');
+                .set("Accept", "application/json");
 
             expect(result.body).toMatchObject({
                 message: "User not found",
