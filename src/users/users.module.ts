@@ -1,10 +1,8 @@
 import { Module } from "@nestjs/common";
-import { UsersServiceTest } from "./services/usersService/users.service.test";
+import { UsersServiceTest } from "./services/users.service.test";
 import { UsersController } from "./controllers/users.controller";
-import { PrismaModule } from "../databaseAccessLayer/prisma.module";
 
 @Module({
-    imports: [PrismaModule],
     providers: [
         {
             provide: "IUsersService",
