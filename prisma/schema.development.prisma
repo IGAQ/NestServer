@@ -10,7 +10,7 @@ datasource db {
   url      = env("DATABASE_URL_TEST")
 }
 
-model UserDto {
+model User {
   userId    Int      @id @default(autoincrement())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -40,7 +40,7 @@ model Post {
   title       String
   description String?
 
-  authorUser   UserDto @relation(fields: [authorUserId], references: [userId])
+  authorUser   User @relation(fields: [authorUserId], references: [userId])
   authorUserId Int
 
   @@map(name: "posts")
@@ -59,7 +59,7 @@ enum Role {
 //
 //  name          String   @unique
 //
-//  users         UserDto[]
+//  users         User[]
 //
 //  @@map(name: "roles")
 //}

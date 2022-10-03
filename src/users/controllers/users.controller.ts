@@ -1,7 +1,7 @@
 import { Controller, Get, Inject } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { UserDto } from "../models";
-import { UsersServiceTest } from "../services/usersService/users.service.test";
+import { UsersServiceTest } from "../services/users.service.test";
 
 @ApiTags("users")
 @Controller("users")

@@ -1,5 +1,5 @@
-import { UserDto } from "../../models";
-import { RegisterUserPayloadDto } from "../../models";
+import { UserDto } from "../models";
+import { RegisterUserPayloadDto } from "../models";
 
 export interface IUsersService {
     findAll(): Promise<any>;

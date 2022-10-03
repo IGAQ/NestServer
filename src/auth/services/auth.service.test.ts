@@ -2,7 +2,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import * as bcrypt from "bcrypt";
 import { AuthDto } from "../models";
 import { IAuthService } from "./auth.service.interface";
-import { IUsersService } from "../../users/services/usersService/users.service.interface";
+import { IUsersService } from "../../users/services/users.service.interface";
 
 @Injectable({})
 export class AuthServiceTest implements IAuthService {

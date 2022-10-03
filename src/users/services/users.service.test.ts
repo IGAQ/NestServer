@@ -1,5 +1,5 @@
-import { Inject, Injectable } from "@nestjs/common";
-import { UserDto, RegisterUserPayloadDto } from "../../models";
+import { Injectable } from "@nestjs/common";
+import { UserDto, RegisterUserPayloadDto } from "../models";
 import { IUsersService } from "./users.service.interface";
 
 @Injectable()

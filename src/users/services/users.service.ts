@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { UserDto, RegisterUserPayloadDto } from "../../models";
+import { UserDto, RegisterUserPayloadDto } from "../models";
 import { IUsersService } from "./users.service.interface";
-import { IPrismaService } from "../../../databaseAccessLayer/prisma.service.interface";
+import { IPrismaService } from "../../databaseAccessLayer/prisma.service.interface";
 
 @Injectable()
 export class UsersService implements IUsersService {

@@ -1,5 +1,5 @@
 import { Test } from "@nestjs/testing";
-import { UsersServiceTest } from "../../users/services/usersService/users.service.test";
+import { UsersServiceTest } from "../../users/services/users.service.test";
 import { AuthServiceTest } from "../services/auth.service.test";
 import { AuthController } from "./auth.controller";
 
