@@ -1,10 +1,12 @@
-import User from "../../models/user";
+import { UserDto } from "../../models";
 import { RegisterUserPayloadDto } from "../../models";
 
 export interface IUsersService {
-    findUserByUsername(username: string): Promise<User | undefined>;
+    findAll(): Promise<any>;
 
-    findUserById(userId: number): Promise<User | undefined>;
+    findUserByUsername(username: string): Promise<UserDto | undefined>;
+
+    findUserById(userId: number): Promise<UserDto | undefined>;
 
     addUser(user: RegisterUserPayloadDto): Promise<void>;
 }

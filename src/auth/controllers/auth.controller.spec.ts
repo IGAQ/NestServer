@@ -1,33 +1,28 @@
 import { Test } from "@nestjs/testing";
-import { UsersService } from "../../users/services/usersService/users.service";
-import { AuthDto } from "../models";
+import { UsersServiceTest } from "../../users/services/usersService/users.service.test";
 import { AuthServiceTest } from "../services/auth.service.test";
 import { AuthController } from "./auth.controller";
 
 describe("AuthController", () => {
     let authController: AuthController;
-    // let authService: IAuthService;
-    // let usersService: UsersService;
 
     beforeEach(async () => {
         const moduleRef = await Test.createTestingModule({
             controllers: [AuthController],
             providers: [
-                UsersService,
+                UsersServiceTest,
                 {
                     provide: "IAuthService",
                     useClass: AuthServiceTest,
                 },
                 {
                     provide: "IUsersService",
-                    useClass: UsersService,
+                    useClass: UsersServiceTest,
                 },
             ],
         }).compile();
 
-        // usersService = moduleRef.get<UsersService>(UsersService);
         authController = moduleRef.get<AuthController>(AuthController);
-        // authService = moduleRef.get<IAuthService>("IAuthService");
     });
 
     describe("signin", () => {
