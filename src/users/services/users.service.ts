@@ -2,10 +2,14 @@ import { Inject, Injectable } from "@nestjs/common";
 import { UserDto, RegisterUserPayloadDto } from "../models";
 import { IUsersService } from "./users.service.interface";
 import { IPrismaService } from "../../prisma/prisma.service.interface";
+import { Neo4jService } from "../../neo4j/neo4j.service";
 
 @Injectable()
 export class UsersService implements IUsersService {
-    constructor(@Inject("IPrismaService") private _prismaService: IPrismaService) {}
+    constructor(
+        @Inject("IPrismaService") private _prismaService: IPrismaService,
+        @Inject(Neo4jService) private _neo4jService: Neo4jService
+    ) {}
 
     public async findAll(): Promise<any> {
         return await this._prismaService.user.findMany();
