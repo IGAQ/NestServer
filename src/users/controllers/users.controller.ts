@@ -5,14 +5,15 @@ import {
     HttpException,
     Inject,
     Param,
-    ParseIntPipe, UseGuards,
+    ParseIntPipe,
+    UseGuards,
     UseInterceptors,
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { Role, UserDto } from "../models";
-import { UsersServiceTest } from "../services/users.service.test";
 import { Roles } from "../../auth/decorators/roles.decorator";
 import { RolesGuard } from "../../auth/guards/roles.guard";
+import { IUsersService } from "../services/users.service.interface";
 
 @UseInterceptors(ClassSerializerInterceptor)
 @ApiTags("users")
@@ -21,7 +22,7 @@ export class UsersController {
     /**
      *
      */
-    constructor(@Inject("IUsersService") private _usersService: UsersServiceTest) {}
+    constructor(@Inject("IUsersService") private _usersService: IUsersService) {}
 
     @Get()
     @Roles(Role.ADMIN)
