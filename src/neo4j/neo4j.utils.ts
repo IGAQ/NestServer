@@ -7,8 +7,12 @@ export const createDriver = async (config: Neo4jConfig) => {
         `${config.scheme}://${config.host}:${config.port}`,
         neo4j.auth.basic(config.username, config.password)
     );
-    // Verify the connection details or throw an Error
-    await driver.verifyConnectivity();
+    try {
+        // Verify the connection details or throw an Error
+        await driver.verifyConnectivity();
+    } catch (error) {
+        console.error(error);
+    }
     // If everything is OK, return the driver
     return driver;
 };
