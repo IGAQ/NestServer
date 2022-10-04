@@ -27,10 +27,16 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+## Pre-Setup Environment
+
+1. Rename .env.example to .env
+2. Change the value of the environment variables
+
 ## Installation
 
 ```bash
 $ npm install
+$ npx prisma generate --schema=./prisma/schema.development.prisma
 ```
 
 ## Running the app
