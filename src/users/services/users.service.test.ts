@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { UserDto, RegisterUserPayloadDto } from "../models";
+import { RegisterUserPayloadDto, Role, UserDto } from "../models";
 import { IUsersService } from "./users.service.interface";
 
 @Injectable()
@@ -10,18 +10,21 @@ export class UsersServiceTest implements IUsersService {
             username: "john",
             password: "$2b$10$BGP81ZvOBntrlEHHw8qxaunw8sfn24DPO4v/WGNZW8QLNA/1MTZG6", // john123
             email: "john@gmail.com",
+            roles: [Role.USER],
         },
         {
             userId: 2,
             username: "chris",
             password: "$2b$10$QeRnByFoI7VTlOks5aLMbuVRXnMLyZ8FyuiezNOUIXuvPEc8cXSlu", // secret
             email: "chris@gmail.com",
+            roles: [Role.USER],
         },
         {
             userId: 3,
             username: "maria",
             password: "$2b$10$MMks.gHnjpz2Of38.buHC.jhL6BuDoRLaJBYhyvMP6/UGSMx.Fanm", // guess
             email: "maria@gmail.com",
+            roles: [Role.USER],
         },
     ];
 
