@@ -5,24 +5,24 @@ import { Neo4jConfig } from "./neo4jConfig.interface";
 
 @Injectable()
 export class Neo4jService {
-    private readonly driver: Driver;
-    private readonly config: Neo4jConfig;
+    private readonly _driver: Driver;
+    private readonly _config: Neo4jConfig;
 
     constructor(@Inject(NEO4J_OPTIONS) config: Neo4jConfig, @Inject(NEO4J_DRIVER) driver: Driver) {
-        this.driver = driver;
-        this.config = config;
+        this._driver = driver;
+        this._config = config;
     }
 
     public getReadSession(database?: string): Session {
-        return this.driver.session({
-            database: database || this.config.database,
+        return this._driver.session({
+            database: database || this._config.database,
             defaultAccessMode: session.READ,
         });
     }
 
     public getWriteSession(database?: string): Session {
-        return this.driver.session({
-            database: database || this.config.database,
+        return this._driver.session({
+            database: database || this._config.database,
             defaultAccessMode: session.WRITE,
         });
     }
