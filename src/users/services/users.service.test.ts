@@ -17,14 +17,14 @@ export class UsersServiceTest implements IUsersService {
             username: "chris",
             password: "$2b$10$QeRnByFoI7VTlOks5aLMbuVRXnMLyZ8FyuiezNOUIXuvPEc8cXSlu", // secret
             email: "chris@gmail.com",
-            roles: [Role.USER],
+            roles: [Role.ADMIN],
         },
         {
             userId: 3,
             username: "maria",
             password: "$2b$10$MMks.gHnjpz2Of38.buHC.jhL6BuDoRLaJBYhyvMP6/UGSMx.Fanm", // guess
             email: "maria@gmail.com",
-            roles: [Role.USER],
+            roles: [Role.USER, Role.MODERATOR],
         },
     ];
 
