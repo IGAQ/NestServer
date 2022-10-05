@@ -45,9 +45,7 @@ describe("UsersController", () => {
                 expect(Array.isArray(result.body)).toBe(true);
             });
         });
-        describe("Sad Path", () => {
-
-        });
+        describe("Sad Path", () => {});
     });
 
     describe("GET /users/:id", () => {
@@ -76,7 +74,7 @@ describe("UsersController", () => {
                 expect(result.body).toMatchObject({
                     statusCode: 403,
                     message: "Forbidden resource",
-                    error: "Forbidden"
+                    error: "Forbidden",
                 });
             });
 
