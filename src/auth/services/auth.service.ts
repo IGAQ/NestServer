@@ -1,14 +1,21 @@
 import { Inject, Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
-import { AuthDto } from "../models";
-import { IAuthService } from "./auth.service.interface";
 import { IUsersService } from "../../users/services/users.service.interface";
+import { AuthDto } from "../models";
+import { SignTokenDto } from "../models/signToken.dto";
+import { IAuthService } from "./auth.service.interface";
 
 @Injectable({})
 export class AuthService implements IAuthService {
-    constructor(@Inject("IUsersService") private _usersService: IUsersService) {}
+    constructor(
+        @Inject("IUsersService") private _usersService: IUsersService,
+        private _jwtService: JwtService,
+        private _configService: ConfigService
+    ) { }
 
-    public async signup(dto: AuthDto): Promise<{ msg: string }> {
+    public async signup(dto: AuthDto) {
         const salt = await bcrypt.genSaltSync(10);
         const hash = await bcrypt.hashSync(dto.password, salt);
 
@@ -18,13 +25,13 @@ export class AuthService implements IAuthService {
                 email: dto.email,
                 password: hash,
             });
-            return { msg: "I am signed up" };
+            return this.signToken(dto.userId, dto.email);
         } catch (error) {
             throw new Error(error);
         }
     }
 
-    public async signin(dto: AuthDto): Promise<{ msg: string }> {
+    public async signin(dto: AuthDto) {
         const user = await this._usersService.findUserByUsername(dto.username);
         if (!user) {
             return { msg: "User not found" };
@@ -33,6 +40,25 @@ export class AuthService implements IAuthService {
         if (!isMatch) {
             return { msg: "Incorrect password" };
         }
-        return { msg: "I am signed in" };
+
+        return this.signToken(dto.userId, dto.email);
+    }
+
+    async signToken(userId: number, email: string): Promise<SignTokenDto> {
+        const payload = {
+            sub: userId,
+            email,
+        };
+
+        // The JWT token is signed with the secret key and the algorithm specified in the environment variables.
+        const secret = this._configService.get("JWT_SECRET");
+
+        const token = await this._jwtService.signAsync(payload, {
+            expiresIn: "15m",
+            secret: secret,
+        });
+        return {
+            access_token: token,
+        };
     }
 }
