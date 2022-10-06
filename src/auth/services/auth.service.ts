@@ -4,6 +4,7 @@ import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
 import { IUsersService } from "../../users/services/users.service.interface";
 import { AuthDto } from "../models";
+import { SignTokenDto } from "../models/signToken.dto";
 import { IAuthService } from "./auth.service.interface";
 
 @Injectable({})
@@ -43,7 +44,7 @@ export class AuthService implements IAuthService {
         return this.signToken(dto.userId, dto.email);
     }
 
-    async signToken(userId: AuthDto['userId'], email: AuthDto['email']): Promise<{ access_token: AuthDto["accessToken"] }> {
+    async signToken(userId: number, email: string): Promise<SignTokenDto> {
         const payload = {
             sub: userId,
             email,
