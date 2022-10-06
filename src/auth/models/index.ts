@@ -1,2 +1,3 @@
 export { AuthDto } from "./auth.dto";
-export { signTokenDto } from "./signToken.dto";
+export { SignTokenDto } from "./signToken.dto";
+
