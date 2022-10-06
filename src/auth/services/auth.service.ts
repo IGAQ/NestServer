@@ -24,7 +24,7 @@ export class AuthService implements IAuthService {
                 email: dto.email,
                 password: hash,
             });
-            return this.signToken(dto.username, dto.email);
+            return this.signToken(dto.userId, dto.email);
         } catch (error) {
             throw new Error(error);
         }
@@ -40,10 +40,10 @@ export class AuthService implements IAuthService {
             return { msg: "Incorrect password" };
         }
 
-        return this.signToken(dto.username, dto.email);
+        return this.signToken(dto.userId, dto.email);
     }
 
-    async signToken(userId: string, email: string): Promise<{ access_token: AuthDto["accessToken"] }> {
+    async signToken(userId: AuthDto['userId'], email: AuthDto['email']): Promise<{ access_token: AuthDto["accessToken"] }> {
         const payload = {
             sub: userId,
             email,
