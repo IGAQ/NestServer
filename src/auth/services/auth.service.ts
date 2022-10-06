@@ -11,7 +11,7 @@ export class AuthService implements IAuthService {
     constructor(
         @Inject("IUsersService") private _usersService: IUsersService,
         private _jwtService: JwtService,
-        private config: ConfigService
+        private _configService: ConfigService
     ) { }
 
     public async signup(dto: AuthDto) {
@@ -50,7 +50,7 @@ export class AuthService implements IAuthService {
         };
 
         // The JWT token is signed with the secret key and the algorithm specified in the environment variables.
-        const secret = this.config.get("JWT_SECRET");
+        const secret = this._configService.get("JWT_SECRET");
 
         const token = await this._jwtService.signAsync(payload, {
             expiresIn: "15m",
