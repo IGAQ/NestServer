@@ -47,7 +47,7 @@ describe("AuthController", () => {
                     username: "chris",
                 })
                 .set("Accept", "application/json");
-            expect(result.body).toEqual({ msg: "I am signed in" });
+            expect(result.body).toBeDefined();
         });
         it("if signin user does not exist, should return an error message", async () => {
             const result = await request(app.getHttpServer())

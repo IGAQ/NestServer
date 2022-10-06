@@ -3,10 +3,14 @@ import * as bcrypt from "bcrypt";
 import { AuthDto } from "../models";
 import { IAuthService } from "./auth.service.interface";
 import { IUsersService } from "../../users/services/users.service.interface";
+import { JwtService } from "@nestjs/jwt";
 
 @Injectable({})
 export class AuthService implements IAuthService {
-    constructor(@Inject("IUsersService") private _usersService: IUsersService) {}
+    constructor(
+        @Inject("IUsersService") private _usersService: IUsersService,
+        private jwt: JwtService
+    ) {}
 
     public async signup(dto: AuthDto): Promise<{ msg: string }> {
         const salt = await bcrypt.genSaltSync(10);
@@ -24,7 +28,7 @@ export class AuthService implements IAuthService {
         }
     }
 
-    public async signin(dto: AuthDto): Promise<{ msg: string }> {
+    public async signin(dto: AuthDto) {
         const user = await this._usersService.findUserByUsername(dto.username);
         if (!user) {
             return { msg: "User not found" };
@@ -33,6 +37,26 @@ export class AuthService implements IAuthService {
         if (!isMatch) {
             return { msg: "Incorrect password" };
         }
-        return { msg: "I am signed in" };
+
+        return this.signToken(dto.username, dto.email);
+    }
+
+    async signToken(userId: string, email: string): Promise<{ access_token: string }> {
+        const payload = {
+            sub: userId,
+            email,
+        };
+
+        // The JWT token is signed with the secret key and the algorithm specified in the environment variables.
+        // const secret = this.config.get("JWT_SECRET");
+
+        const token = await this.jwt.signAsync(payload, {
+            expiresIn: "15m",
+            // secret: secret,
+            secret: "costco-poutine",
+        });
+        return {
+            access_token: token,
+        };
     }
 }
