@@ -19,4 +19,8 @@ export class Post {
     authorUser: User;
     @ApiProperty({ type: Number })
     authorUserId: number;
+
+    constructor(partial?: Partial<Post>) {
+        Object.assign(this, partial);
+    }
 }

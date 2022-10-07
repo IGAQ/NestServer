@@ -90,10 +90,11 @@ describe("AuthController", () => {
 
     describe("bad signup", () => {
         it("if signup has invalid email, should return an error message", async () => {
-            const dto = new AuthDto();
-            dto.email = "ian";
-            dto.password = "ian123";
-            dto.username = "yo";
+            const dto = new AuthDto({
+                email: "ian",
+                password: "ian123",
+                username: "ian",
+            });
 
             const result = await request(app.getHttpServer())
                 .post(`/auth/signup`)

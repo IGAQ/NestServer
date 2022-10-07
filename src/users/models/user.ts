@@ -34,4 +34,8 @@ export class User {
 
     @ApiProperty({ type: Role })
     posts: Post[];
+
+    constructor(partial?: Partial<User>) {
+        Object.assign(this, partial);
+    }
 }

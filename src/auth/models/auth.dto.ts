@@ -1,4 +1,5 @@
 import { IsEmail, IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { Exclude } from "class-transformer";
 
 export class AuthDto {
     @IsNumber()
@@ -15,5 +16,10 @@ export class AuthDto {
 
     @IsString()
     @IsNotEmpty()
+    @Exclude()
     password: string;
+
+    constructor(partial?: Partial<AuthDto>) {
+        Object.assign(this, partial);
+    }
 }

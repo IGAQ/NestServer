@@ -1,10 +1,11 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
 import { IUsersService } from "../../users/services/users.service.interface";
 import { AuthDto, SignInPayloadDto, SignTokenDto } from "../models";
 import { IAuthService } from "./auth.service.interface";
+import { UserDto } from "../../users/models";
 
 @Injectable({})
 export class AuthService implements IAuthService {
@@ -24,31 +25,30 @@ export class AuthService implements IAuthService {
                 email: dto.email,
                 password: hash,
             });
-            return this.signToken(dto.userId, dto.email);
+            return this.signToken(new UserDto(dto));
         } catch (error) {
             throw new Error(error);
         }
     }
 
-    public async signin(signInPayloadDto: SignInPayloadDto) {
+    public async signIn(signInPayloadDto: SignInPayloadDto) {
         const user = await this._usersService.findUserByUsername(signInPayloadDto.username);
         if (!user) {
-            return { msg: "User not found" };
+            throw new HttpException("User not found", 404);
         }
         const isMatch = await bcrypt.compare(signInPayloadDto.password, user.password);
         if (!isMatch) {
-            return { msg: "Incorrect password" };
+            throw new HttpException("Incorrect password", 400);
         }
 
-        return this.signToken(user.userId, user.email);
+        return this.signToken(user);
     }
 
-    async signToken(userId: number, email: string): Promise<SignTokenDto> {
+    private async signToken(user: UserDto): Promise<SignTokenDto> {
         const payload = {
-            sub: userId,
-            email,
+            sub: user.userId,
+            username: user.username,
         };
-
         // The JWT token is signed with the secret key and the algorithm specified in the environment variables.
         const secret = this._configService.get("JWT_SECRET") || "secret";
 

@@ -12,4 +12,8 @@ export class RegisterUserPayloadDto {
     @IsEmail()
     @IsNotEmpty()
     email: string;
+
+    constructor(partial?: Partial<RegisterUserPayloadDto>) {
+        Object.assign(this, partial);
+    }
 }

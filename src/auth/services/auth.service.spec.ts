@@ -3,6 +3,7 @@ import { AuthService } from "./auth.service";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import { UsersServiceTest } from "../../users/services/users.service.test";
+import { SignInPayloadDto } from "../models";
 
 describe("AuthService", () => {
     let service: AuthService;
@@ -30,14 +31,58 @@ describe("AuthService", () => {
         expect(service).toBeDefined();
     });
 
-    describe("they are all giving successful promises", () => {
-        it("should return an object with the access_token property", async () => {
-            const result = await service.signin({
-                username: "john",
-                password: "john123", // john123
+    describe("IAuthService.signToken", () => {
+        describe("happy path",() => {
+            let result;
+
+            beforeAll(async () => {
+                result = await service.signIn(new SignInPayloadDto({
+                    username: "john",
+                    password: "john123", // john123
+                }));
             });
 
-            expect(result).toHaveProperty("access_token");
+            it("should return an object with the access_token property", async () => {
+                expect(result).toHaveProperty("access_token");
+            });
+
+            it("access_token property value has to be a string and be semantically valid.", () => {
+                expect(typeof result.access_token).toBe("string");
+                expect(result.access_token).toMatch(
+                    /^[A-Za-z0-9-_=]+.[A-Za-z0-9-_=]+.[A-Za-z0-9-_.+/=]*$/
+                );
+            });
+        });
+
+        describe("sad path", () => {
+            let result;
+            let exception;
+
+            const makeResult = async (signInPayloadDto: SignInPayloadDto) => {
+                try {
+                    result = await service.signIn(new SignInPayloadDto(signInPayloadDto));
+                } catch (error) {
+                    exception = error;
+                }
+            };
+
+            it("should throw an error when the password is wrong", async () => {
+                await makeResult(new SignInPayloadDto({
+                    username: "john",
+                    password: "john1234", // john123
+                }));
+                expect(exception).toBeDefined();
+                expect(exception.message).toBe("Incorrect password");
+            });
+
+            it("should throw an error when the username is wrong", async () => {
+                await makeResult(new SignInPayloadDto({
+                    username: "john1",
+                    password: "john123", // john123
+                }));
+                expect(exception).toBeDefined();
+                expect(exception.message).toBe("User not found");
+            });
         });
     });
 });

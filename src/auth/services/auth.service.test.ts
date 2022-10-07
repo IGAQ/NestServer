@@ -24,7 +24,7 @@ export class AuthServiceTest implements IAuthService {
         }
     }
 
-    public async signin(dto: AuthDto): Promise<{ msg: string }> {
+    public async signIn(dto: AuthDto): Promise<{ msg: string }> {
         const user = await this._usersService.findUserByUsername(dto.username);
         if (!user) {
             return { msg: "User not found" };
