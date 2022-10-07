@@ -1,10 +1,12 @@
 import { Test } from "@nestjs/testing";
 import * as request from "supertest";
 import { UsersServiceTest } from "../../users/services/users.service.test";
-import { AuthServiceTest } from "../services/auth.service.test";
 import { AuthController } from "./auth.controller";
 import { AuthDto } from "../models";
 import { INestApplication, ValidationPipe } from "@nestjs/common";
+import { AuthService } from "../services/auth.service";
+import { JwtService } from "@nestjs/jwt";
+import { ConfigService } from "@nestjs/config";
 
 describe("AuthController", () => {
     let app: INestApplication;
@@ -14,13 +16,15 @@ describe("AuthController", () => {
         const moduleRef = await Test.createTestingModule({
             controllers: [AuthController],
             providers: [
-                {
-                    provide: "IAuthService",
-                    useClass: AuthServiceTest,
-                },
+                JwtService,
+                ConfigService,
                 {
                     provide: "IUsersService",
                     useClass: UsersServiceTest,
+                },
+                {
+                    provide: "IAuthService",
+                    useClass: AuthService,
                 },
             ],
         }).compile();
@@ -90,7 +94,9 @@ describe("AuthController", () => {
                 })
                 .set("Accept", "application/json");
 
-            expect(result.body).toMatchObject({ msg: "I am signed up" });
+            expect(result.body).toBeDefined();
+            expect(typeof(result.body)).toBe("object");
+            expect(result.body).toHaveProperty("access_token");
         });
     });
 
