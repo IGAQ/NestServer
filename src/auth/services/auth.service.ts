@@ -13,7 +13,7 @@ export class AuthService implements IAuthService {
         @Inject("IUsersService") private _usersService: IUsersService,
         private _jwtService: JwtService,
         private _configService: ConfigService
-    ) { }
+    ) {}
 
     public async signup(signUpPayloadDto: SignUpPayloadDto) {
         const salt = await bcrypt.genSalt(10);

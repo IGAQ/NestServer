@@ -52,7 +52,7 @@ describe("AuthController", () => {
                 })
                 .set("Accept", "application/json");
             expect(result.body).toBeDefined();
-            expect(typeof(result.body)).toBe("object");
+            expect(typeof result.body).toBe("object");
             expect(result.body).toHaveProperty("access_token");
         });
         it("if signIn user does not exist, should return an error message", async () => {
@@ -95,7 +95,7 @@ describe("AuthController", () => {
                 .set("Accept", "application/json");
 
             expect(result.body).toBeDefined();
-            expect(typeof(result.body)).toBe("object");
+            expect(typeof result.body).toBe("object");
             expect(result.body).toHaveProperty("access_token");
         });
     });

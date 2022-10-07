@@ -52,12 +52,10 @@ describe("UsersController", () => {
         describe("Happy Path", () => {
             let jwtToken: string;
             beforeAll(async () => {
-                const result = await request(app.getHttpServer())
-                    .post(`/auth/signin`)
-                    .send({
-                        username: "chris",
-                        password: "secret",
-                    });
+                const result = await request(app.getHttpServer()).post(`/auth/signin`).send({
+                    username: "chris",
+                    password: "secret",
+                });
                 jwtToken = result.body.access_token;
                 console.log(jwtToken);
             });
@@ -92,12 +90,10 @@ describe("UsersController", () => {
             });
 
             it("should return an error message if the user does not exist userById", async () => {
-                const result = await request(app.getHttpServer())
-                    .post(`/auth/signin`)
-                    .send({
-                        username: "chris",
-                        password: "secret",
-                    });
+                const result = await request(app.getHttpServer()).post(`/auth/signin`).send({
+                    username: "chris",
+                    password: "secret",
+                });
                 let jwtToken = result.body.access_token;
 
                 const result2 = await request(app.getHttpServer())

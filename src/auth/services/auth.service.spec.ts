@@ -32,14 +32,16 @@ describe("AuthService", () => {
     });
 
     describe("IAuthService.signToken", () => {
-        describe("happy path",() => {
+        describe("happy path", () => {
             let result;
 
             beforeAll(async () => {
-                result = await service.signIn(new SignInPayloadDto({
-                    username: "john",
-                    password: "john123", // john123
-                }));
+                result = await service.signIn(
+                    new SignInPayloadDto({
+                        username: "john",
+                        password: "john123", // john123
+                    })
+                );
             });
 
             it("should return an object with the access_token property", async () => {
@@ -67,19 +69,23 @@ describe("AuthService", () => {
             };
 
             it("should throw an error when the password is wrong", async () => {
-                await makeResult(new SignInPayloadDto({
-                    username: "john",
-                    password: "john1234", // john123
-                }));
+                await makeResult(
+                    new SignInPayloadDto({
+                        username: "john",
+                        password: "john1234", // john123
+                    })
+                );
                 expect(exception).toBeDefined();
                 expect(exception.message).toBe("Incorrect password");
             });
 
             it("should throw an error when the username is wrong", async () => {
-                await makeResult(new SignInPayloadDto({
-                    username: "john1",
-                    password: "john123", // john123
-                }));
+                await makeResult(
+                    new SignInPayloadDto({
+                        username: "john1",
+                        password: "john123", // john123
+                    })
+                );
                 expect(exception).toBeDefined();
                 expect(exception.message).toBe("User not found");
             });
