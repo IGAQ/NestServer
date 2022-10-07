@@ -37,8 +37,8 @@ describe("AuthController", () => {
         authController = moduleRef.get<AuthController>(AuthController);
     });
 
-    describe("signin", () => {
-        it("if signin is successful, should return a success message", async () => {
+    describe("signIn", () => {
+        it("if signIn is successful, should return a jwt token", async () => {
             const result = await request(app.getHttpServer())
                 .post(`/auth/signin`)
                 .send({
@@ -48,8 +48,10 @@ describe("AuthController", () => {
                 })
                 .set("Accept", "application/json");
             expect(result.body).toBeDefined();
+            expect(typeof(result.body)).toBe("object");
+            expect(result.body).toHaveProperty("access_token");
         });
-        it("if signin user does not exist, should return an error message", async () => {
+        it("if signIn user does not exist, should return an error message", async () => {
             const result = await request(app.getHttpServer())
                 .post(`/auth/signin`)
                 .send({
@@ -58,7 +60,9 @@ describe("AuthController", () => {
                     username: "bob",
                 })
                 .set("Accept", "application/json");
-            expect(result.body).toMatchObject({ msg: "User not found" });
+            expect(typeof result.body).toBe("object");
+            expect(result.body).toHaveProperty("message");
+            expect(result.body.message).toBe("User not found");
         });
         it("if signin password is incorrect, should return an error message", async () => {
             const result = await request(app.getHttpServer())
@@ -69,7 +73,9 @@ describe("AuthController", () => {
                     username: "chris",
                 })
                 .set("Accept", "application/json");
-            expect(result.body).toMatchObject({ msg: "Incorrect password" });
+            expect(typeof result.body).toBe("object");
+            expect(result.body).toHaveProperty("message");
+            expect(result.body.message).toBe("Incorrect password");
         });
     });
 

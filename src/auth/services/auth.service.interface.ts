@@ -1,7 +1,7 @@
-import { AuthDto } from "../models";
+import { SignInPayloadDto, SignTokenDto, SignUpPayloadDto } from "../models";
 
 export interface IAuthService {
-    signup(dto: AuthDto): Promise<object>;
+    signup(signUpPayloadDto: SignUpPayloadDto): Promise<SignTokenDto>;
 
-    signIn(dto: AuthDto): Promise<object>;
+    signIn(signInPayloadDto: SignInPayloadDto): Promise<SignTokenDto>;
 }
