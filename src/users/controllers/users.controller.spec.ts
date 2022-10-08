@@ -50,10 +50,21 @@ describe("UsersController", () => {
 
     describe("GET /users/:id", () => {
         describe("Happy Path", () => {
+            let jwtToken: string;
+            beforeAll(async () => {
+                const result = await request(app.getHttpServer()).post(`/auth/signin`).send({
+                    username: "chris",
+                    password: "secret",
+                });
+                jwtToken = result.body.access_token;
+                console.log(jwtToken);
+            });
+
             it("should return a user by id", async () => {
                 const result = await request(app.getHttpServer())
                     .get(`/users/1`)
-                    .set("Accept", "application/json");
+                    .set("Accept", "application/json")
+                    .set("Authorization", `Bearer ${jwtToken}`);
 
                 expect(result.body).toMatchObject({
                     userId: 1,
@@ -79,11 +90,18 @@ describe("UsersController", () => {
             });
 
             it("should return an error message if the user does not exist userById", async () => {
-                const result = await request(app.getHttpServer())
-                    .get(`/users/666`)
-                    .set("Accept", "application/json");
+                const result = await request(app.getHttpServer()).post(`/auth/signin`).send({
+                    username: "chris",
+                    password: "secret",
+                });
+                let jwtToken = result.body.access_token;
 
-                expect(result.body).toMatchObject({
+                const result2 = await request(app.getHttpServer())
+                    .get(`/users/666`)
+                    .set("Accept", "application/json")
+                    .set("Authorization", `Bearer ${jwtToken}`);
+
+                expect(result2.body).toMatchObject({
                     message: "User not found",
                     statusCode: 404,
                 });

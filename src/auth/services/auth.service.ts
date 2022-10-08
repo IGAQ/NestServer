@@ -1,10 +1,11 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
 import { IUsersService } from "../../users/services/users.service.interface";
-import { AuthDto, SignInPayloadDto, SignTokenDto } from "../models";
+import { SignInPayloadDto, SignTokenDto, SignUpPayloadDto } from "../models";
 import { IAuthService } from "./auth.service.interface";
+import { UserDto } from "../../users/models";
 
 @Injectable({})
 export class AuthService implements IAuthService {
@@ -12,52 +13,55 @@ export class AuthService implements IAuthService {
         @Inject("IUsersService") private _usersService: IUsersService,
         private _jwtService: JwtService,
         private _configService: ConfigService
-    ) { }
+    ) {}
 
-    public async signup(dto: AuthDto) {
+    public async signup(signUpPayloadDto: SignUpPayloadDto) {
         const salt = await bcrypt.genSalt(10);
-        const hash = await bcrypt.hash(dto.password, salt);
+        const hash = await bcrypt.hash(signUpPayloadDto.password, salt);
 
         try {
             await this._usersService.addUser({
-                username: dto.username,
-                email: dto.email,
+                username: signUpPayloadDto.username,
+                email: signUpPayloadDto.email,
                 password: hash,
             });
-            return this.signToken(dto.userId, dto.email);
+            const token = await this.signToken(new UserDto(signUpPayloadDto));
+            return new SignTokenDto({
+                access_token: token,
+            });
         } catch (error) {
             throw new Error(error);
         }
     }
 
-    public async signin(signInPayloadDto: SignInPayloadDto) {
+    public async signIn(signInPayloadDto: SignInPayloadDto) {
         const user = await this._usersService.findUserByUsername(signInPayloadDto.username);
         if (!user) {
-            return { msg: "User not found" };
+            throw new HttpException("User not found", 404);
         }
         const isMatch = await bcrypt.compare(signInPayloadDto.password, user.password);
         if (!isMatch) {
-            return { msg: "Incorrect password" };
+            throw new HttpException("Incorrect password", 400);
         }
 
-        return this.signToken(user.userId, user.email);
+        const token = await this.signToken(user);
+
+        return new SignTokenDto({
+            access_token: token,
+        });
     }
 
-    async signToken(userId: number, email: string): Promise<SignTokenDto> {
+    private async signToken(user: UserDto): Promise<string> {
         const payload = {
-            sub: userId,
-            email,
+            sub: user.userId,
+            username: user.username,
         };
-
         // The JWT token is signed with the secret key and the algorithm specified in the environment variables.
         const secret = this._configService.get("JWT_SECRET") || "secret";
 
-        const token = await this._jwtService.signAsync(payload, {
+        return await this._jwtService.signAsync(payload, {
             expiresIn: "15m",
             secret: secret,
-        });
-        return new SignTokenDto({
-            access_token: token,
         });
     }
 }

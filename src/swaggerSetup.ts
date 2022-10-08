@@ -5,6 +5,7 @@ async function swaggerSetup(app: any) {
         .setTitle("Nest Server REST API")
         .setDescription("IGAQ REST API Documentation")
         .setVersion("1.0")
+        .addBearerAuth()
         .addTag("users")
         .addTag("auth")
         .build();
