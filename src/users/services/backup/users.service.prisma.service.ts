@@ -5,13 +5,11 @@ import { IPrismaService } from "../../../prisma/prisma.service.interface";
 
 @Injectable()
 export class UsersServicePrisma implements IUsersService {
-    constructor(
-        @Inject("IPrismaService") private _prismaService: IPrismaService,
-    ) {}
+    constructor(@Inject("IPrismaService") private _prismaService: IPrismaService) {}
 
     public async findAll(): Promise<User[]> {
         // @ts-ignore
-        return (await this._prismaService.user.findMany()).map((user) => new User(user)) ?? [];
+        return (await this._prismaService.user.findMany()).map(user => new User(user)) ?? [];
     }
 
     public async findUserByUsername(username: string): Promise<User | undefined> {
@@ -21,7 +19,9 @@ export class UsersServicePrisma implements IUsersService {
     }
 
     public async findUserById(userId: string): Promise<User | undefined> {
-        const foundUser = await this._prismaService.user.findUnique({ where: { userId: Number(userId) } });
+        const foundUser = await this._prismaService.user.findUnique({
+            where: { userId: Number(userId) },
+        });
 
         return foundUser as any;
     }

@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { RegisterUserPayloadDto, Role, User, UserDto } from "../models";
 import { IUsersService } from "./users.service.interface";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
 @Injectable()
 export class UsersServiceTest implements IUsersService {
