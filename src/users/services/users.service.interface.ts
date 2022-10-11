@@ -11,4 +11,6 @@ export interface IUsersService {
     addUser(user: RegisterUserPayloadDto): Promise<void>;
 
     updateUser(user: User): Promise<void>;
+
+    deleteUser(userId: string): Promise<void>;
 }

@@ -107,4 +107,10 @@ export class UsersService implements IUsersService {
             } as Omit<User, "posts" | "userId" | "createdAt">
         );
     }
+
+    public async deleteUser(userId: string): Promise<void> {
+        this._neo4jService.write(`MATCH (u:User {userId: $userId}) DETACH DELETE u`, {
+            userId: userId,
+        });
+    }
 }

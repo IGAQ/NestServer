@@ -39,4 +39,8 @@ export class UsersServicePrisma implements IUsersService {
     public async updateUser(user: User): Promise<void> {
         throw new Error("Method not implemented.");
     }
+
+    public async deleteUser(userId: string): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
 }
