@@ -21,10 +21,6 @@ model User {
   normalizedUsername String
 
   passwordHash String
-  passwordSalt String
-
-  firstName String?
-  lastName  String?
 
   role  Role   @default(USER)
   posts Post[]

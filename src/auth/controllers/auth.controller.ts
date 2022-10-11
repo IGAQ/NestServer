@@ -1,6 +1,6 @@
 import { Body, Controller, Inject, Post, Res, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
-import { AuthDto, SignInPayloadDto, SignUpPayloadDto } from "../models";
+import { SignInPayloadDto, SignUpPayloadDto } from "../models";
 import { IAuthService } from "../services/auth.service.interface";
 import { AuthGuard } from "@nestjs/passport";
 import { Response } from "express";
@@ -22,7 +22,7 @@ export class AuthController {
     }
 
     @Post("authenticate")
-    // @UseGuards(AuthGuard("jwt"))
+    @UseGuards(AuthGuard("jwt"))
     /**
      * This route is for the front-end to use to check whether the user is authenticated or not.
      * In other words, checks if the JWT token is still valid or not.

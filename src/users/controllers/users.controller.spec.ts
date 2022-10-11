@@ -94,7 +94,7 @@ describe("UsersController", () => {
                     username: "chris",
                     password: "secret",
                 });
-                let jwtToken = result.body.access_token;
+                const jwtToken = result.body.access_token;
 
                 const result2 = await request(app.getHttpServer())
                     .get(`/users/666`)
