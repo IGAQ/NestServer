@@ -5,7 +5,7 @@ import * as bcrypt from "bcrypt";
 import { IUsersService } from "../../users/services/users.service.interface";
 import { SignInPayloadDto, SignTokenDto, SignUpPayloadDto } from "../models";
 import { IAuthService } from "./auth.service.interface";
-import { UserDto } from "../../users/models";
+import { User } from "../../users/models";
 
 @Injectable({})
 export class AuthService implements IAuthService {
@@ -25,7 +25,7 @@ export class AuthService implements IAuthService {
                 email: signUpPayloadDto.email,
                 password: hash,
             });
-            const token = await this.signToken(new UserDto(signUpPayloadDto));
+            const token = await this.signToken(new User(signUpPayloadDto));
             return new SignTokenDto({
                 access_token: token,
             });
@@ -39,7 +39,7 @@ export class AuthService implements IAuthService {
         if (!user) {
             throw new HttpException("User not found", 404);
         }
-        const isMatch = await bcrypt.compare(signInPayloadDto.password, user.password);
+        const isMatch = await bcrypt.compare(signInPayloadDto.password, user.passwordHash);
         if (!isMatch) {
             throw new HttpException("Incorrect password", 400);
         }
@@ -51,7 +51,7 @@ export class AuthService implements IAuthService {
         });
     }
 
-    private async signToken(user: UserDto): Promise<string> {
+    private async signToken(user: User): Promise<string> {
         const payload = {
             sub: user.userId,
             username: user.username,
