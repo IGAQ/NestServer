@@ -12,7 +12,7 @@ export class UsersService implements IUsersService {
         const allUsers = await this._neo4jService.read(`MATCH (u:User) RETURN u`, {});
         console.debug(allUsers);
         return allUsers.records.map(record => {
-            let user = record.get("u").properties;
+            const user = record.get("u").properties;
             user.role = user.role.map(r => r.low) as Role[];
             return user;
         });
@@ -24,7 +24,7 @@ export class UsersService implements IUsersService {
             { username: username }
         );
         if (user.records.length === 0) return undefined;
-        let foundUser = user.records[0].get("u").properties;
+        const foundUser = user.records[0].get("u").properties;
         foundUser.role = foundUser.role.map(r => r.low) as Role[];
         return foundUser;
     }
@@ -34,7 +34,7 @@ export class UsersService implements IUsersService {
             userId: userId,
         });
         if (user.records.length === 0) return undefined;
-        let foundUser = user.records[0].get("u").properties;
+        const foundUser = user.records[0].get("u").properties;
         foundUser.role = foundUser.role.map(r => r.low) as Role[];
         return foundUser;
     }

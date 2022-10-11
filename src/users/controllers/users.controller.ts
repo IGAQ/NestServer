@@ -10,7 +10,7 @@ import {
     UseInterceptors,
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
-import { Role, User, UserDto } from "../models";
+import { Role, User } from "../models";
 import { Roles } from "../../auth/decorators/roles.decorator";
 import { RolesGuard } from "../../auth/guards/roles.guard";
 import { IUsersService } from "../services/users.service.interface";
