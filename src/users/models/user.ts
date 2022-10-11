@@ -45,8 +45,6 @@ export class User {
     @ApiProperty({ type: Role })
     role: Role[];
 
-
-
     @ApiProperty({ type: Post, isArray: true })
     posts: RelatedEntity<PostAndUserRelationshipTypes, Post>;
 
