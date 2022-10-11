@@ -1,52 +1,59 @@
 import { Injectable } from "@nestjs/common";
-import { RegisterUserPayloadDto, Role, UserDto } from "../models";
+import { RegisterUserPayloadDto, Role, User, UserDto } from "../models";
 import { IUsersService } from "./users.service.interface";
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class UsersServiceTest implements IUsersService {
-    private readonly _users: UserDto[] = [
-        {
-            userId: 1,
+    private readonly _users: User[] = [
+        new User({
+            userId: "1",
             username: "john",
-            password: "$2b$10$BGP81ZvOBntrlEHHw8qxaunw8sfn24DPO4v/WGNZW8QLNA/1MTZG6", // john123
+            passwordHash: "$2b$10$BGP81ZvOBntrlEHHw8qxaunw8sfn24DPO4v/WGNZW8QLNA/1MTZG6", // john123
             email: "john@gmail.com",
-            roles: [Role.USER],
-        },
-        {
-            userId: 2,
+            role: [Role.USER],
+        }),
+        new User({
+            userId: "2",
             username: "chris",
-            password: "$2b$10$QeRnByFoI7VTlOks5aLMbuVRXnMLyZ8FyuiezNOUIXuvPEc8cXSlu", // secret
+            passwordHash: "$2b$10$QeRnByFoI7VTlOks5aLMbuVRXnMLyZ8FyuiezNOUIXuvPEc8cXSlu", // secret
             email: "chris@gmail.com",
-            roles: [Role.ADMIN],
-        },
-        {
-            userId: 3,
+            role: [Role.ADMIN],
+        }),
+        new User({
+            userId: "3",
             username: "maria",
-            password: "$2b$10$MMks.gHnjpz2Of38.buHC.jhL6BuDoRLaJBYhyvMP6/UGSMx.Fanm", // guess
+            passwordHash: "$2b$10$MMks.gHnjpz2Of38.buHC.jhL6BuDoRLaJBYhyvMP6/UGSMx.Fanm", // guess
             email: "maria@gmail.com",
-            roles: [Role.USER, Role.MODERATOR],
-        },
+            role: [Role.USER, Role.MODERATOR],
+        }),
     ];
 
-    public async findAll(): Promise<any> {
+    public async findAll(): Promise<User[]> {
         return this._users;
     }
 
-    public async findUserByUsername(username: string): Promise<UserDto | undefined> {
-        return this._users.find(u => u.username === username);
+    public async findUserByUsername(username: string): Promise<User | undefined> {
+        return this._users.find(u => u.username === username) as any;
     }
 
-    public async findUserById(userId: number): Promise<UserDto | undefined> {
-        return this._users.find(u => u.userId === userId);
+    public async findUserById(userId: string): Promise<User | undefined> {
+        return this._users.find(u => u.userId === userId) as any;
     }
 
     public async addUser(user: RegisterUserPayloadDto): Promise<void> {
-        const newUser = new UserDto();
-        newUser.userId = this._users.length + 1;
-        newUser.username = user.username;
-        newUser.password = user.password;
-        newUser.email = user.email;
+        const newUser = new User({
+            userId: uuidv4(),
+            username: user.username,
+            passwordHash: user.password,
+            email: user.email,
+            role: [Role.USER],
+        });
 
         this._users.push(newUser);
+    }
+
+    public async updateUser(user: User): Promise<void> {
+        throw new Error("Method not implemented.");
     }
 }
