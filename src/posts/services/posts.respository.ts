@@ -30,7 +30,6 @@ export class PostsRepository {
 			updatedAt: $updatedAt,
 			postContent: $postContent,
             postTitle: $postTitle,
-            restricted: $restricted,
             pending: $pending,
 		})`,
             {
@@ -62,7 +61,6 @@ export class PostsRepository {
     //         {
     //             postTitle: post.title,
     //             postContent: post.content,
-    //             restricted: post.restricted,
     //             pending: post.pending,
     //             updatedAt: new Date().getTime(),
     //         } as Omit<any, "posts" | "postId" | "createdAt">
