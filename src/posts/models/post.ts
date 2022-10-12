@@ -13,9 +13,9 @@ export class Post {
     updatedAt: Date;
 
     @ApiProperty({ type: String })
-    title: string;
+    postTitle: string;
     @ApiProperty({ type: String })
-    content: string;
+    postContent: string;
 
     @ApiProperty({ type: String })
     authorUser: User;

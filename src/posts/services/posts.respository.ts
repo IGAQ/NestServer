@@ -22,7 +22,7 @@ export class PostsRepository {
         return foundPost;
     }
 
-    public async addPost(post: any): Promise<void> {
+    public async addPost(post: Post): Promise<void> {
         this._neo4jService.write(
             `CREATE (p:Post {
 			postId: $postId,
@@ -39,8 +39,8 @@ export class PostsRepository {
                 createdAt: new Date().getTime(),
                 updatedAt: new Date().getTime(),
 
-                postContent: post.content,
-                postTitle: post.title,
+                postContent: post.postContent,
+                postTitle: post.postTitle,
 
                 restricted: false,
                 pending: false,
