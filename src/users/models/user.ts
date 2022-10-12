@@ -4,7 +4,9 @@ import { Role } from "./role";
 import { Post } from "../../posts/models";
 import { RelatedEntity } from "../../neo4j/neo4j.helper.types";
 import { UserToPostRelTypes } from "./toPost";
+import { Labels } from "../../neo4j/neo4j.decorators";
 
+@Labels("User")
 export class User {
     @ApiProperty({ type: String, format: "uuid" })
     userId: string;
