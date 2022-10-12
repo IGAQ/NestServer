@@ -7,8 +7,8 @@ export class Post {
     @ApiProperty({ type: Number })
     postId: number;
 
-    @ApiProperty({ type: Date })
-    updatedAt: Date;
+    @ApiProperty({ type: Number })
+    updatedAt: number;
 
     @ApiProperty({ type: String })
     postTitle: string;
