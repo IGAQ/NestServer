@@ -4,7 +4,7 @@ import { Post } from "../../posts/models";
 import { RelatedEntity } from "../../neo4j/neo4j.helper.types";
 import { Exclude } from "class-transformer";
 
-export enum PostAndUserRelationshipTypes {
+export enum UserToPostRelTypes {
     AUTHORED = "AUTHORED",
     FAVORITES = "FAVORITES",
     DOWN_VOTES = "DOWN_VOTES",
@@ -47,7 +47,7 @@ export class User {
     role: Role[];
 
     @ApiProperty({ type: Post, isArray: true })
-    posts: RelatedEntity<PostAndUserRelationshipTypes, Post>;
+    posts: RelatedEntity<Post, UserToPostRelTypes>;
 
     constructor(partial?: Partial<User>) {
         Object.assign(this, partial);
