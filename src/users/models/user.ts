@@ -1,16 +1,9 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { Exclude } from "class-transformer";
 import { Role } from "./role";
 import { Post } from "../../posts/models";
 import { RelatedEntity } from "../../neo4j/neo4j.helper.types";
-import { Exclude } from "class-transformer";
-
-export enum UserToPostRelTypes {
-    AUTHORED = "AUTHORED",
-    FAVORITES = "FAVORITES",
-    DOWN_VOTES = "DOWN_VOTES",
-    UPVOTES = "UPVOTES",
-    READ = "READ",
-}
+import { UserToPostRelTypes } from "./toPost";
 
 export class User {
     @ApiProperty({ type: String, format: "uuid" })
