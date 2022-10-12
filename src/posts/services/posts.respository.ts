@@ -41,7 +41,6 @@ export class PostsRepository {
                 postContent: post.postContent,
                 postTitle: post.postTitle,
 
-                restricted: false,
                 pending: false,
             } as Omit<any, "posts">
         );
