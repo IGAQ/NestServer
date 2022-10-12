@@ -1,6 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { User } from "../../users/models";
+import { Labels } from "../../neo4j/neo4j.decorators";
 
+@Labels("Post")
 export class Post {
     @ApiProperty({ type: Number })
     postId: number;
