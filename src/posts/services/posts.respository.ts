@@ -26,7 +26,6 @@ export class PostsRepository {
         this._neo4jService.write(
             `CREATE (p:Post {
 			postId: $postId,
-			createdAt: $createdAt,
 			updatedAt: $updatedAt,
 			postContent: $postContent,
             postTitle: $postTitle,
@@ -35,7 +34,6 @@ export class PostsRepository {
             {
                 postId: uuidv4(),
 
-                createdAt: new Date().getTime(),
                 updatedAt: new Date().getTime(),
 
                 postContent: post.postContent,
