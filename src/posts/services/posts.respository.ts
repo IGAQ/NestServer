@@ -47,26 +47,6 @@ export class PostsRepository {
         );
     }
 
-    // Edit is not implemented yet
-    // public async updatePost(post: Post): Promise<void> {
-    //     this._neo4jService.write(
-    //         `MATCH (p:Post {postId: $postId})
-    // 	SET
-    // 		p.postTitle = $postTitle,
-    // 		p.postContent = $postContent,
-    // 		p.restricted = $restricted,
-    // 		p.pending = $pending,
-    // 		p.updatedAt = $updatedAt
-    // 	`,
-    //         {
-    //             postTitle: post.title,
-    //             postContent: post.content,
-    //             pending: post.pending,
-    //             updatedAt: new Date().getTime(),
-    //         } as Omit<any, "posts" | "postId" | "createdAt">
-    //     );
-    // }
-
     public async restrictPost(postId: string, restrictedProps: RestrictedProps): Promise<void> {
         this._neo4jService.write(
             `MATCH (p:Post {postId: $postId}) 
