@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { User } from "../../users/models";
 import { Labels } from "../../neo4j/neo4j.decorators";
+import { RestrictedProps } from "./toSelf";
 
 @Labels("Post")
 export class Post {
@@ -19,9 +20,9 @@ export class Post {
     authorUser: User;
 
     @ApiProperty({ type: Boolean })
-    restricted: boolean;
-    @ApiProperty({ type: Boolean })
     pending: boolean;
+
+    restrictedProps?: RestrictedProps = null;
 
     constructor(partial?: Partial<Post>) {
         Object.assign(this, partial);

@@ -9,17 +9,33 @@ export class PostsRepository {
     constructor(@Inject(Neo4jService) private _neo4jService: Neo4jService) {}
 
     public async findAll(): Promise<Post[]> {
-        const allPosts = await this._neo4jService.read(`MATCH (p:Post) RETURN p`, {});
-        console.debug(allPosts);
-        return allPosts.records[0]?.get("p").properties ?? [];
+        const allPosts = await this._neo4jService.read(
+            `MATCH (p:Post)-[restrictedProps:${PostToSelfRelTypes.RESTRICTED}]->(p) RETURN p, restrictedProps`,
+            {}
+        );
+        let records = allPosts.records;
+        if (records.length === 0) return [];
+        return records.map((record) => {
+            return new Post({
+                ...record.get("p").properties,
+                restrictedProps: record.get("restrictedProps")?.properties ?? null,
+            });
+        });
     }
 
     public async findPostById(postId: string): Promise<Post | undefined> {
-        const post = await this._neo4jService.read(`MATCH (p:Post {postId: $postId}) RETURN p`, {
-            postId: postId,
-        });
+        const post = await this._neo4jService.read(
+            `MATCH (p:Post {postId: $postId})-[restrictedProp:${PostToSelfRelTypes.RESTRICTED}]->(p) RETURN restrictedProp, p`,
+            {
+                postId: postId,
+            }
+        );
         if (post.records.length === 0) return undefined;
-        return new Post(post.records[0].get("p").properties);
+        let record = post.records[0];
+        return new Post({
+            ...record.get("p").properties,
+            restrictedProps: record.get("restrictedProp")?.properties ?? null,
+        });
     }
 
     public async addPost(post: Post): Promise<void> {
