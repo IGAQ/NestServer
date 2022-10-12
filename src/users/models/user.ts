@@ -7,8 +7,9 @@ import { Exclude } from "class-transformer";
 export enum PostAndUserRelationshipTypes {
     AUTHORED = "AUTHORED",
     FAVORITES = "FAVORITES",
-    VOTES = "VOTES",
-    READ_STATE = "READ_STATE",
+    DOWN_VOTES = "DOWN_VOTES",
+    UPVOTES = "UPVOTES",
+    READ = "READ",
 }
 
 export class User {
