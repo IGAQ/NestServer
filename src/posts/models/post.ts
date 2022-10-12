@@ -17,8 +17,6 @@ export class Post {
 
     @ApiProperty({ type: String })
     authorUser: User;
-    @ApiProperty({ type: Number })
-    authorUserId: number;
 
     @ApiProperty({ type: Boolean })
     restricted: boolean;

@@ -32,8 +32,7 @@ export class UsersServicePrisma implements IUsersService {
         //     email: user.email,
         //     password: user.password,
         // });
-
-       // this._prismaService.user.create({ data: newUser as any });
+        // this._prismaService.user.create({ data: newUser as any });
     }
 
     public async updateUser(user: User): Promise<void> {

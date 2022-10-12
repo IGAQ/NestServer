@@ -1,7 +1,8 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { Neo4jService } from "src/neo4j/neo4j.service";
 import { v4 as uuidv4 } from "uuid";
-import { Post } from "../models/post";
+import { Post } from "../models";
+import { PostToSelfRelTypes, RestrictedProps } from "../models/toSelf";
 
 @Injectable()
 export class PostsRepository {
@@ -18,8 +19,7 @@ export class PostsRepository {
             postId: postId,
         });
         if (post.records.length === 0) return undefined;
-        const foundPost = post.records[0].get("p").properties;
-        return foundPost;
+        return new Post(post.records[0].get("p").properties);
     }
 
     public async addPost(post: Post): Promise<void> {
@@ -69,9 +69,20 @@ export class PostsRepository {
     //     );
     // }
 
-    public async deleteUser(postId: string): Promise<void> {
-        this._neo4jService.write(`MATCH (p:User {postId: $postId}) DETACH DELETE p`, {
-            postId: postId,
-        });
+    public async restrictPost(postId: string, restrictedProps: RestrictedProps): Promise<void> {
+        this._neo4jService.write(
+            `MATCH (p:Post {postId: $postId}) 
+            CREATE (p)-[r:${PostToSelfRelTypes.RESTRICTED} {
+                restrictedAt: $restrictedAt,
+                moderatorId: $moderatorId,
+                reason: $reason,
+            }]->(p)`,
+            {
+                postId: postId,
+                restrictedAt: restrictedProps.restrictedAt,
+                moderatorId: restrictedProps.moderatorId,
+                reason: restrictedProps.reason,
+            }
+        );
     }
 }
