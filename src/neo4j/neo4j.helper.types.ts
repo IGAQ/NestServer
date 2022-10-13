@@ -12,7 +12,7 @@ export class RelatedEntityRecordItem<EntityType> {
 
 export type RelatedEntities<EntityType, T extends string> = {
     [key in T]: {
-        records: Array<RelatedEntityRecordItem<EntityType>>
+        records: Array<RelatedEntityRecordItem<EntityType>>;
         relType: T;
     };
 };
