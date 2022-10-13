@@ -15,16 +15,16 @@ export class PostsRepository {
     public async findAll(): Promise<Post[]> {
         const allPosts = await this._neo4jService.read(
             `MATCH (p:Post)-[restrictedProps:${PostToSelfRelTypes.RESTRICTED}]->(p)
-            (p)-[:${PostToPostTypeRelTypes.HAS_POST_TYPE}]->(postType:PostType)
-            (p)-[:${PostToPostTagRelTypes.HAS_POST_TAG}]->(postTag:PostTag)
-            (p)-[hasAwardRel:${PostToAwardRelTypes.HAS_AWARD}]->(award:Award)
+            MATCH (p)-[:${PostToPostTypeRelTypes.HAS_POST_TYPE}]->(postType:PostType)
+            MATCH (p)-[:${PostToPostTagRelTypes.HAS_POST_TAG}]->(postTag:PostTag)
+            MATCH (p)-[hasAwardRel:${PostToAwardRelTypes.HAS_AWARD}]->(award:Award)
             RETURN p, restrictedProps, postType, postTag, award, hasAwardRel`,
             {}
         );
         let records = allPosts.records;
         console.log(records, "records for findAll");
         if (records.length === 0) return [];
-        return records.map((record) => {
+        return records.map(record => {
             let awards = record.get("award");
             let hasAwardRel = record.get("hasAwardRel");
 
@@ -49,7 +49,11 @@ export class PostsRepository {
 
     public async findPostById(postId: string): Promise<Post | undefined> {
         const post = await this._neo4jService.read(
-            `MATCH (p:Post {postId: $postId})-[restrictedProp:${PostToSelfRelTypes.RESTRICTED}]->(p) RETURN restrictedProp, p`,
+            `MATCH (p:Post {postId: $postId})-[restrictedProp:${PostToSelfRelTypes.RESTRICTED}]->(p) 
+            MATCH (p)-[:${PostToPostTypeRelTypes.HAS_POST_TYPE}]->(postType:PostType)
+            MATCH (p)-[:${PostToPostTagRelTypes.HAS_POST_TAG}]->(postTag:PostTag)
+            MATCH (p)-[hasAwardRel:${PostToAwardRelTypes.HAS_AWARD}]->(award:Award)
+            RETURN p, restrictedProps, postType, postTag, award, hasAwardRel`,
             {
                 postId: postId,
             }
@@ -65,16 +69,24 @@ export class PostsRepository {
     public async addPost(post: Post): Promise<void> {
         this._neo4jService.write(
             `
-            MATCH (postType:PostType) WHERE postType.typeId = $postTypeId
             CREATE (p:Post {
-			postId: $postId,
-			updatedAt: $updatedAt,
-			postContent: $postContent,
-            postTitle: $postTitle,
-            pending: $pending,
-		})-[:${PostToPostTypeRelTypes.HAS_POST_TYPE}]->(postType)
+	            postId: $postId,
+	            updatedAt: $updatedAt,
+	            postContent: $postContent,
+                postTitle: $postTitle,
+                pending: $pending
+            })
+            WITH [$withClause] AS postTagsToBeConnected
+            UNWIND postTagsToBeConnected as x
+                MATCH (postType:PostType) WHERE postType.typeId = $postTypeId
+                MATCH (postTag:PostTag) WHERE postTag.tagName = x
+                MATCH (p1:Post) WHERE p1.postId = $postId
+                    MERGE (p1)-[:${PostToPostTypeRelTypes.HAS_POST_TYPE}]->(postType)
+                    CREATE (p1)-[:${PostToPostTagRelTypes.HAS_POST_TAG}]->(postTag)
 		`,
             {
+                withClause: post.postTags.map(p => `"${p.tagName}"`).join(","),
+
                 // Post
                 postId: uuidv4(),
 
@@ -87,7 +99,6 @@ export class PostsRepository {
 
                 // Post.postType
                 postTypeId: post.postType.postTypeId,
-
             } as Omit<any, "posts">
         );
     }
