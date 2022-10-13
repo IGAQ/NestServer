@@ -1,24 +1,24 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { User } from "../../users/models";
 import { Labels } from "../../neo4j/neo4j.decorators";
+import { RelatedEntities } from "../../neo4j/neo4j.helper.types";
+import { User } from "../../users/models";
+import { PostType, PostTag, Award } from "./index";
 import { RestrictedProps } from "./toSelf";
-import { HasPostTypeProps } from "./toPostType";
-import { HasPostTagProps } from "./toTags";
-import { HasAwardProps } from "./toAward";
+import { PostToAwardRelTypes } from "./toAward";
 
 @Labels("Post")
 export class Post {
     @ApiProperty({ type: Number })
     postId: number;
 
-    @ApiProperty({ type: HasPostTypeProps })
-    postType: HasPostTypeProps;
+    @ApiProperty({ type: PostType })
+    postType: PostType;
 
-    @ApiProperty({ type: HasPostTagProps, isArray: true })
-    postTags: HasPostTagProps[];
+    @ApiProperty({ type: PostTag, isArray: true })
+    postTags: PostTag[];
 
-    @ApiProperty({ type: HasAwardProps, isArray: true })
-    awards: HasAwardProps[];
+    @ApiProperty({ type: Award, isArray: true })
+    awards: RelatedEntities<Award, PostToAwardRelTypes>;
 
     @ApiProperty({ type: Number })
     updatedAt: number;
