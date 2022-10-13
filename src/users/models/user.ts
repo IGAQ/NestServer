@@ -22,7 +22,7 @@ export class User {
     emailVerified: boolean;
 
     @ApiProperty({ type: String })
-    phoneNumber: string;
+    phoneNumber: string | null;
     @ApiProperty({ type: Boolean })
     phoneNumberVerified: boolean;
 
