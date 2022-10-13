@@ -1,16 +1,12 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { Exclude } from "class-transformer";
 import { Role } from "./role";
 import { Post } from "../../posts/models";
-import { RelatedEntity } from "../../neo4j/neo4j.helper.types";
-import { Exclude } from "class-transformer";
+import { RelatedEntities } from "../../neo4j/neo4j.helper.types";
+import { UserToPostRelTypes } from "./toPost";
+import { Labels } from "../../neo4j/neo4j.decorators";
 
-export enum PostAndUserRelationshipTypes {
-    AUTHORED = "AUTHORED",
-    FAVORITES = "FAVORITES",
-    VOTES = "VOTES",
-    READ_STATE = "READ_STATE",
-}
-
+@Labels("User")
 export class User {
     @ApiProperty({ type: String, format: "uuid" })
     userId: string;
@@ -46,7 +42,7 @@ export class User {
     role: Role[];
 
     @ApiProperty({ type: Post, isArray: true })
-    posts: RelatedEntity<PostAndUserRelationshipTypes, Post>;
+    posts: RelatedEntities<Post, UserToPostRelTypes>;
 
     constructor(partial?: Partial<User>) {
         Object.assign(this, partial);

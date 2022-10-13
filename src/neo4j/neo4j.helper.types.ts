@@ -1,14 +1,18 @@
-import { RelationshipDirection } from "./decorators/relationship.decorator";
+export interface RelationshipProps {}
 
-export interface EntitiesRelationshipsValue<T extends string | number | symbol, PropsType> {
-    directions: RelationshipDirection[];
-    relType: T;
-    props: PropsType;
+export class RelatedEntityRecordItem<EntityType> {
+    entity: EntityType;
+    relProps: RelationshipProps;
+
+    constructor(entity: EntityType, relProps: RelationshipProps) {
+        this.entity = entity;
+        this.relProps = relProps;
+    }
 }
 
-export type RelatedEntity<T extends string | number | symbol, EntityType> = {
+export type RelatedEntities<EntityType, T extends string> = {
     [key in T]: {
-        relationships: EntitiesRelationshipsValue<T, object>;
-        entities: Array<EntityType>;
+        records: Array<RelatedEntityRecordItem<EntityType>>;
+        relType: T;
     };
 };

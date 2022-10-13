@@ -27,13 +27,12 @@ export class UsersServicePrisma implements IUsersService {
     }
 
     public async addUser(user: RegisterUserPayloadDto): Promise<void> {
-        const newUser = new UserDto({
-            username: user.username,
-            email: user.email,
-            password: user.password,
-        });
-
-        this._prismaService.user.create({ data: newUser as any });
+        // const newUser = new UserDto({
+        //     username: user.username,
+        //     email: user.email,
+        //     password: user.password,
+        // });
+        // this._prismaService.user.create({ data: newUser as any });
     }
 
     public async updateUser(user: User): Promise<void> {
