@@ -1,9 +1,18 @@
 export interface RelationshipProps {}
 
-export type RelatedEntity<EntityType, T extends string | number | symbol> = {
+export class RelatedEntityRecordItem<EntityType> {
+    entity: EntityType;
+    relProps: RelationshipProps;
+
+    constructor(entity: EntityType, relProps: RelationshipProps) {
+        this.entity = entity;
+        this.relProps = relProps;
+    }
+}
+
+export type RelatedEntities<EntityType, T extends string> = {
     [key in T]: {
-        entities: Array<EntityType>;
+        records: Array<RelatedEntityRecordItem<EntityType>>
         relType: T;
-        relProps: RelationshipProps;
     };
 };
