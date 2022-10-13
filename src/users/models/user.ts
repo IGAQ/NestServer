@@ -2,7 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Exclude } from "class-transformer";
 import { Role } from "./role";
 import { Post } from "../../posts/models";
-import { RelatedEntity } from "../../neo4j/neo4j.helper.types";
+import { RelatedEntities } from "../../neo4j/neo4j.helper.types";
 import { UserToPostRelTypes } from "./toPost";
 import { Labels } from "../../neo4j/neo4j.decorators";
 
@@ -42,7 +42,7 @@ export class User {
     role: Role[];
 
     @ApiProperty({ type: Post, isArray: true })
-    posts: RelatedEntity<Post, UserToPostRelTypes>;
+    posts: RelatedEntities<Post, UserToPostRelTypes>;
 
     constructor(partial?: Partial<User>) {
         Object.assign(this, partial);
