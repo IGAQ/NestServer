@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { v4 as uuidv4 } from "uuid";
 import { RelatedEntityRecordItem } from "../../neo4j/neo4j.helper.types";
-import { Neo4jService } from "src/neo4j/neo4j.service";
+import { Neo4jService } from "src/neo4j/services/neo4j.service";
 import { PostToSelfRelTypes, RestrictedProps } from "../models/toSelf";
 import { PostToPostTypeRelTypes } from "../models/toPostType";
 import { PostToPostTagRelTypes } from "../models/toTags";
