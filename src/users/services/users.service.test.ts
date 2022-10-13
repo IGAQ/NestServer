@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { RegisterUserPayloadDto, Role, User, UserDto } from "../models";
+import { RegisterUserPayloadDto, Role, User } from "../models";
 import { IUsersService } from "./users.service.interface";
 import { v4 as uuidv4 } from "uuid";
 
