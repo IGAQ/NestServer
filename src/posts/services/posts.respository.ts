@@ -99,7 +99,7 @@ export class PostsRepository {
 
                 // Post.postType
                 postTypeId: post.postType.postTypeId,
-            } as Omit<any, "posts">
+            }
         );
     }
 
