@@ -8,8 +8,8 @@ import { PostToAwardRelTypes } from "./toAward";
 
 @Labels("Post")
 export class Post {
-    @ApiProperty({ type: Number })
-    postId: number;
+    @ApiProperty({ type: String })
+    postId: string;
 
     @ApiProperty({ type: PostType })
     postType: PostType;
