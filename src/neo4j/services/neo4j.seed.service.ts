@@ -16,7 +16,33 @@ export class Neo4jSeedService {
     private postLabel = Reflect.get(Post, LABELS_DECORATOR_KEY)[0];
 
     public async seed() {
-        await this._neo4jService.write(``, {});
+        // Populate post types
+        let postTypes = await this.getPostTypes();
+        for (let postTypeEntity of postTypes) {
+            await this._neo4jService.write(
+                `CREATE (n:${this.postTypeLabel}) { 
+                postTypeId: $postTypeId,
+                postType: $postType
+             }`, {
+                    postTypeId: postTypeEntity.postTypeId,
+                    postType: postTypeEntity.postType
+                });
+        }
+
+        // Populate post tags
+        let postTags = await this.getPostTags();
+        for (let postTagEntity of postTags) {
+            await this._neo4jService.write(
+                `CREATE (n:${this.postTagLabel}) { 
+                tagId: $tagId,
+                tagName: $tagName
+             }`, {
+                    tagId: postTagEntity.tagId,
+                    tagName: postTagEntity.tagName
+                });
+        }
+
+
 
         await this._neo4jService.write(
             `CREATE (n:${this.postLabel} {name: 'Arthur', title: 'King'}) RETURN n`,
@@ -57,7 +83,7 @@ export class Neo4jSeedService {
                 email: "a@a.com",
                 emailVerified: false,
                 level: 0,
-                role: [Role.MODERATOR],
+                roles: [Role.MODERATOR],
                 posts: {
                     [UserToPostRelTypes.AUTHORED]: {
                         records: (await this.getPosts()).slice(0, 2).map(post => ({
@@ -84,7 +110,7 @@ export class Neo4jSeedService {
                 email: "b@b.com",
                 emailVerified: false,
                 level: 0,
-                role: [Role.USER],
+                roles: [Role.USER],
                 posts: {
                     [UserToPostRelTypes.AUTHORED]: {
                         records: (await this.getPosts()).slice(2).map(post => ({
