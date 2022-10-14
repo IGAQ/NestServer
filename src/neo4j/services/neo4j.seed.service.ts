@@ -5,6 +5,7 @@ import { LABELS_DECORATOR_KEY } from "../neo4j.constants";
 import { HasAwardProps, PostToAwardRelTypes } from "../../posts/models/toAward";
 import { Role, User } from "../../users/models";
 import { AuthoredProps, UserToPostRelTypes } from "../../users/models/toPost";
+import { PostToPostTypeRelTypes } from "../../posts/models/toPostType";
 
 @Injectable()
 export class Neo4jSeedService {
@@ -42,12 +43,47 @@ export class Neo4jSeedService {
                 });
         }
 
+        // Populate awards
+        let awards = await this.getAwards();
+        for (let awardEntity of awards) {
+            await this._neo4jService.write(
+                `CREATE (n:${this.awardLabel}) { 
+                awardId: $awardId,
+                awardName: $awardName,
+                awardSvg: $awardSvg
+             }`, {
+                    awardId: awardEntity.awardId,
+                    awardName: awardEntity.awardName,
+                    awardSvg: awardEntity.awardSvg
+                });
+        }
 
+        // Populate posts
+        let posts = await this.getPosts();
+        for (let postEntity of posts) {
+            await this._neo4jService.write(
+                `CREATE (p:${this.postLabel}) { 
+                postId: $postId,
+                updatedAt: $updatedAt,
+                postTitle: $postTitle,
+                postContent: $postContent,
+                pending: $pending
+             }
+             MATCH (p)-[:${PostToPostTypeRelTypes.HAS_POST_TYPE}]->(postType:${this.postTagLabel}) WHERE postType.postTypeId = $postTypeId
+             WITH [$withPostTags] AS postTags
+             UNWIND postTags as postTag
+                MATCH (p1:${this}) WHERE p1.postId = $postId
+             `, {
+                    // Post
+                    postId: postEntity.postId,
+                    updatedAt: postEntity.updatedAt,
+                    postTitle: postEntity.postTitle,
+                    pending: postEntity.pending,
 
-        await this._neo4jService.write(
-            `CREATE (n:${this.postLabel} {name: 'Arthur', title: 'King'}) RETURN n`,
-            {}
-        );
+                    // PostType
+                    postTypeId: postEntity.postType.postTypeId,
+                });
+        }
     }
 
     public async getUsers(): Promise<User[]> {
