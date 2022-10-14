@@ -71,7 +71,7 @@ export class UsersService implements IUsersService {
 
                 passwordHash: user.password,
 
-                role: [Role.USER],
+                roles: [Role.USER],
 
                 level: 0,
             } as Omit<User, "posts">
@@ -102,7 +102,7 @@ export class UsersService implements IUsersService {
                 emailVerified: user.emailVerified,
                 passwordHash: user.passwordHash,
                 level: user.level,
-                role: user.role,
+                roles: user.roles,
                 updatedAt: new Date().getTime(),
             } as Omit<User, "posts" | "userId" | "createdAt">
         );

@@ -39,7 +39,7 @@ export class User {
     level: number;
 
     @ApiProperty({ type: Role })
-    role: Role[];
+    roles: Role[];
 
     @ApiProperty({ type: Post, isArray: true })
     posts: RelatedEntities<Post, UserToPostRelTypes>;
