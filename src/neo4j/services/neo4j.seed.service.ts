@@ -72,7 +72,7 @@ export class Neo4jSeedService {
              MATCH (p)-[:${PostToPostTypeRelTypes.HAS_POST_TYPE}]->(postType:${this.postTagLabel}) WHERE postType.postTypeId = $postTypeId
              WITH [$withPostTags] AS postTags
              UNWIND postTags as postTag
-                MATCH (p1:${this}) WHERE p1.postId = $postId
+                MATCH (p1:${this.postLabel}) WHERE p1.postId = $postId
              `, {
                     // Post
                     postId: postEntity.postId,
