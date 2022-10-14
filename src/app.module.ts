@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Inject, Logger, Module } from "@nestjs/common";
 import { AuthModule } from "./auth/auth.module";
 import { UsersModule } from "./users/users.module";
 import { PrismaModule } from "./prisma/prisma.module";
@@ -6,6 +6,7 @@ import { PostsModule } from "./posts/posts.module";
 import { Neo4jModule } from "./neo4j/neo4j.module";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { Neo4jConfig } from "./neo4j/neo4jConfig.interface";
+import { Neo4jSeedService } from "./neo4j/services/neo4j.seed.service";
 
 @Module({
     imports: [
@@ -30,4 +31,13 @@ import { Neo4jConfig } from "./neo4j/neo4jConfig.interface";
         PostsModule,
     ],
 })
-export class AppModule {}
+export class AppModule {
+    private readonly _logger = new Logger(AppModule.name);
+
+    constructor(private _neo4jSeedService: Neo4jSeedService) {}
+
+    onModuleInit() {
+        this._neo4jSeedService.seed()
+            .then(() => this._logger.log("Neo4j database seeded ✅"));
+    }
+}

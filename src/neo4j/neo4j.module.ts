@@ -4,9 +4,10 @@ import { NEO4J_DRIVER, NEO4J_OPTIONS } from "./neo4j.constants";
 import { createDriver } from "./neo4j.utils";
 import { Neo4jConfig } from "./neo4jConfig.interface";
 import { ConfigModule, ConfigService } from "@nestjs/config";
+import { Neo4jSeedService } from "./services/neo4j.seed.service";
 
 @Module({
-    providers: [Neo4jService],
+    providers: [Neo4jService, Neo4jSeedService],
 })
 export class Neo4jModule {
     public static forRoot(config: Neo4jConfig): DynamicModule {
@@ -47,7 +48,7 @@ export class Neo4jModule {
                 },
                 Neo4jService,
             ],
-            exports: [Neo4jService],
+            exports: [Neo4jService, Neo4jSeedService],
         };
     }
 

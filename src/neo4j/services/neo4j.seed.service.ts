@@ -24,10 +24,10 @@ export class Neo4jSeedService {
         let postTypes = await this.getPostTypes();
         for (let postTypeEntity of postTypes) {
             await this._neo4jService.write(
-                `CREATE (n:${this.postTypeLabel}) { 
+                `CREATE (n:${this.postTypeLabel} { 
                 postTypeId: $postTypeId,
                 postType: $postType
-             }`,
+             })`,
                 {
                     postTypeId: postTypeEntity.postTypeId,
                     postType: postTypeEntity.postType,
@@ -39,10 +39,10 @@ export class Neo4jSeedService {
         let postTags = await this.getPostTags();
         for (let postTagEntity of postTags) {
             await this._neo4jService.write(
-                `CREATE (n:${this.postTagLabel}) { 
+                `CREATE (n:${this.postTagLabel} { 
                 tagId: $tagId,
                 tagName: $tagName
-             }`,
+             })`,
                 {
                     tagId: postTagEntity.tagId,
                     tagName: postTagEntity.tagName,
@@ -54,11 +54,11 @@ export class Neo4jSeedService {
         let awards = await this.getAwards();
         for (let awardEntity of awards) {
             await this._neo4jService.write(
-                `CREATE (n:${this.awardLabel}) { 
+                `CREATE (n:${this.awardLabel} { 
                 awardId: $awardId,
                 awardName: $awardName,
                 awardSvg: $awardSvg
-             }`,
+             })`,
                 {
                     awardId: awardEntity.awardId,
                     awardName: awardEntity.awardName,
@@ -85,15 +85,14 @@ export class Neo4jSeedService {
                 } as RestrictedProps;
             }
 
-            let authoredProps = new AuthoredProps(
-                postEntity.authorUser.posts[UserToPostRelTypes.AUTHORED].records.find(
-                    record => record.entity.postId === postEntity.postId
-                ).relProps
-            );
+            let authoredProps = new AuthoredProps({
+                authoredAt: 1665770000,
+                anonymously: false,
+            });
             await this._neo4jService.write(
                 `
                 MATCH (u:${this.userLabel} { userId: $userId })
-                CREATE (p:${this.postLabel}) {
+                CREATE (p:${this.postLabel} {
                     postId: $postId,
                     updatedAt: $updatedAt,
                     postTitle: $postTitle,
@@ -106,8 +105,9 @@ export class Neo4jSeedService {
                 WITH [$withPostTags] AS postTagIDsToBeConnected
                 UNWIND postTagIDsToBeConnected as postTagIdToBeConnected
                     MATCH (p1:${this.postLabel}) WHERE p1.postId = $postId
+                    MATCH (postType:${this.postTypeLabel}) WHERE postType.postTypeId = $postTypeId
                     MATCH (postTag:${this.postTagLabel}) WHERE postTag.tagId = postTagIdToBeConnected
-                        MERGE (p1)-[:${PostToPostTypeRelTypes.HAS_POST_TYPE}]->(postType:${this.postTagLabel}) WHERE postType.postTypeId = $postTypeId
+                        MERGE (p1)-[:${PostToPostTypeRelTypes.HAS_POST_TYPE}]->(postType)
                         CREATE (p1)-[:${PostToPostTagRelTypes.HAS_POST_TAG}]->(postTag)
                 WITH [$withAwards] AS awardIDsToBeConnected       
                 UNWIND awardIDsToBeConnected as awardIdToBeConnected
@@ -129,6 +129,7 @@ export class Neo4jSeedService {
                     postId: postEntity.postId,
                     updatedAt: postEntity.updatedAt,
                     postTitle: postEntity.postTitle,
+                    postContent: postEntity.postContent,
                     pending: postEntity.pending,
 
                     // PostType
@@ -205,7 +206,7 @@ export class Neo4jSeedService {
                 email: "b@b.com",
                 emailVerified: false,
                 level: 0,
-                roles: [Role.USER],
+                roles: [Role.USER, Role.MODERATOR],
                 posts: {
                     [UserToPostRelTypes.AUTHORED]: {
                         records: (await this.getPosts()).slice(2).map(post => ({
@@ -229,8 +230,16 @@ export class Neo4jSeedService {
                 postId: "b73edbf4-ba84-4b11-a91c-e1d8b1366974",
                 postTitle: "Am I Lesbian?",
                 postContent: "today I kissed a girl! it felt so good.",
+                updatedAt: 1665770000,
                 postType: (await this.getPostTypes())[0],
                 postTags: (await this.getPostTags()).slice(0, 2),
+                restrictedProps: null,
+                authorUser: new User({
+                    userId: "3109f9e2-a262-4aef-b648-90d86d6fbf6c",
+                    username: "leo",
+                    normalizedUsername: "LEO",
+                }),
+                pending: false,
                 awards: {
                     [PostToAwardRelTypes.HAS_AWARD]: {
                         records: (await this.getAwards()).slice(0, 2).map(award => ({
@@ -247,8 +256,20 @@ export class Neo4jSeedService {
                 postId: "596632ac-dd54-4700-a783-688618d99fa9",
                 postTitle: "Am I Gay?",
                 postContent: "today I kissed a boy! it felt so good.",
+                updatedAt: 1665770000,
                 postType: (await this.getPostTypes())[0],
                 postTags: (await this.getPostTags()).slice(0, 2),
+                restrictedProps: new RestrictedProps({
+                    restrictedAt: 1665780000,
+                    moderatorId: "3109f9e2-a262-4aef-b648-90d86d6fbf6c",
+                    reason: "The moderator thinks there is profanity in this post",
+                }),
+                authorUser: new User({
+                    userId: "3109f9e2-a262-4aef-b648-90d86d6fbf6c",
+                    username: "leo",
+                    normalizedUsername: "LEO",
+                }),
+                pending: true,
                 awards: {
                     [PostToAwardRelTypes.HAS_AWARD]: {
                         records: (await this.getAwards()).slice(0, 2).map(award => ({
