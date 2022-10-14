@@ -35,7 +35,7 @@ export class Post {
     pending: boolean;
 
     @ApiProperty({ type: RestrictedProps })
-    restrictedProps?: RestrictedProps = null;
+    restrictedProps: Nullable<RestrictedProps> = null;
 
     constructor(partial?: Partial<Post>) {
         Object.assign(this, partial);
