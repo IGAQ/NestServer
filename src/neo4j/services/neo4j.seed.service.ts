@@ -27,10 +27,12 @@ export class Neo4jSeedService {
                 `CREATE (n:${this.postTypeLabel}) { 
                 postTypeId: $postTypeId,
                 postType: $postType
-             }`, {
+             }`,
+                {
                     postTypeId: postTypeEntity.postTypeId,
-                    postType: postTypeEntity.postType
-                });
+                    postType: postTypeEntity.postType,
+                }
+            );
         }
 
         // Populate post tags
@@ -40,10 +42,12 @@ export class Neo4jSeedService {
                 `CREATE (n:${this.postTagLabel}) { 
                 tagId: $tagId,
                 tagName: $tagName
-             }`, {
+             }`,
+                {
                     tagId: postTagEntity.tagId,
-                    tagName: postTagEntity.tagName
-                });
+                    tagName: postTagEntity.tagName,
+                }
+            );
         }
 
         // Populate awards
@@ -54,11 +58,13 @@ export class Neo4jSeedService {
                 awardId: $awardId,
                 awardName: $awardName,
                 awardSvg: $awardSvg
-             }`, {
+             }`,
+                {
                     awardId: awardEntity.awardId,
                     awardName: awardEntity.awardName,
-                    awardSvg: awardEntity.awardSvg
-                });
+                    awardSvg: awardEntity.awardSvg,
+                }
+            );
         }
 
         // Populate posts
@@ -75,13 +81,14 @@ export class Neo4jSeedService {
                 restrictedQueryParams = {
                     restrictedAt: postEntity.restrictedProps.restrictedAt,
                     moderatorId: postEntity.restrictedProps.moderatorId,
-                    reason: postEntity.restrictedProps.reason
+                    reason: postEntity.restrictedProps.reason,
                 } as RestrictedProps;
             }
 
             let authoredProps = new AuthoredProps(
-                postEntity.authorUser.posts[UserToPostRelTypes.AUTHORED].records
-                    .find(record => record.entity.postId === postEntity.postId).relProps
+                postEntity.authorUser.posts[UserToPostRelTypes.AUTHORED].records.find(
+                    record => record.entity.postId === postEntity.postId
+                ).relProps
             );
             await this._neo4jService.write(
                 `
@@ -107,10 +114,13 @@ export class Neo4jSeedService {
                     MATCH (p1:${this.postLabel}) WHERE p1.postId = $postId
                     MATCH (award:${this.awardLabel}) WHERE award.awardId = awardIdToBeConnected
                         CREATE (p1)-[:${PostToAwardRelTypes.HAS_AWARD}]->(award)
-            `, {
+            `,
+                {
                     // With Clauses
                     withPostTags: postEntity.postTags.map(pt => `"${pt.tagId}"`).join(","),
-                    withAwards: postEntity.awards[PostToAwardRelTypes.HAS_AWARD].records.map(record => `"${record.entity.awardId}"`).join(","),
+                    withAwards: postEntity.awards[PostToAwardRelTypes.HAS_AWARD].records
+                        .map(record => `"${record.entity.awardId}"`)
+                        .join(","),
 
                     // Post Author User
                     userId: postEntity.authorUser.userId,
@@ -130,7 +140,8 @@ export class Neo4jSeedService {
 
                     // RestrictedProps (if applicable)
                     ...restrictedQueryParams,
-                });
+                }
+            );
         }
     }
 
