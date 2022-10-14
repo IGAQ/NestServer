@@ -6,6 +6,7 @@ import { HasAwardProps, PostToAwardRelTypes } from "../../posts/models/toAward";
 import { Role, User } from "../../users/models";
 import { AuthoredProps, UserToPostRelTypes } from "../../users/models/toPost";
 import { PostToPostTypeRelTypes } from "../../posts/models/toPostType";
+import { PostToPostTagRelTypes } from "../../posts/models/toTags";
 
 @Injectable()
 export class Neo4jSeedService {
@@ -15,6 +16,7 @@ export class Neo4jSeedService {
     private postTagLabel = Reflect.get(PostTag, LABELS_DECORATOR_KEY)[0];
     private awardLabel = Reflect.get(Award, LABELS_DECORATOR_KEY)[0];
     private postLabel = Reflect.get(Post, LABELS_DECORATOR_KEY)[0];
+    private userLabel = Reflect.get(User, LABELS_DECORATOR_KEY)[0];
 
     public async seed() {
         // Populate post types
@@ -61,19 +63,42 @@ export class Neo4jSeedService {
         // Populate posts
         let posts = await this.getPosts();
         for (let postEntity of posts) {
+            let authoredProps = new AuthoredProps(
+                postEntity.authorUser.posts[UserToPostRelTypes.AUTHORED].records
+                    .find(record => record.entity.postId === postEntity.postId).relProps
+            );
             await this._neo4jService.write(
-                `CREATE (p:${this.postLabel}) { 
-                postId: $postId,
-                updatedAt: $updatedAt,
-                postTitle: $postTitle,
-                postContent: $postContent,
-                pending: $pending
-             }
-             MATCH (p)-[:${PostToPostTypeRelTypes.HAS_POST_TYPE}]->(postType:${this.postTagLabel}) WHERE postType.postTypeId = $postTypeId
-             WITH [$withPostTags] AS postTags
-             UNWIND postTags as postTag
-                MATCH (p1:${this.postLabel}) WHERE p1.postId = $postId
+                `
+                MATCH (u:${this.userLabel} { userId: $userId })
+                CREATE (p:${this.postLabel}) {
+                    postId: $postId,
+                    updatedAt: $updatedAt,
+                    postTitle: $postTitle,
+                    postContent: $postContent,
+                    pending: $pending
+                })<-[authoredRelationship:${UserToPostRelTypes.AUTHORED} {
+                    authoredAt: $authoredProps_authoredAt,
+                    anonymously: $authoredProps_anonymously
+                 }]-(u)
+                WITH [$withPostTags] AS postTagIDsToBeConnected
+                UNWIND postTagIDsToBeConnected as postTagIdToBeConnected
+                    MATCH (p1:${this.postLabel}) WHERE p1.postId = $postId
+                    MATCH (postTag:${this.postTagLabel}) WHERE postTag.tagId = postTagIdToBeConnected
+                        MERGE (p1)-[:${PostToPostTypeRelTypes.HAS_POST_TYPE}]->(postType:${this.postTagLabel}) WHERE postType.postTypeId = $postTypeId
+                        CREATE (p1)-[:${PostToPostTagRelTypes.HAS_POST_TAG}]->(postTag)
+                WITH [$withAwards] AS awardIDsToBeConnected       
+                UNWIND awardIDsToBeConnected as awardIdToBeConnected
+                    MATCH (p1:${this.postLabel}) WHERE p1.postId = $postId
+                    MATCH (award:${this.awardLabel}) WHERE award.awardId = awardIdToBeConnected
+                        CREATE (p1)-[:${PostToAwardRelTypes.HAS_AWARD}]->(award)
              `, {
+                    // With Clauses
+                    withPostTags: postEntity.postTags.map(pt => `"${pt.tagId}"`).join(","),
+                    withAwards: postEntity.awards[PostToAwardRelTypes.HAS_AWARD].records.map(record => `"${record.entity.awardId}"`).join(","),
+
+                    // Post Author User
+                    userId: postEntity.authorUser.userId,
+
                     // Post
                     postId: postEntity.postId,
                     updatedAt: postEntity.updatedAt,
@@ -82,6 +107,10 @@ export class Neo4jSeedService {
 
                     // PostType
                     postTypeId: postEntity.postType.postTypeId,
+
+                    // AuthoredProps
+                    authoredProps_authoredAt: authoredProps.authoredAt,
+                    authoredProps_anonymously: authoredProps.anonymously,
                 });
         }
     }
