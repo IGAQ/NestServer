@@ -1,6 +1,5 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { UsersServiceTest } from "./users.service.test";
-import { UserDto } from "../models";
 import { RegisterUserPayloadDto } from "../models";
 
 describe("UsersServiceTest", () => {
@@ -39,7 +38,7 @@ describe("UsersServiceTest", () => {
             });
         });
         it("findUserById should be async and return an object of User", async () => {
-            const result = service.findUserById(1);
+            const result = service.findUserById("1");
 
             expect(result).toBeInstanceOf(Promise);
 
