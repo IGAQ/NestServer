@@ -7,6 +7,7 @@ import { Role, User } from "../../users/models";
 import { AuthoredProps, UserToPostRelTypes } from "../../users/models/toPost";
 import { PostToPostTypeRelTypes } from "../../posts/models/toPostType";
 import { PostToPostTagRelTypes } from "../../posts/models/toTags";
+import { PostToSelfRelTypes, RestrictedProps } from "../../posts/models/toSelf";
 
 @Injectable()
 export class Neo4jSeedService {
@@ -63,6 +64,21 @@ export class Neo4jSeedService {
         // Populate posts
         let posts = await this.getPosts();
         for (let postEntity of posts) {
+            let restrictedQueryString = "";
+            let restrictedQueryParams = {};
+            if (postEntity.restrictedProps !== null) {
+                restrictedQueryString = `-[:${PostToSelfRelTypes.RESTRICTED} { 
+                    restrictedAt: $restrictedAt, 
+                    moderatorId: $moderatorId,
+                    reason: $reason
+                 }]->(p)`;
+                restrictedQueryParams = {
+                    restrictedAt: postEntity.restrictedProps.restrictedAt,
+                    moderatorId: postEntity.restrictedProps.moderatorId,
+                    reason: postEntity.restrictedProps.reason
+                } as RestrictedProps;
+            }
+
             let authoredProps = new AuthoredProps(
                 postEntity.authorUser.posts[UserToPostRelTypes.AUTHORED].records
                     .find(record => record.entity.postId === postEntity.postId).relProps
@@ -76,7 +92,7 @@ export class Neo4jSeedService {
                     postTitle: $postTitle,
                     postContent: $postContent,
                     pending: $pending
-                })<-[authoredRelationship:${UserToPostRelTypes.AUTHORED} {
+                })${restrictedQueryString}<-[authoredRelationship:${UserToPostRelTypes.AUTHORED} {
                     authoredAt: $authoredProps_authoredAt,
                     anonymously: $authoredProps_anonymously
                  }]-(u)
@@ -91,7 +107,7 @@ export class Neo4jSeedService {
                     MATCH (p1:${this.postLabel}) WHERE p1.postId = $postId
                     MATCH (award:${this.awardLabel}) WHERE award.awardId = awardIdToBeConnected
                         CREATE (p1)-[:${PostToAwardRelTypes.HAS_AWARD}]->(award)
-             `, {
+            `, {
                     // With Clauses
                     withPostTags: postEntity.postTags.map(pt => `"${pt.tagId}"`).join(","),
                     withAwards: postEntity.awards[PostToAwardRelTypes.HAS_AWARD].records.map(record => `"${record.entity.awardId}"`).join(","),
@@ -111,6 +127,9 @@ export class Neo4jSeedService {
                     // AuthoredProps
                     authoredProps_authoredAt: authoredProps.authoredAt,
                     authoredProps_anonymously: authoredProps.anonymously,
+
+                    // RestrictedProps (if applicable)
+                    ...restrictedQueryParams,
                 });
         }
     }
