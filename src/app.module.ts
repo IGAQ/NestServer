@@ -7,6 +7,7 @@ import { Neo4jModule } from "./neo4j/neo4j.module";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { Neo4jConfig } from "./neo4j/neo4jConfig.interface";
 import { Neo4jSeedService } from "./neo4j/services/neo4j.seed.service";
+import { CommentsModule } from './comments/comments.module';
 
 @Module({
     imports: [
@@ -29,6 +30,7 @@ import { Neo4jSeedService } from "./neo4j/services/neo4j.seed.service";
         AuthModule,
         UsersModule,
         PostsModule,
+        CommentsModule,
     ],
 })
 export class AppModule {
