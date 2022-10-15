@@ -189,26 +189,22 @@ export class Neo4jSeedService {
                     authoredAt: $authoredProps_authoredAt,
                     anonymously: $authoredProps_anonymously
                  }]-(u)
-                WITH [$withPostTags] AS postTagIDsToBeConnected
+                WITH [${postEntity.postTags.map(pt => `"${pt.tagId}"`).join(",")}] AS postTagIDsToBeConnected
                 UNWIND postTagIDsToBeConnected as postTagIdToBeConnected
                     MATCH (p1:${this.postLabel}) WHERE p1.postId = $postId
                     MATCH (postType:${this.postTypeLabel}) WHERE postType.postTypeId = $postTypeId
                     MATCH (postTag:${this.postTagLabel}) WHERE postTag.tagId = postTagIdToBeConnected
                         MERGE (p1)-[:${PostToPostTypeRelTypes.HAS_POST_TYPE}]->(postType)
                         CREATE (p1)-[:${PostToPostTagRelTypes.HAS_POST_TAG}]->(postTag)
-                WITH [$withAwards] AS awardIDsToBeConnected       
+                WITH [${postEntity.awards[PostToAwardRelTypes.HAS_AWARD].records
+                    .map(record => `"${record.entity.awardId}"`)
+                    .join(",")}] AS awardIDsToBeConnected       
                 UNWIND awardIDsToBeConnected as awardIdToBeConnected
                     MATCH (p1:${this.postLabel}) WHERE p1.postId = $postId
                     MATCH (award:${this.awardLabel}) WHERE award.awardId = awardIdToBeConnected
                         MERGE (p1)-[:${PostToAwardRelTypes.HAS_AWARD}]->(award)
             `,
                 {
-                    // With Clauses
-                    withPostTags: postEntity.postTags.map(pt => `"${pt.tagId}"`).join(","),
-                    withAwards: postEntity.awards[PostToAwardRelTypes.HAS_AWARD].records
-                        .map(record => `"${record.entity.awardId}"`)
-                        .join(","),
-
                     // Post Author User
                     userId: postEntity.authorUser.userId,
 

@@ -33,6 +33,7 @@ export class Neo4jService {
     }
 
     public write(cypher: string, params: Record<string, any>, database?: string): Result {
+        console.log(cypher, "cypher", params, "params");
         const session = this.getWriteSession(database);
         return session.run(cypher, params);
     }

@@ -76,17 +76,15 @@ export class PostsRepository {
                 postTitle: $postTitle,
                 pending: $pending
             })
-            WITH [$withClause] AS postTagsToBeConnected
+            WITH [${post.postTags.map(p => `"${p.tagId}"`).join(",")}] AS postTagsToBeConnected
             UNWIND postTagsToBeConnected as x
                 MATCH (postType:PostType) WHERE postType.typeId = $postTypeId
-                MATCH (postTag:PostTag) WHERE postTag.tagName = x
+                MATCH (postTag:PostTag) WHERE postTag.tagId = x
                 MATCH (p1:Post) WHERE p1.postId = $postId
                     MERGE (p1)-[:${PostToPostTypeRelTypes.HAS_POST_TYPE}]->(postType)
                     CREATE (p1)-[:${PostToPostTagRelTypes.HAS_POST_TAG}]->(postTag)
 		`,
             {
-                withClause: post.postTags.map(p => `"${p.tagName}"`).join(","),
-
                 // Post
                 postId: uuidv4(),
 
