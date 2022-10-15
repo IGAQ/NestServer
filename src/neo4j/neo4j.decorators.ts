@@ -6,3 +6,8 @@ export function Labels(...labels: string[]) {
         target.labels = labels;
     };
 }
+
+export function NodeProperty() {
+    return function (target: any, propertyKey: string) {
+    };
+}

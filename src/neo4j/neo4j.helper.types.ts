@@ -10,7 +10,7 @@ export class RelatedEntityRecordItem<EntityType> {
     }
 }
 
-export type RelatedEntities<EntityType, T extends string> = {
+export type RichRelatedEntities<EntityType, T extends string> = {
     [key in T]: {
         records: Array<RelatedEntityRecordItem<EntityType>>;
         relType: T;
