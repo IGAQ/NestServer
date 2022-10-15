@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { RegisterUserPayloadDto, Role, User, UserDto } from "../models";
+import { RegisterUserPayloadDto, Role, User } from "../models";
 import { IUsersService } from "./users.service.interface";
 import { v4 as uuidv4 } from "uuid";
 
@@ -11,21 +11,21 @@ export class UsersServiceTest implements IUsersService {
             username: "john",
             passwordHash: "$2b$10$BGP81ZvOBntrlEHHw8qxaunw8sfn24DPO4v/WGNZW8QLNA/1MTZG6", // john123
             email: "john@gmail.com",
-            role: [Role.USER],
+            roles: [Role.USER],
         }),
         new User({
             userId: "2",
             username: "chris",
             passwordHash: "$2b$10$QeRnByFoI7VTlOks5aLMbuVRXnMLyZ8FyuiezNOUIXuvPEc8cXSlu", // secret
             email: "chris@gmail.com",
-            role: [Role.ADMIN],
+            roles: [Role.ADMIN],
         }),
         new User({
             userId: "3",
             username: "maria",
             passwordHash: "$2b$10$MMks.gHnjpz2Of38.buHC.jhL6BuDoRLaJBYhyvMP6/UGSMx.Fanm", // guess
             email: "maria@gmail.com",
-            role: [Role.USER, Role.MODERATOR],
+            roles: [Role.USER, Role.MODERATOR],
         }),
     ];
 
@@ -47,7 +47,7 @@ export class UsersServiceTest implements IUsersService {
             username: user.username,
             passwordHash: user.password,
             email: user.email,
-            role: [Role.USER],
+            roles: [Role.USER],
         });
 
         this._users.push(newUser);

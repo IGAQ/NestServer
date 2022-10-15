@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { RegisterUserPayloadDto, Role, User } from "../models";
 import { IUsersService } from "./users.service.interface";
-import { Neo4jService } from "../../neo4j/neo4j.service";
+import { Neo4jService } from "../../neo4j/services/neo4j.service";
 import { v4 as uuidv4 } from "uuid";
 
 @Injectable()
@@ -71,7 +71,7 @@ export class UsersService implements IUsersService {
 
                 passwordHash: user.password,
 
-                role: [Role.USER],
+                roles: [Role.USER],
 
                 level: 0,
             } as Omit<User, "posts">
@@ -102,7 +102,7 @@ export class UsersService implements IUsersService {
                 emailVerified: user.emailVerified,
                 passwordHash: user.passwordHash,
                 level: user.level,
-                role: user.role,
+                roles: user.roles,
                 updatedAt: new Date().getTime(),
             } as Omit<User, "posts" | "userId" | "createdAt">
         );

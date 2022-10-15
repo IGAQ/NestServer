@@ -1,5 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { UserDto, RegisterUserPayloadDto, User } from "../../models";
+import { RegisterUserPayloadDto, User } from "../../models";
 import { IUsersService } from "../users.service.interface";
 import { IPrismaService } from "../../../prisma/prisma.service.interface";
 

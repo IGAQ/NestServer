@@ -1,18 +1,18 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Labels } from "../../neo4j/neo4j.decorators";
 
-@Labels("Award")
-export class Award {
+@Labels("Sexuality")
+export class Sexuality {
     @ApiProperty({ type: String, format: "uuid" })
-    awardId: string;
+    sexualityId: string;
 
     @ApiProperty({ type: String })
-    awardName: string;
+    sexualityName: string;
 
     @ApiProperty({ type: String })
-    awardSvg: string;
+    sexualityFlagSvg: string;
 
-    constructor(partial?: Partial<Award>) {
+    constructor(partial?: Partial<Sexuality>) {
         Object.assign(this, partial);
     }
 }

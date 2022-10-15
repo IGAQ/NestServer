@@ -1,6 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Exclude } from "class-transformer";
 import { Role } from "./role";
+import { Sexuality } from "./sexuality";
+import { Gender } from "./gender";
 import { Post } from "../../posts/models";
 import { RelatedEntities } from "../../neo4j/neo4j.helper.types";
 import { UserToPostRelTypes } from "./toPost";
@@ -22,7 +24,7 @@ export class User {
     emailVerified: boolean;
 
     @ApiProperty({ type: String })
-    phoneNumber: string;
+    phoneNumber: Nullable<string>;
     @ApiProperty({ type: Boolean })
     phoneNumberVerified: boolean;
 
@@ -39,10 +41,16 @@ export class User {
     level: number;
 
     @ApiProperty({ type: Role })
-    role: Role[];
+    roles: Role[];
 
     @ApiProperty({ type: Post, isArray: true })
     posts: RelatedEntities<Post, UserToPostRelTypes>;
+
+    @ApiProperty({ type: Sexuality })
+    sexuality: Nullable<Sexuality>;
+
+    @ApiProperty({ type: Gender })
+    gender: Nullable<Gender>;
 
     constructor(partial?: Partial<User>) {
         Object.assign(this, partial);
