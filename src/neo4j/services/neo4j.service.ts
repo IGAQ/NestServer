@@ -1,10 +1,11 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable, Logger } from "@nestjs/common";
 import { NEO4J_DRIVER, NEO4J_OPTIONS } from "../neo4j.constants";
 import { Driver, Result, session, Session } from "neo4j-driver";
 import { Neo4jConfig } from "../neo4jConfig.interface";
 
 @Injectable()
 export class Neo4jService {
+    private readonly _logger = new Logger(Neo4jService.name);
     private readonly _driver: Driver;
     private readonly _config: Neo4jConfig;
 
@@ -33,8 +34,38 @@ export class Neo4jService {
     }
 
     public write(cypher: string, params: Record<string, any>, database?: string): Result {
-        console.log(cypher, "cypher", params, "params");
+        console.debug(cypher, "cypher", params, "params");
         const session = this.getWriteSession(database);
         return session.run(cypher, params);
+    }
+
+    public async tryWrite(
+        cypher: string,
+        params: Record<string, any>,
+        database?: string
+    ): Promise<Result> {
+        const session = this.getWriteSession(database);
+        try {
+            // console.debug(cypher, "cypher", params, "params");
+            return await session.run(cypher, params);
+        } catch (error) {
+            this._logger.debug(error);
+            await session.close();
+        }
+    }
+
+    public async tryRead(
+        cypher: string,
+        params: Record<string, any>,
+        database?: string
+    ): Promise<Result> {
+        const session = this.getReadSession(database);
+        try {
+            // console.debug(cypher, "cypher", params, "params");
+            return await session.run(cypher, params);
+        } catch (error) {
+            this._logger.debug(error);
+            await session.close();
+        }
     }
 }

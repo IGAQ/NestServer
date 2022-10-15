@@ -24,10 +24,48 @@ export class Neo4jSeedService {
     private userLabel = Reflect.get(User, LABELS_DECORATOR_KEY)[0];
 
     public async seed() {
+        // Constraints
+
+        // Post - Post.postId IS UNIQUE
+        await this._neo4jService.tryWrite(
+            `CREATE CONSTRAINT post_postId_UNIQUE FOR (post:${this.postLabel}) REQUIRE post.postId IS UNIQUE`,
+            {}
+        );
+        // PostType - PostType.postTypeId IS UNIQUE
+        await this._neo4jService.tryWrite(
+            `CREATE CONSTRAINT postType_postTypeId_UNIQUE FOR (postType:${this.postTypeLabel}) REQUIRE postType.postTypeId IS UNIQUE`,
+            {}
+        );
+        // PostTag - PostTag.tagId IS UNIQUE
+        await this._neo4jService.tryWrite(
+            `CREATE CONSTRAINT postTag_tagId_UNIQUE FOR (postTag:${this.postTagLabel}) REQUIRE postTag.tagId IS UNIQUE`,
+            {}
+        );
+        // Award - Award.awardId IS UNIQUE
+        await this._neo4jService.tryWrite(
+            `CREATE CONSTRAINT award_awardId_UNIQUE FOR (award:${this.awardLabel}) REQUIRE award.awardId IS UNIQUE`,
+            {}
+        );
+        // Sexuality - Sexuality.sexualityId IS UNIQUE
+        await this._neo4jService.tryWrite(
+            `CREATE CONSTRAINT sexuality_sexualityId_UNIQUE FOR (sexuality:${this.sexualityLabel}) REQUIRE sexuality.sexualityId IS UNIQUE`,
+            {}
+        );
+        // Gender - Gender.genderId IS UNIQUE
+        await this._neo4jService.tryWrite(
+            `CREATE CONSTRAINT gender FOR (gender:${this.genderLabel}) REQUIRE gender.genderId IS UNIQUE`,
+            {}
+        );
+        // User - User.userId IS UNIQUE
+        await this._neo4jService.tryWrite(
+            `CREATE CONSTRAINT user_userId_UNIQUE FOR (user:${this.userLabel}) REQUIRE user.userId IS UNIQUE`,
+            {}
+        );
+
         // Populate post types
         let postTypes = await this.getPostTypes();
         for (let postTypeEntity of postTypes) {
-            await this._neo4jService.write(
+            await this._neo4jService.tryWrite(
                 `CREATE (n:${this.postTypeLabel} { 
                 postTypeId: $postTypeId,
                 postType: $postType
@@ -42,7 +80,7 @@ export class Neo4jSeedService {
         // Populate post tags
         let postTags = await this.getPostTags();
         for (let postTagEntity of postTags) {
-            await this._neo4jService.write(
+            await this._neo4jService.tryWrite(
                 `CREATE (n:${this.postTagLabel} { 
                 tagId: $tagId,
                 tagName: $tagName
@@ -57,7 +95,7 @@ export class Neo4jSeedService {
         // Populate awards
         let awards = await this.getAwards();
         for (let awardEntity of awards) {
-            await this._neo4jService.write(
+            await this._neo4jService.tryWrite(
                 `CREATE (n:${this.awardLabel} { 
                 awardId: $awardId,
                 awardName: $awardName,
@@ -74,7 +112,7 @@ export class Neo4jSeedService {
         // Populate sexualities
         let sexualities = await this.getSexualities();
         for (let sexualityEntity of sexualities) {
-            await this._neo4jService.write(
+            await this._neo4jService.tryWrite(
                 `CREATE (n:${this.sexualityLabel} {
                     sexualityId: $sexualityId,
                     sexualityName: $sexualityName,
@@ -84,13 +122,14 @@ export class Neo4jSeedService {
                     sexualityId: sexualityEntity.sexualityId,
                     sexualityName: sexualityEntity.sexualityName,
                     sexualityFlagSvg: sexualityEntity.sexualityFlagSvg,
-                });
+                }
+            );
         }
 
         // Populate genders
         let genders = await this.getGenders();
         for (let genderEntity of genders) {
-            await this._neo4jService.write(
+            await this._neo4jService.tryWrite(
                 `CREATE (n:${this.genderLabel} { 
                 genderId: $genderId,
                 genderName: $genderName,
@@ -109,7 +148,7 @@ export class Neo4jSeedService {
         // Populate users
         let users = await this.getUsers();
         for (let userEntity of users) {
-            await this._neo4jService.write(
+            await this._neo4jService.tryWrite(
                 `
                 MATCH (s:${this.sexualityLabel} { sexualityId: $sexualityId })
                 MATCH (g:${this.genderLabel} { genderId: $genderId })
@@ -176,7 +215,7 @@ export class Neo4jSeedService {
                 authoredAt: 1665770000,
                 anonymously: false,
             });
-            await this._neo4jService.write(
+            await this._neo4jService.tryWrite(
                 `
                 MATCH (u:${this.userLabel} { userId: $userId })
                 CREATE (p:${this.postLabel} {
@@ -189,11 +228,15 @@ export class Neo4jSeedService {
                     authoredAt: $authoredProps_authoredAt,
                     anonymously: $authoredProps_anonymously
                  }]-(u)
-                WITH [${postEntity.postTags.map(pt => `"${pt.tagId}"`).join(",")}] AS postTagIDsToBeConnected
+                WITH [${postEntity.postTags
+                    .map(pt => `"${pt.tagId}"`)
+                    .join(",")}] AS postTagIDsToBeConnected
                 UNWIND postTagIDsToBeConnected as postTagIdToBeConnected
                     MATCH (p1:${this.postLabel}) WHERE p1.postId = $postId
                     MATCH (postType:${this.postTypeLabel}) WHERE postType.postTypeId = $postTypeId
-                    MATCH (postTag:${this.postTagLabel}) WHERE postTag.tagId = postTagIdToBeConnected
+                    MATCH (postTag:${
+                        this.postTagLabel
+                    }) WHERE postTag.tagId = postTagIdToBeConnected
                         MERGE (p1)-[:${PostToPostTypeRelTypes.HAS_POST_TYPE}]->(postType)
                         CREATE (p1)-[:${PostToPostTagRelTypes.HAS_POST_TAG}]->(postTag)
                 WITH [${postEntity.awards[PostToAwardRelTypes.HAS_AWARD].records

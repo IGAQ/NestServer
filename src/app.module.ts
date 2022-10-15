@@ -37,7 +37,9 @@ export class AppModule {
     constructor(private _neo4jSeedService: Neo4jSeedService) {}
 
     onModuleInit() {
-        this._neo4jSeedService.seed()
-            .then(() => this._logger.log("Neo4j database seeded ✅"));
+        this._neo4jSeedService
+            .seed()
+            .then(() => this._logger.log("Neo4j database seeded ✅"))
+            .catch(error => this._logger.error(error));
     }
 }
