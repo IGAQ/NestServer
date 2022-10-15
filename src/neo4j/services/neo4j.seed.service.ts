@@ -3,11 +3,13 @@ import { Neo4jService } from "./neo4j.service";
 import { Award, Post, PostTag, PostType } from "../../posts/models";
 import { LABELS_DECORATOR_KEY } from "../neo4j.constants";
 import { HasAwardProps, PostToAwardRelTypes } from "../../posts/models/toAward";
-import { Role, User } from "../../users/models";
+import { Gender, Role, Sexuality, User } from "../../users/models";
 import { AuthoredProps, UserToPostRelTypes } from "../../users/models/toPost";
 import { PostToPostTypeRelTypes } from "../../posts/models/toPostType";
 import { PostToPostTagRelTypes } from "../../posts/models/toTags";
 import { PostToSelfRelTypes, RestrictedProps } from "../../posts/models/toSelf";
+import { UserToSexualityRelTypes } from "../../users/models/toSexuality";
+import { UserToGenderRelTypes } from "../../users/models/toGender";
 
 @Injectable()
 export class Neo4jSeedService {
@@ -17,6 +19,8 @@ export class Neo4jSeedService {
     private postTagLabel = Reflect.get(PostTag, LABELS_DECORATOR_KEY)[0];
     private awardLabel = Reflect.get(Award, LABELS_DECORATOR_KEY)[0];
     private postLabel = Reflect.get(Post, LABELS_DECORATOR_KEY)[0];
+    private sexualityLabel = Reflect.get(Sexuality, LABELS_DECORATOR_KEY)[0];
+    private genderLabel = Reflect.get(Gender, LABELS_DECORATOR_KEY)[0];
     private userLabel = Reflect.get(User, LABELS_DECORATOR_KEY)[0];
 
     public async seed() {
@@ -67,6 +71,89 @@ export class Neo4jSeedService {
             );
         }
 
+        // Populate sexualities
+        let sexualities = await this.getSexualities();
+        for (let sexualityEntity of sexualities) {
+            await this._neo4jService.write(
+                `CREATE (n:${this.sexualityLabel} {
+                    sexualityId: $sexualityId,
+                    sexualityName: $sexualityName,
+                    sexualityFlagSvg: $sexualityFlagSvg
+                })`,
+                {
+                    sexualityId: sexualityEntity.sexualityId,
+                    sexualityName: sexualityEntity.sexualityName,
+                    sexualityFlagSvg: sexualityEntity.sexualityFlagSvg,
+                });
+        }
+
+        // Populate genders
+        let genders = await this.getGenders();
+        for (let genderEntity of genders) {
+            await this._neo4jService.write(
+                `CREATE (n:${this.genderLabel} { 
+                genderId: $genderId,
+                genderName: $genderName,
+                genderPronouns: $genderPronouns,
+                genderFlagSvg: $genderFlagSvg
+             })`,
+                {
+                    genderId: genderEntity.genderId,
+                    genderName: genderEntity.genderName,
+                    genderPronouns: genderEntity.genderPronouns,
+                    genderFlagSvg: genderEntity.genderFlagSvg,
+                }
+            );
+        }
+
+        // Populate users
+        let users = await this.getUsers();
+        for (let userEntity of users) {
+            await this._neo4jService.write(
+                `
+                MATCH (s:${this.sexualityLabel} { sexualityId: $sexualityId })
+                MATCH (g:${this.genderLabel} { genderId: $genderId })
+                    CREATE (u:${this.userLabel} { 
+                        userId: $userId,
+                        
+                        createdAt: $createdAt,
+                        updatedAt: $updatedAt,
+                        
+                        username: $username,
+                        normalizedUsername: $normalizedUsername,
+                        
+                        passwordHash: $passwordHash,
+                        
+                        phoneNumber: $phoneNumber,
+                        phoneNumberVerified: $phoneNumberVerified,
+                        
+                        email: $email,
+                        emailVerified: $emailVerified,
+                        
+                        level: $level,
+                        
+                        roles: $roles
+                    })-[:${UserToSexualityRelTypes.HAS_SEXUALITY}]->(s), (u)-[:${UserToGenderRelTypes.HAS_GENDER}]->(g) `,
+                {
+                    userId: userEntity.userId,
+                    createdAt: userEntity.createdAt,
+                    updatedAt: userEntity.updatedAt,
+                    username: userEntity.username,
+                    normalizedUsername: userEntity.normalizedUsername,
+                    passwordHash: userEntity.passwordHash,
+                    phoneNumber: userEntity.phoneNumber,
+                    phoneNumberVerified: userEntity.phoneNumberVerified,
+                    email: userEntity.email,
+                    emailVerified: userEntity.emailVerified,
+                    level: userEntity.level,
+                    roles: userEntity.roles,
+
+                    sexualityId: userEntity.sexuality.sexualityId,
+                    genderId: userEntity.gender.genderId,
+                }
+            );
+        }
+
         // Populate posts
         let posts = await this.getPosts();
         for (let postEntity of posts) {
@@ -113,7 +200,7 @@ export class Neo4jSeedService {
                 UNWIND awardIDsToBeConnected as awardIdToBeConnected
                     MATCH (p1:${this.postLabel}) WHERE p1.postId = $postId
                     MATCH (award:${this.awardLabel}) WHERE award.awardId = awardIdToBeConnected
-                        CREATE (p1)-[:${PostToAwardRelTypes.HAS_AWARD}]->(award)
+                        MERGE (p1)-[:${PostToAwardRelTypes.HAS_AWARD}]->(award)
             `,
                 {
                     // With Clauses
@@ -180,6 +267,12 @@ export class Neo4jSeedService {
                 emailVerified: false,
                 level: 0,
                 roles: [Role.MODERATOR],
+                gender: new Gender({
+                    genderId: "d2945763-d1fb-46aa-b896-7f701b4ca699",
+                }),
+                sexuality: new Sexuality({
+                    sexualityId: "1b67cf76-752d-4ea5-9584-a4232998b838",
+                }),
                 posts: {
                     [UserToPostRelTypes.AUTHORED]: {
                         records: (await this.getPosts()).slice(0, 2).map(post => ({
@@ -207,6 +300,12 @@ export class Neo4jSeedService {
                 emailVerified: false,
                 level: 0,
                 roles: [Role.USER, Role.MODERATOR],
+                gender: new Gender({
+                    genderId: "585d31aa-d5b3-4b8d-9690-ffcd57ce2862",
+                }),
+                sexuality: new Sexuality({
+                    sexualityId: "9164d89b-8d71-4fd1-af61-155d1d7ffe53",
+                }),
                 posts: {
                     [UserToPostRelTypes.AUTHORED]: {
                         records: (await this.getPosts()).slice(2).map(post => ({
@@ -236,8 +335,6 @@ export class Neo4jSeedService {
                 restrictedProps: null,
                 authorUser: new User({
                     userId: "3109f9e2-a262-4aef-b648-90d86d6fbf6c",
-                    username: "leo",
-                    normalizedUsername: "LEO",
                 }),
                 pending: false,
                 awards: {
@@ -266,8 +363,6 @@ export class Neo4jSeedService {
                 }),
                 authorUser: new User({
                     userId: "3109f9e2-a262-4aef-b648-90d86d6fbf6c",
-                    username: "leo",
-                    normalizedUsername: "LEO",
                 }),
                 pending: true,
                 awards: {
@@ -319,13 +414,61 @@ export class Neo4jSeedService {
         return new Array<Award>(
             new Award({
                 awardId: "2049221e-1f45-4430-8edc-95db808db072",
-                awardName: "",
+                awardName: "Sean's Mom Award",
                 awardSvg: "<svg></svg>",
             }),
             new Award({
                 awardId: "375608ce-ca65-4293-8402-da34cd2c42c7",
                 awardName: "",
                 awardSvg: "<svg></svg>",
+            })
+        );
+    }
+
+    private async getSexualities(): Promise<Sexuality[]> {
+        return new Array<Sexuality>(
+            new Sexuality({
+                sexualityId: "9164d89b-8d71-4fd1-af61-155d1d7ffe53",
+                sexualityName: "Gay",
+                sexualityFlagSvg: "<svg></svg>",
+            }),
+            new Sexuality({
+                sexualityId: "1b67cf76-752d-4ea5-9584-a4232998b838",
+                sexualityName: "Lesbian",
+                sexualityFlagSvg: "<svg></svg>",
+            }),
+            new Sexuality({
+                sexualityId: "df388311-c184-4f09-93f4-645c6175322c",
+                sexualityName: "Homosexual",
+                sexualityFlagSvg: "<svg></svg>",
+            }),
+            new Sexuality({
+                sexualityId: "2d32c4d3-4aca-4b03-bf68-ba104656183f",
+                sexualityName: "Asexual",
+                sexualityFlagSvg: "<svg></svg>",
+            })
+        );
+    }
+
+    private async getGenders(): Promise<Gender[]> {
+        return new Array<Gender>(
+            new Gender({
+                genderId: "d2945763-d1fb-46aa-b896-7f701b4ca699",
+                genderName: "Female",
+                genderPronouns: "She/Her",
+                genderFlagSvg: "<svg></svg>",
+            }),
+            new Gender({
+                genderId: "585d31aa-d5b3-4b8d-9690-ffcd57ce2862",
+                genderName: "Male",
+                genderPronouns: "He/Him",
+                genderFlagSvg: "<svg></svg>",
+            }),
+            new Gender({
+                genderId: "23907da4-c3f2-4e96-a73d-423e64f18a21",
+                genderName: "Non-binary",
+                genderPronouns: "They/Them",
+                genderFlagSvg: "<svg></svg>",
             })
         );
     }
