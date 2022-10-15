@@ -2,7 +2,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import { v4 as uuidv4 } from "uuid";
 import { RelatedEntityRecordItem } from "../../neo4j/neo4j.helper.types";
 import { Neo4jService } from "src/neo4j/services/neo4j.service";
-import { PostToSelfRelTypes, RestrictedProps } from "../models/toSelf";
+import { _ToSelfRelTypes, RestrictedProps } from "../../common/models/toSelf";
 import { PostToPostTypeRelTypes } from "../models/toPostType";
 import { PostToPostTagRelTypes } from "../models/toTags";
 import { PostToAwardRelTypes } from "../models/toAward";
@@ -14,7 +14,7 @@ export class PostsRepository {
 
     public async findAll(): Promise<Post[]> {
         const allPosts = await this._neo4jService.read(
-            `MATCH (p:Post)-[restrictedProps:${PostToSelfRelTypes.RESTRICTED}]->(p)
+            `MATCH (p:Post)-[restrictedProps:${_ToSelfRelTypes.RESTRICTED}]->(p)
             MATCH (p)-[:${PostToPostTypeRelTypes.HAS_POST_TYPE}]->(postType:PostType)
             MATCH (p)-[:${PostToPostTagRelTypes.HAS_POST_TAG}]->(postTag:PostTag)
             MATCH (p)-[hasAwardRel:${PostToAwardRelTypes.HAS_AWARD}]->(award:Award)
@@ -49,7 +49,7 @@ export class PostsRepository {
 
     public async findPostById(postId: string): Promise<Post | undefined> {
         const post = await this._neo4jService.read(
-            `MATCH (p:Post {postId: $postId})-[restrictedProp:${PostToSelfRelTypes.RESTRICTED}]->(p) 
+            `MATCH (p:Post {postId: $postId})-[restrictedProp:${_ToSelfRelTypes.RESTRICTED}]->(p) 
             MATCH (p)-[:${PostToPostTypeRelTypes.HAS_POST_TYPE}]->(postType:PostType)
             MATCH (p)-[:${PostToPostTagRelTypes.HAS_POST_TAG}]->(postTag:PostTag)
             MATCH (p)-[hasAwardRel:${PostToAwardRelTypes.HAS_AWARD}]->(award:Award)
@@ -104,7 +104,7 @@ export class PostsRepository {
     public async restrictPost(postId: string, restrictedProps: RestrictedProps): Promise<void> {
         this._neo4jService.write(
             `MATCH (p:Post) WHERE p.postId = $postId 
-            CREATE (p)-[r:${PostToSelfRelTypes.RESTRICTED} {
+            CREATE (p)-[r:${_ToSelfRelTypes.RESTRICTED} {
                 restrictedAt: $restrictedAt,
                 moderatorId: $moderatorId,
                 reason: $reason,

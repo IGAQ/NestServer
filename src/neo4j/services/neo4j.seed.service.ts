@@ -7,7 +7,7 @@ import { Gender, Role, Sexuality, User } from "../../users/models";
 import { AuthoredProps, UserToPostRelTypes } from "../../users/models/toPost";
 import { PostToPostTypeRelTypes } from "../../posts/models/toPostType";
 import { PostToPostTagRelTypes } from "../../posts/models/toTags";
-import { PostToSelfRelTypes, RestrictedProps } from "../../posts/models/toSelf";
+import { _ToSelfRelTypes, RestrictedProps } from "../../common/models/toSelf";
 import { UserToSexualityRelTypes } from "../../users/models/toSexuality";
 import { UserToGenderRelTypes } from "../../users/models/toGender";
 
@@ -199,7 +199,7 @@ export class Neo4jSeedService {
             let restrictedQueryString = "";
             let restrictedQueryParams = {};
             if (postEntity.restrictedProps !== null) {
-                restrictedQueryString = `-[:${PostToSelfRelTypes.RESTRICTED} { 
+                restrictedQueryString = `-[:${_ToSelfRelTypes.RESTRICTED} { 
                     restrictedAt: $restrictedAt, 
                     moderatorId: $moderatorId,
                     reason: $reason

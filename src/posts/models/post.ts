@@ -3,7 +3,7 @@ import { Labels, NodeProperty } from "../../neo4j/neo4j.decorators";
 import { RichRelatedEntities } from "../../neo4j/neo4j.helper.types";
 import { User } from "../../users/models";
 import { PostType, PostTag, Award } from "./index";
-import { RestrictedProps } from "./toSelf";
+import { RestrictedProps } from "../../common/models/toSelf";
 import { PostToAwardRelTypes } from "./toAward";
 
 @Labels("Post")
