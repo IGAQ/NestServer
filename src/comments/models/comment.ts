@@ -28,7 +28,7 @@ export class Comment {
     updatedAt: number;
 
     @ApiProperty({ type: User })
-    authorUser: Nullable<User>;
+    authorUser: User;
 
     @ApiProperty({ type: Boolean })
     @NodeProperty()
