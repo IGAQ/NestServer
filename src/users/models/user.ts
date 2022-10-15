@@ -8,6 +8,9 @@ import { RichRelatedEntities } from "../../neo4j/neo4j.helper.types";
 import { UserToPostRelTypes } from "./toPost";
 import { Labels, NodeProperty } from "../../neo4j/neo4j.decorators";
 
+export type AvatarUrl = string;
+export type AvatarAscii = string;
+
 @Labels("User")
 export class User {
     @ApiProperty({ type: String, format: "uuid" })
@@ -20,6 +23,10 @@ export class User {
     @ApiProperty({ type: Date })
     @NodeProperty()
     updatedAt: number;
+
+    @ApiProperty({ type: String })
+    @NodeProperty()
+    avatar: AvatarAscii | AvatarUrl;
 
     @ApiProperty({ type: String })
     @NodeProperty()
