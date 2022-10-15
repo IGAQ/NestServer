@@ -21,7 +21,7 @@ export class Comment {
     commentContent: string;
 
     @ApiProperty({ type: String, format: "uuid" })
-    parentId: string;
+    parentId: Nullable<string>;
 
     @ApiProperty({ type: String })
     @NodeProperty()
