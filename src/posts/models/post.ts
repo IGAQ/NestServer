@@ -36,7 +36,7 @@ export class Post {
     postContent: string;
 
     @ApiProperty({ type: User })
-    authorUser: User;
+    authorUser: Nullable<User>;
 
     @ApiProperty({ type: Boolean })
     @NodeProperty()
