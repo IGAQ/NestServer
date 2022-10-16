@@ -13,6 +13,8 @@ import { UserToGenderRelTypes } from "../../users/models/toGender";
 import { Comment } from "../../comments/models";
 import { CommentToSelfRelTypes } from "../../comments/models/toSelf";
 import { PostToCommentRelTypes } from "../../posts/models/toComment";
+import { Openness } from "../../users/models/openness";
+import { UserToOpennessRelTypes } from "../../users/models/toOpenness";
 
 @Injectable()
 export class Neo4jSeedService {
@@ -26,6 +28,7 @@ export class Neo4jSeedService {
     private sexualityLabel = Reflect.get(Sexuality, LABELS_DECORATOR_KEY)[0];
     private genderLabel = Reflect.get(Gender, LABELS_DECORATOR_KEY)[0];
     private userLabel = Reflect.get(User, LABELS_DECORATOR_KEY)[0];
+    private opennessLabel = Reflect.get(Openness, LABELS_DECORATOR_KEY)[0];
 
     public async seed() {
         // Constraints
@@ -38,6 +41,11 @@ export class Neo4jSeedService {
         // Comment - Comment.commentId IS UNIQUE
         await this._neo4jService.tryWriteAsync(
             `CREATE CONSTRAINT comment_commentId_UNIQUE FOR (comment:${this.commentLabel}) REQUIRE comment.commentId IS UNIQUE`,
+            {}
+        );
+        // Openness - Openness.opennessId IS UNIQUE
+        await this._neo4jService.tryWriteAsync(
+            `CREATE CONSTRAINT openness_opennessId_UNIQUE FOR (openness:${this.opennessLabel}) REQUIRE openness.opennessId IS UNIQUE`,
             {}
         );
         // PostType - PostType.postTypeId IS UNIQUE
@@ -79,10 +87,7 @@ export class Neo4jSeedService {
                 postTypeId: $postTypeId,
                 postType: $postType
              })`,
-                {
-                    postTypeId: postTypeEntity.postTypeId,
-                    postType: postTypeEntity.postType,
-                }
+                postTypeEntity
             );
         }
 
@@ -94,10 +99,7 @@ export class Neo4jSeedService {
                 tagId: $tagId,
                 tagName: $tagName
              })`,
-                {
-                    tagId: postTagEntity.tagId,
-                    tagName: postTagEntity.tagName,
-                }
+                postTagEntity
             );
         }
 
@@ -110,11 +112,7 @@ export class Neo4jSeedService {
                 awardName: $awardName,
                 awardSvg: $awardSvg
              })`,
-                {
-                    awardId: awardEntity.awardId,
-                    awardName: awardEntity.awardName,
-                    awardSvg: awardEntity.awardSvg,
-                }
+                awardEntity
             );
         }
 
@@ -127,11 +125,7 @@ export class Neo4jSeedService {
                     sexualityName: $sexualityName,
                     sexualityFlagSvg: $sexualityFlagSvg
                 })`,
-                {
-                    sexualityId: sexualityEntity.sexualityId,
-                    sexualityName: sexualityEntity.sexualityName,
-                    sexualityFlagSvg: sexualityEntity.sexualityFlagSvg,
-                }
+                sexualityEntity
             );
         }
 
@@ -145,12 +139,20 @@ export class Neo4jSeedService {
                 genderPronouns: $genderPronouns,
                 genderFlagSvg: $genderFlagSvg
              })`,
-                {
-                    genderId: genderEntity.genderId,
-                    genderName: genderEntity.genderName,
-                    genderPronouns: genderEntity.genderPronouns,
-                    genderFlagSvg: genderEntity.genderFlagSvg,
-                }
+                genderEntity
+            );
+        }
+
+        // Populate genders
+        let opennessRecords = await this.getOpennessRecords();
+        for (let opennessEntity of opennessRecords) {
+            await this._neo4jService.tryWriteAsync(
+                `CREATE (n:${this.opennessLabel} { 
+                opennessId: $opennessId,
+                opennessLevel: $opennessLevel,
+                opennessDescription: $opennessDescription
+             })`,
+                opennessEntity
             );
         }
 
@@ -161,6 +163,7 @@ export class Neo4jSeedService {
                 `
                 MATCH (s:${this.sexualityLabel} { sexualityId: $sexualityId })
                 MATCH (g:${this.genderLabel} { genderId: $genderId })
+                MATCH (o:${this.opennessLabel} { opennessId: $opennessId })
                     CREATE (u:${this.userLabel} { 
                         userId: $userId,
                         
@@ -181,7 +184,9 @@ export class Neo4jSeedService {
                         level: $level,
                         
                         roles: $roles
-                    })-[:${UserToSexualityRelTypes.HAS_SEXUALITY}]->(s), (u)-[:${UserToGenderRelTypes.HAS_GENDER}]->(g) `,
+                    })-[:${UserToSexualityRelTypes.HAS_SEXUALITY}]->(s), 
+                        (u)-[:${UserToGenderRelTypes.HAS_GENDER}]->(g),
+                        (u)-[:${UserToOpennessRelTypes.HAS_OPENNESS_LEVEL_OF}]->(o)`,
                 {
                     userId: userEntity.userId,
                     createdAt: userEntity.createdAt,
@@ -198,6 +203,7 @@ export class Neo4jSeedService {
 
                     sexualityId: userEntity.sexuality.sexualityId,
                     genderId: userEntity.gender.genderId,
+                    opennessId: userEntity.openness.opennessId,
                 }
             );
         }
@@ -343,18 +349,6 @@ export class Neo4jSeedService {
 						parentId: commentEntity.parentId,
 					});
 
-                // await this._neo4jService.tryWriteAsync(
-                //     `MATCH (comment:${this.commentLabel} { commentId: $commentId })
-				// 	MATCH (parent) WHERE (parent:${this.postLabel} AND parent.postId = $parentId) OR (parent:${this.commentLabel} AND parent.commentId = $parentId)
-                //     FOREACH (i in CASE WHEN parent:${this.commentLabel} THEN [1] ELSE [] END |
-				// 	    MERGE (comment)-[:${CommentToSelfRelTypes.REPLIED}]->(parent))
-				// 	`, {
-                //         commentId: commentEntity.commentId,
-                //         parentId: commentEntity.parentId,
-                //     });
-
-
-
                 if (commentEntity.pinned) {
                     await this._neo4jService.tryWriteAsync(
                         `MATCH (comment:${this.commentLabel} { commentId: $commentId })
@@ -419,6 +413,9 @@ export class Neo4jSeedService {
                 sexuality: new Sexuality({
                     sexualityId: "1b67cf76-752d-4ea5-9584-a4232998b838",
                 }),
+                openness: new Openness({
+                    opennessId: "d5c97584-cd1b-4aa6-82ad-b5ddd3577bee",
+                }),
                 posts: {
                     [UserToPostRelTypes.AUTHORED]: {
                         records: (await this.getPosts()).slice(0, 2).map(post => ({
@@ -451,6 +448,9 @@ export class Neo4jSeedService {
                 }),
                 sexuality: new Sexuality({
                     sexualityId: "9164d89b-8d71-4fd1-af61-155d1d7ffe53",
+                }),
+                openness: new Openness({
+                    opennessId: "ae90b960-5f00-4298-b509-fac92a59b406",
                 }),
                 posts: {
                     [UserToPostRelTypes.AUTHORED]: {
@@ -685,6 +685,36 @@ export class Neo4jSeedService {
                 genderName: "Non-binary",
                 genderPronouns: "They/Them",
                 genderFlagSvg: "<svg></svg>",
+            })
+        );
+    }
+
+    public async getOpennessRecords(): Promise<Openness[]> {
+        return new Array<Openness>(
+            new Openness({
+                opennessId: "ae90b960-5f00-4298-b509-fac92a59b406",
+                opennessLevel: -1,
+                opennessDescription: "Not Sure",
+            }),
+            new Openness({
+                opennessId: "842b5bd7-1da1-4a95-9564-1fc3b97b3655",
+                opennessLevel: 0,
+                opennessDescription: "Not Out",
+            }),
+            new Openness({
+                opennessId: "db27c417-a8a5-4703-9b35-9dc76e98fc95",
+                opennessLevel: 1,
+                opennessDescription: "Out to Few",
+            }),
+            new Openness({
+                opennessId: "822b2622-70d6-4d7c-860a-f56e309fe950",
+                opennessLevel: 2,
+                opennessDescription: "Semi-Out",
+            }),
+            new Openness({
+                opennessId: "d5c97584-cd1b-4aa6-82ad-b5ddd3577bee",
+                opennessLevel: 3,
+                opennessDescription: "Fully Out",
             })
         );
     }

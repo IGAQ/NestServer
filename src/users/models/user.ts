@@ -3,6 +3,7 @@ import { Exclude } from "class-transformer";
 import { Role } from "./role";
 import { Sexuality } from "./sexuality";
 import { Gender } from "./gender";
+import { Openness } from "./openness";
 import { Post } from "../../posts/models";
 import { RichRelatedEntities } from "../../neo4j/neo4j.helper.types";
 import { UserToPostRelTypes } from "./toPost";
@@ -69,6 +70,9 @@ export class User {
 
     @ApiProperty({ type: Gender })
     gender: Nullable<Gender>;
+
+    @ApiProperty({ type: Openness })
+    openness: Nullable<Openness>;
 
     constructor(partial?: Partial<User>) {
         Object.assign(this, partial);
