@@ -49,7 +49,6 @@ export class Neo4jService {
             // console.debug(cypher, "cypher", params, "params");
             return await session.run(cypher, params);
         } catch (error) {
-            // console.log(error);
             this._logger.debug(error);
             await session.close();
         }
