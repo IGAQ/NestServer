@@ -286,27 +286,27 @@ export class Neo4jSeedService {
             );
         }
 
-		const populateCommentEntity = async (commentEntity) => {
-			let restrictedQueryString = "";
-			let restrictedQueryParams = {};
-			if (commentEntity.restrictedProps !== null) {
-				restrictedQueryString = `-[:${_ToSelfRelTypes.RESTRICTED} { 
+        const populateCommentEntity = async commentEntity => {
+            let restrictedQueryString = "";
+            let restrictedQueryParams = {};
+            if (commentEntity.restrictedProps !== null) {
+                restrictedQueryString = `-[:${_ToSelfRelTypes.RESTRICTED} { 
                     restrictedAt: $restrictedAt, 
                     moderatorId: $moderatorId,
                     reason: $reason
                  }]->(comment)`;
-				restrictedQueryParams = {
-					restrictedAt: commentEntity.restrictedProps.restrictedAt,
-					moderatorId: commentEntity.restrictedProps.moderatorId,
-					reason: commentEntity.restrictedProps.reason,
-				} as RestrictedProps;
-			}
-			const authoredProps = new AuthoredProps({
-				authoredAt: commentEntity.createdAt,
-				anonymously: false,
-			});
-			await this._neo4jService.tryWriteAsync(
-				`MATCH (authorUser:${this.userLabel}) WHERE authorUser.userId = $authorUserId
+                restrictedQueryParams = {
+                    restrictedAt: commentEntity.restrictedProps.restrictedAt,
+                    moderatorId: commentEntity.restrictedProps.moderatorId,
+                    reason: commentEntity.restrictedProps.reason,
+                } as RestrictedProps;
+            }
+            const authoredProps = new AuthoredProps({
+                authoredAt: commentEntity.createdAt,
+                anonymously: false,
+            });
+            await this._neo4jService.tryWriteAsync(
+                `MATCH (authorUser:${this.userLabel}) WHERE authorUser.userId = $authorUserId
                 CREATE (comment:${this.commentLabel} {
                     commentId: $commentId,
                     commentContent: $commentContent,
@@ -317,59 +317,63 @@ export class Neo4jSeedService {
                     anonymously: $authoredProps_anonymously
                  }]-(authorUser)
                 `,
-				{
-					// Comment Author User
-					authorUserId: commentEntity.authorUser.userId,
+                {
+                    // Comment Author User
+                    authorUserId: commentEntity.authorUser.userId,
 
-					// Comment
-					commentId: commentEntity.commentId,
-					commentContent: commentEntity.commentContent,
-					updatedAt: commentEntity.updatedAt,
-					pending: commentEntity.pending,
+                    // Comment
+                    commentId: commentEntity.commentId,
+                    commentContent: commentEntity.commentContent,
+                    updatedAt: commentEntity.updatedAt,
+                    pending: commentEntity.pending,
 
-					// AuthoredProps
-					authoredProps_authoredAt: authoredProps.authoredAt,
-					authoredProps_anonymously: authoredProps.anonymously,
+                    // AuthoredProps
+                    authoredProps_authoredAt: authoredProps.authoredAt,
+                    authoredProps_anonymously: authoredProps.anonymously,
 
                     // RestrictedProps (if applicable)
                     ...restrictedQueryParams,
-				}
-			);
+                }
+            );
 
-			if (commentEntity.parentId !== null) {
-				await this._neo4jService.tryWriteAsync(
-					`MATCH (comment:${this.commentLabel} { commentId: $commentId })
+            if (commentEntity.parentId !== null) {
+                await this._neo4jService.tryWriteAsync(
+                    `MATCH (comment:${this.commentLabel} { commentId: $commentId })
 					MATCH (parent) WHERE (parent:${this.postLabel} AND parent.postId = $parentId) OR (parent:${this.commentLabel} AND parent.commentId = $parentId)
 					FOREACH (i in CASE WHEN parent:${this.postLabel} THEN [1] ELSE [] END | 
 					    MERGE (comment)<-[:${PostToCommentRelTypes.HAS_COMMENT}]-(parent))
 					FOREACH (i in CASE WHEN parent:${this.commentLabel} THEN [1] ELSE [] END |
 					    MERGE (comment)-[:${CommentToSelfRelTypes.REPLIED}]->(parent))
-					`, {
-						commentId: commentEntity.commentId,
-						parentId: commentEntity.parentId,
-					});
+					`,
+                    {
+                        commentId: commentEntity.commentId,
+                        parentId: commentEntity.parentId,
+                    }
+                );
 
                 if (commentEntity.pinned) {
                     await this._neo4jService.tryWriteAsync(
                         `MATCH (comment:${this.commentLabel} { commentId: $commentId })
                         MATCH (parent) WHERE parent:${this.postLabel} AND parent.postId = $parentId
                         MERGE (comment)-[:${PostToCommentRelTypes.PINNED_COMMENT}]->(parent)
-                        `, {
+                        `,
+                        {
                             commentId: commentEntity.commentId,
                             parentId: commentEntity.parentId,
-                        });
+                        }
+                    );
                 }
-			}
+            }
 
-			for (let childCommentEntity of commentEntity.childComments) {
-				await populateCommentEntity(childCommentEntity);
-			}
-		}
+            for (let childCommentEntity of commentEntity.childComments) {
+                await populateCommentEntity(childCommentEntity);
+            }
+        };
 
         // Populate comments
         let comments = await this.getComments();
         for (let commentEntity of comments) {
-			await populateCommentEntity(commentEntity);
+            await populateCommentEntity(commentEntity);
         }
     }
 
