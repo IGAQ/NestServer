@@ -10,6 +10,9 @@ import { PostToPostTagRelTypes } from "../../posts/models/toTags";
 import { _ToSelfRelTypes, RestrictedProps } from "../../common/models/toSelf";
 import { UserToSexualityRelTypes } from "../../users/models/toSexuality";
 import { UserToGenderRelTypes } from "../../users/models/toGender";
+import { Comment } from "../../comments/models";
+import { CommentToSelfRelTypes } from "../../comments/models/toSelf";
+import { PostToCommentRelTypes } from "../../posts/models/toComment";
 
 @Injectable()
 export class Neo4jSeedService {
@@ -19,6 +22,7 @@ export class Neo4jSeedService {
     private postTagLabel = Reflect.get(PostTag, LABELS_DECORATOR_KEY)[0];
     private awardLabel = Reflect.get(Award, LABELS_DECORATOR_KEY)[0];
     private postLabel = Reflect.get(Post, LABELS_DECORATOR_KEY)[0];
+    private commentLabel = Reflect.get(Comment, LABELS_DECORATOR_KEY)[0];
     private sexualityLabel = Reflect.get(Sexuality, LABELS_DECORATOR_KEY)[0];
     private genderLabel = Reflect.get(Gender, LABELS_DECORATOR_KEY)[0];
     private userLabel = Reflect.get(User, LABELS_DECORATOR_KEY)[0];
@@ -27,37 +31,42 @@ export class Neo4jSeedService {
         // Constraints
 
         // Post - Post.postId IS UNIQUE
-        await this._neo4jService.tryWrite(
+        await this._neo4jService.tryWriteAsync(
             `CREATE CONSTRAINT post_postId_UNIQUE FOR (post:${this.postLabel}) REQUIRE post.postId IS UNIQUE`,
             {}
         );
+        // Comment - Comment.commentId IS UNIQUE
+        await this._neo4jService.tryWriteAsync(
+            `CREATE CONSTRAINT comment_commentId_UNIQUE FOR (comment:${this.commentLabel}) REQUIRE comment.commentId IS UNIQUE`,
+            {}
+        );
         // PostType - PostType.postTypeId IS UNIQUE
-        await this._neo4jService.tryWrite(
+        await this._neo4jService.tryWriteAsync(
             `CREATE CONSTRAINT postType_postTypeId_UNIQUE FOR (postType:${this.postTypeLabel}) REQUIRE postType.postTypeId IS UNIQUE`,
             {}
         );
         // PostTag - PostTag.tagId IS UNIQUE
-        await this._neo4jService.tryWrite(
+        await this._neo4jService.tryWriteAsync(
             `CREATE CONSTRAINT postTag_tagId_UNIQUE FOR (postTag:${this.postTagLabel}) REQUIRE postTag.tagId IS UNIQUE`,
             {}
         );
         // Award - Award.awardId IS UNIQUE
-        await this._neo4jService.tryWrite(
+        await this._neo4jService.tryWriteAsync(
             `CREATE CONSTRAINT award_awardId_UNIQUE FOR (award:${this.awardLabel}) REQUIRE award.awardId IS UNIQUE`,
             {}
         );
         // Sexuality - Sexuality.sexualityId IS UNIQUE
-        await this._neo4jService.tryWrite(
+        await this._neo4jService.tryWriteAsync(
             `CREATE CONSTRAINT sexuality_sexualityId_UNIQUE FOR (sexuality:${this.sexualityLabel}) REQUIRE sexuality.sexualityId IS UNIQUE`,
             {}
         );
         // Gender - Gender.genderId IS UNIQUE
-        await this._neo4jService.tryWrite(
+        await this._neo4jService.tryWriteAsync(
             `CREATE CONSTRAINT gender FOR (gender:${this.genderLabel}) REQUIRE gender.genderId IS UNIQUE`,
             {}
         );
         // User - User.userId IS UNIQUE
-        await this._neo4jService.tryWrite(
+        await this._neo4jService.tryWriteAsync(
             `CREATE CONSTRAINT user_userId_UNIQUE FOR (user:${this.userLabel}) REQUIRE user.userId IS UNIQUE`,
             {}
         );
@@ -65,7 +74,7 @@ export class Neo4jSeedService {
         // Populate post types
         let postTypes = await this.getPostTypes();
         for (let postTypeEntity of postTypes) {
-            await this._neo4jService.tryWrite(
+            await this._neo4jService.tryWriteAsync(
                 `CREATE (n:${this.postTypeLabel} { 
                 postTypeId: $postTypeId,
                 postType: $postType
@@ -80,7 +89,7 @@ export class Neo4jSeedService {
         // Populate post tags
         let postTags = await this.getPostTags();
         for (let postTagEntity of postTags) {
-            await this._neo4jService.tryWrite(
+            await this._neo4jService.tryWriteAsync(
                 `CREATE (n:${this.postTagLabel} { 
                 tagId: $tagId,
                 tagName: $tagName
@@ -95,7 +104,7 @@ export class Neo4jSeedService {
         // Populate awards
         let awards = await this.getAwards();
         for (let awardEntity of awards) {
-            await this._neo4jService.tryWrite(
+            await this._neo4jService.tryWriteAsync(
                 `CREATE (n:${this.awardLabel} { 
                 awardId: $awardId,
                 awardName: $awardName,
@@ -112,7 +121,7 @@ export class Neo4jSeedService {
         // Populate sexualities
         let sexualities = await this.getSexualities();
         for (let sexualityEntity of sexualities) {
-            await this._neo4jService.tryWrite(
+            await this._neo4jService.tryWriteAsync(
                 `CREATE (n:${this.sexualityLabel} {
                     sexualityId: $sexualityId,
                     sexualityName: $sexualityName,
@@ -129,7 +138,7 @@ export class Neo4jSeedService {
         // Populate genders
         let genders = await this.getGenders();
         for (let genderEntity of genders) {
-            await this._neo4jService.tryWrite(
+            await this._neo4jService.tryWriteAsync(
                 `CREATE (n:${this.genderLabel} { 
                 genderId: $genderId,
                 genderName: $genderName,
@@ -148,7 +157,7 @@ export class Neo4jSeedService {
         // Populate users
         let users = await this.getUsers();
         for (let userEntity of users) {
-            await this._neo4jService.tryWrite(
+            await this._neo4jService.tryWriteAsync(
                 `
                 MATCH (s:${this.sexualityLabel} { sexualityId: $sexualityId })
                 MATCH (g:${this.genderLabel} { genderId: $genderId })
@@ -215,7 +224,7 @@ export class Neo4jSeedService {
                 authoredAt: 1665770000,
                 anonymously: false,
             });
-            await this._neo4jService.tryWrite(
+            await this._neo4jService.tryWriteAsync(
                 `
                 MATCH (u:${this.userLabel} { userId: $userId })
                 CREATE (p:${this.postLabel} {
@@ -238,7 +247,7 @@ export class Neo4jSeedService {
                         this.postTagLabel
                     }) WHERE postTag.tagId = postTagIdToBeConnected
                         MERGE (p1)-[:${PostToPostTypeRelTypes.HAS_POST_TYPE}]->(postType)
-                        CREATE (p1)-[:${PostToPostTagRelTypes.HAS_POST_TAG}]->(postTag)
+                        MERGE (p1)-[:${PostToPostTagRelTypes.HAS_POST_TAG}]->(postTag)
                 WITH [${postEntity.awards[PostToAwardRelTypes.HAS_AWARD].records
                     .map(record => `"${record.entity.awardId}"`)
                     .join(",")}] AS awardIDsToBeConnected       
@@ -269,6 +278,104 @@ export class Neo4jSeedService {
                     ...restrictedQueryParams,
                 }
             );
+        }
+
+		const populateCommentEntity = async (commentEntity) => {
+			let restrictedQueryString = "";
+			let restrictedQueryParams = {};
+			if (commentEntity.restrictedProps !== null) {
+				restrictedQueryString = `-[:${_ToSelfRelTypes.RESTRICTED} { 
+                    restrictedAt: $restrictedAt, 
+                    moderatorId: $moderatorId,
+                    reason: $reason
+                 }]->(comment)`;
+				restrictedQueryParams = {
+					restrictedAt: commentEntity.restrictedProps.restrictedAt,
+					moderatorId: commentEntity.restrictedProps.moderatorId,
+					reason: commentEntity.restrictedProps.reason,
+				} as RestrictedProps;
+			}
+			const authoredProps = new AuthoredProps({
+				authoredAt: commentEntity.createdAt,
+				anonymously: false,
+			});
+			await this._neo4jService.tryWriteAsync(
+				`MATCH (authorUser:${this.userLabel}) WHERE authorUser.userId = $authorUserId
+                CREATE (comment:${this.commentLabel} {
+                    commentId: $commentId,
+                    commentContent: $commentContent,
+                    updatedAt: $updatedAt,
+                    pending: $pending
+                })${restrictedQueryString}<-[authoredRelationship:${UserToPostRelTypes.AUTHORED} {
+                    authoredAt: $authoredProps_authoredAt,
+                    anonymously: $authoredProps_anonymously
+                 }]-(authorUser)
+                `,
+				{
+					// Comment Author User
+					authorUserId: commentEntity.authorUser.userId,
+
+					// Comment
+					commentId: commentEntity.commentId,
+					commentContent: commentEntity.commentContent,
+					updatedAt: commentEntity.updatedAt,
+					pending: commentEntity.pending,
+
+					// AuthoredProps
+					authoredProps_authoredAt: authoredProps.authoredAt,
+					authoredProps_anonymously: authoredProps.anonymously,
+
+                    // RestrictedProps (if applicable)
+                    ...restrictedQueryParams,
+				}
+			);
+
+			if (commentEntity.parentId !== null) {
+				await this._neo4jService.tryWriteAsync(
+					`MATCH (comment:${this.commentLabel} { commentId: $commentId })
+					MATCH (parent) WHERE (parent:${this.postLabel} AND parent.postId = $parentId) OR (parent:${this.commentLabel} AND parent.commentId = $parentId)
+					FOREACH (i in CASE WHEN parent:${this.postLabel} THEN [1] ELSE [] END | 
+					    MERGE (comment)<-[:${PostToCommentRelTypes.HAS_COMMENT}]-(parent))
+					FOREACH (i in CASE WHEN parent:${this.commentLabel} THEN [1] ELSE [] END |
+					    MERGE (comment)-[:${CommentToSelfRelTypes.REPLIED}]->(parent))
+					`, {
+						commentId: commentEntity.commentId,
+						parentId: commentEntity.parentId,
+					});
+
+                // await this._neo4jService.tryWriteAsync(
+                //     `MATCH (comment:${this.commentLabel} { commentId: $commentId })
+				// 	MATCH (parent) WHERE (parent:${this.postLabel} AND parent.postId = $parentId) OR (parent:${this.commentLabel} AND parent.commentId = $parentId)
+                //     FOREACH (i in CASE WHEN parent:${this.commentLabel} THEN [1] ELSE [] END |
+				// 	    MERGE (comment)-[:${CommentToSelfRelTypes.REPLIED}]->(parent))
+				// 	`, {
+                //         commentId: commentEntity.commentId,
+                //         parentId: commentEntity.parentId,
+                //     });
+
+
+
+                if (commentEntity.pinned) {
+                    await this._neo4jService.tryWriteAsync(
+                        `MATCH (comment:${this.commentLabel} { commentId: $commentId })
+                        MATCH (parent) WHERE parent:${this.postLabel} AND parent.postId = $parentId
+                        MERGE (comment)-[:${PostToCommentRelTypes.PINNED_COMMENT}]->(parent)
+                        `, {
+                            commentId: commentEntity.commentId,
+                            parentId: commentEntity.parentId,
+                        });
+                }
+			}
+
+			for (let childCommentEntity of commentEntity.childComments) {
+				await populateCommentEntity(childCommentEntity);
+			}
+		}
+
+        // Populate comments
+        let comments = await this.getComments();
+        for (let commentEntity of comments) {
+			await populateCommentEntity(commentEntity);
         }
     }
 
@@ -419,7 +526,77 @@ export class Neo4jSeedService {
         );
     }
 
-    private async getPostTypes(): Promise<PostType[]> {
+    public async getComments(): Promise<Comment[]> {
+        return new Array<Comment>(
+            new Comment({
+                commentId: "37fbb7c9-013f-4057-bc90-f38498b69295",
+                parentId: "596632ac-dd54-4700-a783-688618d99fa9",
+                commentContent: "I think this post is great!",
+                createdAt: 1665770000,
+                updatedAt: 1665770000,
+                authorUser: new User({
+                    userId: "5c0f145b-ffad-4881-8ee6-7647c3c1b695",
+                }),
+                pinned: true,
+                pending: false,
+                restrictedProps: null,
+                childComments: [],
+            }),
+            new Comment({
+                commentId: "13cc9fd9-4c99-4daa-bf17-750bd1efa5d8",
+                parentId: "596632ac-dd54-4700-a783-688618d99fa9",
+                commentContent: "First comment! :yay:",
+                createdAt: 1665770000,
+                updatedAt: 1665770000,
+                authorUser: new User({
+                    userId: "5c0f145b-ffad-4881-8ee6-7647c3c1b695",
+                }),
+                pinned: false,
+                pending: true,
+                restrictedProps: new RestrictedProps({
+                    restrictedAt: 1665780000,
+                    moderatorId: "3109f9e2-a262-4aef-b648-90d86d6fbf6c",
+                    reason: "The moderator thinks there is profanity in this comment",
+                }),
+                childComments: [
+                    new Comment({
+                        commentId: "04658465-f9ea-427b-9f5b-ed5e93db27ff",
+                        parentId: "13cc9fd9-4c99-4daa-bf17-750bd1efa5d8",
+                        commentContent: "Second comment! :yay:",
+                        createdAt: 1665770000,
+                        updatedAt: 1665770000,
+                        authorUser: new User({
+                            userId: "3109f9e2-a262-4aef-b648-90d86d6fbf6c",
+                        }),
+                        pinned: false,
+                        pending: true,
+                        restrictedProps: new RestrictedProps({
+                            restrictedAt: 1665780000,
+                            moderatorId: "3109f9e2-a262-4aef-b648-90d86d6fbf6c",
+                            reason: "The moderator died of cringe",
+                        }),
+                        childComments: [],
+                    }),
+                    new Comment({
+                        commentId: "acba2871-2435-4439-82c3-adebc7cdc942",
+                        parentId: "13cc9fd9-4c99-4daa-bf17-750bd1efa5d8",
+                        commentContent: "First-Second comment! :yay:",
+                        createdAt: 1665770000,
+                        updatedAt: 1665770000,
+                        authorUser: new User({
+                            userId: "3109f9e2-a262-4aef-b648-90d86d6fbf6c",
+                        }),
+                        pinned: false,
+                        pending: false,
+                        restrictedProps: null,
+                        childComments: [],
+                    }),
+                ],
+            })
+        );
+    }
+
+    public async getPostTypes(): Promise<PostType[]> {
         return new Array<PostType>(
             new PostType({
                 postTypeId: "95aaf886-064e-44b3-906f-3a7798945b7b",
@@ -432,7 +609,7 @@ export class Neo4jSeedService {
         );
     }
 
-    private async getPostTags(): Promise<PostTag[]> {
+    public async getPostTags(): Promise<PostTag[]> {
         return new Array<PostTag>(
             new PostTag({
                 tagId: "39b90340-82b7-4149-8f5d-40b00a61d2a2",
@@ -449,7 +626,7 @@ export class Neo4jSeedService {
         );
     }
 
-    private async getAwards(): Promise<Award[]> {
+    public async getAwards(): Promise<Award[]> {
         return new Array<Award>(
             new Award({
                 awardId: "2049221e-1f45-4430-8edc-95db808db072",
@@ -464,7 +641,7 @@ export class Neo4jSeedService {
         );
     }
 
-    private async getSexualities(): Promise<Sexuality[]> {
+    public async getSexualities(): Promise<Sexuality[]> {
         return new Array<Sexuality>(
             new Sexuality({
                 sexualityId: "9164d89b-8d71-4fd1-af61-155d1d7ffe53",
@@ -489,7 +666,7 @@ export class Neo4jSeedService {
         );
     }
 
-    private async getGenders(): Promise<Gender[]> {
+    public async getGenders(): Promise<Gender[]> {
         return new Array<Gender>(
             new Gender({
                 genderId: "d2945763-d1fb-46aa-b896-7f701b4ca699",

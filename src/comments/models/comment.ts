@@ -1,8 +1,9 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { RestrictedProps } from "../../common/models/toSelf";
 import { User } from "../../users/models";
-import { NodeProperty } from "../../neo4j/neo4j.decorators";
+import { Labels, NodeProperty } from "../../neo4j/neo4j.decorators";
 
+@Labels("Comment")
 export class Comment {
     @ApiProperty({ type: String, format: "uuid" })
     @NodeProperty()
@@ -22,6 +23,8 @@ export class Comment {
 
     @ApiProperty({ type: String, format: "uuid" })
     parentId: Nullable<string>;
+    @ApiProperty({ type: Boolean })
+    pinned: boolean;
 
     @ApiProperty({ type: String })
     @NodeProperty()
