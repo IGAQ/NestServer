@@ -6,7 +6,11 @@ export interface IPostsRepository {
 
     findPostById(postId: string): Promise<Post | undefined>;
 
-    addPost(post: Post): Promise<void>;
+    addPost(post: Post, anonymous: boolean): Promise<void>;
+
+    deletePost(postId: string): Promise<void>;
 
     restrictPost(postId: string, restrictedProps: RestrictedProps): Promise<void>;
+
+    unrestrictPost(postId: string): Promise<void>;
 }

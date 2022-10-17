@@ -1,10 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import { RegisterUserPayloadDto, Role, User } from "../models";
-import { IUsersService } from "./users.service.interface";
+import { IUsersRepository } from "./users.repository.interface";
 import { v4 as uuidv4 } from "uuid";
 
 @Injectable()
-export class UsersServiceTest implements IUsersService {
+export class UsersRepositoryTest implements IUsersRepository {
     private readonly _users: User[] = [
         new User({
             userId: "1",

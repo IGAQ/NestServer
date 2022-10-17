@@ -13,7 +13,7 @@ import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { Role, User } from "../models";
 import { Roles } from "../../auth/decorators/roles.decorator";
 import { RolesGuard } from "../../auth/guards/roles.guard";
-import { IUsersService } from "../services/users.service.interface";
+import { IUsersRepository } from "../services/users.repository.interface";
 import { AuthGuard } from "@nestjs/passport";
 
 @UseInterceptors(ClassSerializerInterceptor)
@@ -21,7 +21,7 @@ import { AuthGuard } from "@nestjs/passport";
 @ApiBearerAuth()
 @Controller("users")
 export class UsersController {
-    constructor(@Inject("IUsersService") private _usersService: IUsersService) {}
+    constructor(@Inject("IUsersService") private _usersService: IUsersRepository) {}
 
     @Get()
     @Roles(Role.ADMIN)

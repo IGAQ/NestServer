@@ -3,7 +3,7 @@ import { Neo4jService } from "./neo4j.service";
 import { Award, Post, PostTag, PostType } from "../../posts/models";
 import { LABELS_DECORATOR_KEY } from "../neo4j.constants";
 import { HasAwardProps, PostToAwardRelTypes } from "../../posts/models/toAward";
-import { Gender, Role, Sexuality, User } from "../../users/models";
+import { Gender, Role, Sexuality, User, Openness } from "../../users/models";
 import { AuthoredProps, UserToPostRelTypes } from "../../users/models/toPost";
 import { PostToPostTypeRelTypes } from "../../posts/models/toPostType";
 import { PostToPostTagRelTypes } from "../../posts/models/toTags";
@@ -13,7 +13,6 @@ import { UserToGenderRelTypes } from "../../users/models/toGender";
 import { Comment } from "../../comments/models";
 import { CommentToSelfRelTypes } from "../../comments/models/toSelf";
 import { PostToCommentRelTypes } from "../../posts/models/toComment";
-import { Openness } from "../../users/models/openness";
 import { UserToOpennessRelTypes } from "../../users/models/toOpenness";
 
 @Injectable()
@@ -407,6 +406,7 @@ export class Neo4jSeedService {
                 userId: "5c0f145b-ffad-4881-8ee6-7647c3c1b695",
                 createdAt: new Date().getTime(),
                 updatedAt: new Date().getTime(),
+                avatar: ":^)",
                 username: "alice",
                 normalizedUsername: "ALICE",
                 passwordHash: "password",
@@ -443,6 +443,7 @@ export class Neo4jSeedService {
                 userId: "3109f9e2-a262-4aef-b648-90d86d6fbf6c",
                 createdAt: new Date().getTime(),
                 updatedAt: new Date().getTime(),
+                avatar: "^_^",
                 username: "leo",
                 normalizedUsername: "LEO",
                 passwordHash: "123",

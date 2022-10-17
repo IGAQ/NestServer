@@ -2,9 +2,11 @@ import { ApiProperty } from "@nestjs/swagger";
 import { RestrictedProps } from "../../common/models/toSelf";
 import { User } from "../../users/models";
 import { Labels, NodeProperty } from "../../neo4j/neo4j.decorators";
+import { Model } from "../../neo4j/neo4j.helper.types";
+import { Neo4jService } from "../../neo4j/services/neo4j.service";
 
 @Labels("Comment")
-export class Comment {
+export class Comment extends Model {
     @ApiProperty({ type: String, format: "uuid" })
     @NodeProperty()
     commentId: string;
@@ -43,7 +45,8 @@ export class Comment {
     @ApiProperty({ type: Comment })
     childComments: Comment[];
 
-    constructor(partial?: Partial<Comment>) {
+    constructor(partial?: Partial<Comment>, neo4jService?: Neo4jService) {
+        super(neo4jService);
         Object.assign(this, partial);
     }
 }

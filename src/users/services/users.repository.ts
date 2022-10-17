@@ -1,11 +1,11 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { RegisterUserPayloadDto, Role, User } from "../models";
-import { IUsersService } from "./users.service.interface";
+import { IUsersRepository } from "./users.repository.interface";
 import { Neo4jService } from "../../neo4j/services/neo4j.service";
 import { v4 as uuidv4 } from "uuid";
 
 @Injectable()
-export class UsersService implements IUsersService {
+export class UsersRepository implements IUsersRepository {
     constructor(@Inject(Neo4jService) private _neo4jService: Neo4jService) {}
 
     public async findAll(): Promise<User[]> {

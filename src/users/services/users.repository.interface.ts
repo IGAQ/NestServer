@@ -1,7 +1,7 @@
 import { User } from "../models";
 import { RegisterUserPayloadDto } from "../models";
 
-export interface IUsersService {
+export interface IUsersRepository {
     findAll(): Promise<User[]>;
 
     findUserByUsername(username: string): Promise<User | undefined>;

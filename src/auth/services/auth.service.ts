@@ -2,7 +2,7 @@ import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
-import { IUsersService } from "../../users/services/users.service.interface";
+import { IUsersRepository } from "../../users/services/users.repository.interface";
 import { SignInPayloadDto, SignTokenDto, SignUpPayloadDto } from "../models";
 import { IAuthService } from "./auth.service.interface";
 import { User } from "../../users/models";
@@ -10,7 +10,7 @@ import { User } from "../../users/models";
 @Injectable({})
 export class AuthService implements IAuthService {
     constructor(
-        @Inject("IUsersService") private _usersService: IUsersService,
+        @Inject("IUsersRepository") private _usersService: IUsersRepository,
         private _jwtService: JwtService,
         private _configService: ConfigService
     ) {}

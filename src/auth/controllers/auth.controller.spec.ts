@@ -1,6 +1,6 @@
 import { Test } from "@nestjs/testing";
 import * as request from "supertest";
-import { UsersServiceTest } from "../../users/services/users.service.test";
+import { UsersRepositoryTest } from "../../users/services/users.repository.test";
 import { AuthController } from "./auth.controller";
 import { AuthDto } from "../models";
 import { INestApplication, ValidationPipe } from "@nestjs/common";
@@ -20,7 +20,7 @@ describe("AuthController", () => {
                 ConfigService,
                 {
                     provide: "IUsersService",
-                    useClass: UsersServiceTest,
+                    useClass: UsersRepositoryTest,
                 },
                 {
                     provide: "IAuthService",
