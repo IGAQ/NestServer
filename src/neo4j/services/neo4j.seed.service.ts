@@ -3,7 +3,7 @@ import { Neo4jService } from "./neo4j.service";
 import { Award, Post, PostTag, PostType } from "../../posts/models";
 import { LABELS_DECORATOR_KEY } from "../neo4j.constants";
 import { HasAwardProps, PostToAwardRelTypes } from "../../posts/models/toAward";
-import { Gender, Role, Sexuality, User } from "../../users/models";
+import { Gender, Role, Sexuality, User, Openness } from "../../users/models";
 import { AuthoredProps, UserToPostRelTypes } from "../../users/models/toPost";
 import { PostToPostTypeRelTypes } from "../../posts/models/toPostType";
 import { PostToPostTagRelTypes } from "../../posts/models/toTags";
@@ -13,7 +13,6 @@ import { UserToGenderRelTypes } from "../../users/models/toGender";
 import { Comment } from "../../comments/models";
 import { CommentToSelfRelTypes } from "../../comments/models/toSelf";
 import { PostToCommentRelTypes } from "../../posts/models/toComment";
-import { Openness } from "../../users/models/openness";
 import { UserToOpennessRelTypes } from "../../users/models/toOpenness";
 
 @Injectable()
