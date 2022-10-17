@@ -64,6 +64,15 @@ export class PostsRepository implements IPostsRepository {
         );
     }
 
+    public async deletePost(postId: string): Promise<void> {
+        this._neo4jService.write(
+            `MATCH (p:Post) WHERE p.postId = $postId DETACH DELETE p`,
+            {
+                postId: postId,
+            }
+        );
+    }
+
     public async restrictPost(postId: string, restrictedProps: RestrictedProps): Promise<void> {
         this._neo4jService.write(
             `MATCH (p:Post) WHERE p.postId = $postId 
@@ -77,6 +86,15 @@ export class PostsRepository implements IPostsRepository {
                 restrictedAt: restrictedProps.restrictedAt,
                 moderatorId: restrictedProps.moderatorId,
                 reason: restrictedProps.reason,
+            }
+        );
+    }
+
+    public async unrestrictPost(postId: string): Promise<void> {
+        this._neo4jService.write(
+            `MATCH (p:Post)-[r:${_ToSelfRelTypes.RESTRICTED}]->(p) WHERE p.postId = $postId DELETE r`,
+            {
+                postId: postId,
             }
         );
     }
