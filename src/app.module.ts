@@ -1,13 +1,12 @@
 import { Inject, Logger, Module } from "@nestjs/common";
-import { AuthModule } from "./auth/auth.module";
-import { UsersModule } from "./users/users.module";
-import { PrismaModule } from "./prisma/prisma.module";
-import { PostsModule } from "./posts/posts.module";
-import { Neo4jModule } from "./neo4j/neo4j.module";
 import { ConfigModule, ConfigService } from "@nestjs/config";
+import { AuthModule } from "./auth/auth.module";
+import { CommentsModule } from "./comments/comments.module";
+import { Neo4jModule } from "./neo4j/neo4j.module";
 import { Neo4jConfig } from "./neo4j/neo4jConfig.interface";
 import { Neo4jSeedService } from "./neo4j/services/neo4j.seed.service";
-import { CommentsModule } from "./comments/comments.module";
+import { PostsModule } from "./posts/posts.module";
+import { UsersModule } from "./users/users.module";
 
 @Module({
     imports: [
@@ -26,7 +25,6 @@ import { CommentsModule } from "./comments/comments.module";
         ConfigModule.forRoot({
             isGlobal: true,
         }),
-        PrismaModule,
         AuthModule,
         UsersModule,
         PostsModule,
@@ -36,7 +34,7 @@ import { CommentsModule } from "./comments/comments.module";
 export class AppModule {
     private readonly _logger = new Logger(AppModule.name);
 
-    constructor(private _neo4jSeedService: Neo4jSeedService) {}
+    constructor(private _neo4jSeedService: Neo4jSeedService) { }
 
     onModuleInit() {
         this._neo4jSeedService
