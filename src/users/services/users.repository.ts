@@ -46,7 +46,7 @@ export class UsersRepository implements IUsersRepository {
         });
     }
 
-    public async addUser(user: RegisterUserPayloadDto): Promise<void> {
+    public async addUser(user: User): Promise<void> {
         this._neo4jService.write(
             `CREATE (u:User {
 			userId: $userId,
@@ -59,29 +59,30 @@ export class UsersRepository implements IUsersRepository {
 			username: $username,
 			normalizedUsername: $normalizedUsername,
 			passwordHash: $passwordHash,
-			level: $level
+			level: $level,
+			roles: $roles
 		})`,
             {
-                userId: uuidv4(),
+                userId: user.userId,
 
-                createdAt: new Date().getTime(),
-                updatedAt: new Date().getTime(),
+                createdAt: user.createdAt,
+                updatedAt: user.updatedAt,
 
                 email: user.email,
-                emailVerified: false,
+                emailVerified: user.emailVerified,
 
-                phoneNumber: "",
-                phoneNumberVerified: false,
+                phoneNumber: user.phoneNumber,
+                phoneNumberVerified: user.phoneNumberVerified,
 
                 username: user.username,
                 normalizedUsername: user.username.toUpperCase(),
 
-                passwordHash: user.password,
+                passwordHash: user.passwordHash,
 
-                roles: [Role.USER],
+                roles: user.roles,
 
-                level: 0,
-            } as Omit<User, "posts">
+                level: user.level,
+            } as User
         );
     }
 
