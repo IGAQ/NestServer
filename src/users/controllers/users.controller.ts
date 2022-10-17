@@ -21,7 +21,7 @@ import { AuthGuard } from "@nestjs/passport";
 @ApiBearerAuth()
 @Controller("users")
 export class UsersController {
-    constructor(@Inject("IUsersService") private _usersService: IUsersRepository) {}
+    constructor(@Inject("IUsersRepository") private _usersService: IUsersRepository) {}
 
     @Get()
     @Roles(Role.ADMIN)

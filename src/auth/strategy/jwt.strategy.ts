@@ -8,7 +8,7 @@ import { IUsersRepository } from "../../users/services/users.repository.interfac
 export class JwtStrategy extends PassportStrategy(Strategy) {
     constructor(
         config: ConfigService,
-        @Inject("IUsersService") private _usersService: IUsersRepository
+        @Inject("IUsersRepository") private _usersRepository: IUsersRepository
     ) {
         super({
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -17,6 +17,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     async validate(payload: any) {
-        return await this._usersService.findUserById(payload.sub);
+        return await this._usersRepository.findUserById(payload.sub);
     }
 }
