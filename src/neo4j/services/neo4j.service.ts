@@ -34,12 +34,12 @@ export class Neo4jService {
     }
 
     public write(cypher: string, params: Record<string, any>, database?: string): Result {
-        console.debug(cypher, "cypher", params, "params");
+        // console.debug(cypher, "cypher", params, "params");
         const session = this.getWriteSession(database);
         return session.run(cypher, params);
     }
 
-    public async tryWrite(
+    public async tryWriteAsync(
         cypher: string,
         params: Record<string, any>,
         database?: string
@@ -54,7 +54,7 @@ export class Neo4jService {
         }
     }
 
-    public async tryRead(
+    public async tryReadAsync(
         cypher: string,
         params: Record<string, any>,
         database?: string

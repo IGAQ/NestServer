@@ -1,5 +1,5 @@
 export { RestrictedProps } from "./restricted.props";
 
-export enum PostToSelfRelTypes {
+export enum _ToSelfRelTypes {
     RESTRICTED = "RESTRICTED",
 }

@@ -6,3 +6,8 @@ export function Labels(...labels: string[]) {
         target.labels = labels;
     };
 }
+
+// This decorator is used to mark a property as a node property
+export function NodeProperty() {
+    return function (target: any, propertyKey: string) {};
+}

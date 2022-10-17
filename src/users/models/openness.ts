@@ -1,21 +1,21 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Labels, NodeProperty } from "../../neo4j/neo4j.decorators";
 
-@Labels("Sexuality")
-export class Sexuality {
+@Labels("Openness")
+export class Openness {
     @ApiProperty({ type: String, format: "uuid" })
     @NodeProperty()
-    sexualityId: string;
+    opennessId: string;
 
-    @ApiProperty({ type: String })
+    @ApiProperty({ type: Number })
     @NodeProperty()
-    sexualityName: string;
+    opennessLevel: number;
 
-    @ApiProperty({ type: String })
+    @ApiProperty({ type: Number })
     @NodeProperty()
-    sexualityFlagSvg: string;
+    opennessDescription: string;
 
-    constructor(partial?: Partial<Sexuality>) {
+    constructor(partial?: Partial<Openness>) {
         Object.assign(this, partial);
     }
 }

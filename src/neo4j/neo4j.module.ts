@@ -10,14 +10,16 @@ import { Neo4jSeedService } from "./services/neo4j.seed.service";
     providers: [Neo4jService, Neo4jSeedService],
 })
 export class Neo4jModule {
-    public static forRoot(config: Neo4jConfig): DynamicModule {
+    public static forRoot(config: any): DynamicModule {
         return {
             module: Neo4jModule,
             global: true,
+            imports: [ConfigModule],
+
             providers: [
                 {
                     provide: NEO4J_OPTIONS,
-                    useValue: config,
+                    ...config,
                 },
                 {
                     provide: NEO4J_DRIVER,
@@ -26,7 +28,7 @@ export class Neo4jModule {
                 },
                 Neo4jService,
             ],
-            exports: [Neo4jService],
+            exports: [Neo4jService, Neo4jSeedService],
         };
     }
 
