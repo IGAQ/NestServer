@@ -1,6 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { UsersController } from "./users.controller";
-import { UsersServiceTest } from "../services/users.service.test";
+import { UsersRepositoryTest } from "../services/users.repository.test";
 import { INestApplication, ValidationPipe } from "@nestjs/common";
 import * as request from "supertest";
 
@@ -14,7 +14,7 @@ describe("UsersController", () => {
             providers: [
                 {
                     provide: "IUsersService",
-                    useClass: UsersServiceTest,
+                    useClass: UsersRepositoryTest,
                 },
             ],
         }).compile();
