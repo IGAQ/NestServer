@@ -20,9 +20,9 @@ export type RichRelatedEntities<EntityType, T extends string> = {
 };
 
 export class Model {
-    public _neo4jService: Neo4jService;
+    public neo4jService: Neo4jService;
 
     constructor(neo4jService: Neo4jService) {
-        this._neo4jService = neo4jService;
+        this.neo4jService = neo4jService;
     }
 }

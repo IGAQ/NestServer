@@ -1,14 +1,15 @@
-import { Neo4jConfig } from "../../../../src/neo4j/neo4jConfig.interface";
+import { Neo4jConfig } from "../../neo4j/neo4jConfig.interface";
 import { Test, TestingModule } from "@nestjs/testing";
-import { NEO4J_DRIVER, NEO4J_OPTIONS } from "../../../../src/neo4j/neo4j.constants";
-import { createDriver } from "../../../../src/neo4j/neo4j.utils";
-import { Neo4jService } from "../../../../src/neo4j/services/neo4j.service";
-import { PostsRepository } from "../../../../src/posts/services/postRepository/posts.respository";
-import { neo4jCredentials } from "../../../../src/common/constants";
-import { IPostsRepository } from "../../../../src/posts/services/postRepository/posts.repository.inerface";
-import { Post } from "../../../../src/posts/models";
+import { NEO4J_DRIVER, NEO4J_OPTIONS } from "../../neo4j/neo4j.constants";
+import { createDriver } from "../../neo4j/neo4j.utils";
+import { Neo4jService } from "../../neo4j/services/neo4j.service";
+import { PostsRepository } from "../services/postRepository/posts.respository";
+import { neo4jCredentials } from "../../common/constants";
+import { IPostsRepository } from "../services/postRepository/posts.repository.inerface";
+import { Post } from "./post";
+import { PostToAwardRelTypes } from "./toAward";
 
-describe("PostsRepository", () => {
+describe("Post Model Unit Test", () => {
 	let postsRepository: IPostsRepository;
 
 	let post: Post;
@@ -34,8 +35,6 @@ describe("PostsRepository", () => {
 		}).compile();
 
 		postsRepository = module.get<PostsRepository>("IPostsRepository");
-
-
 	});
 
 	it("both postRepository and post should be defined", () => {
@@ -61,9 +60,9 @@ describe("PostsRepository", () => {
 				expect(Array.isArray(awards)).toBe(true);
 			});
 
-			it("should return an array of length 1", async () => {
+			it("should return an array of length 2", async () => {
 				let awards = await post.getAwards();
-				expect(awards.length).toBe(1);
+				expect(awards.length).toBe(2);
 			});
 		});
 	});

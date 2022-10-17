@@ -60,7 +60,7 @@ export class Post extends Model {
     }
 
     public async getAuthorUser(): Promise<User> {
-        const queryResult = await this._neo4jService.read(
+        const queryResult = await this.neo4jService.read(
             `
             MATCH (p:Post {postId: $postId})<-[r:${UserToPostRelTypes.AUTHORED}]-(u:User)
             RETURN u, r
@@ -80,7 +80,7 @@ export class Post extends Model {
     }
 
     public async getRestricted(): Promise<Nullable<RestrictedProps>> {
-        const queryResult = await this._neo4jService.read(
+        const queryResult = await this.neo4jService.read(
             `
             MATCH (p:Post {postId: $postId})-[r:${PostToPostTypeRelTypes.HAS_POST_TYPE}]->(p)
             RETURN r
@@ -96,7 +96,7 @@ export class Post extends Model {
     }
 
     public async getAwards(): Promise<Array<RelatedEntityRecordItem<Award, HasAwardProps>>> {
-        const queryResult = await this._neo4jService.read(
+        const queryResult = await this.neo4jService.read(
             `
             MATCH (p:Post {postId: $postId})-[r:${PostToAwardRelTypes.HAS_AWARD}]->(a:Award)
             RETURN a, r
@@ -110,6 +110,7 @@ export class Post extends Model {
             const relProps = record.get("r").properties;
             return { entity, relProps };
         });
+        if (this.awards === undefined) this.awards = {} as RichRelatedEntities<Award, PostToAwardRelTypes>;
         this.awards[PostToAwardRelTypes.HAS_AWARD] = {
             records: result,
             relType: PostToAwardRelTypes.HAS_AWARD,
@@ -118,7 +119,7 @@ export class Post extends Model {
     }
 
     public async getPostType(): Promise<PostType> {
-        const queryResult = await this._neo4jService.read(
+        const queryResult = await this.neo4jService.read(
             `
             MATCH (p:Post {postId: $postId})-[r:${PostToPostTypeRelTypes.HAS_POST_TYPE}]->(pt:PostType)
             RETURN pt
@@ -134,7 +135,7 @@ export class Post extends Model {
     }
 
     public async getPostTags(): Promise<PostTag[]> {
-        const queryResult = await this._neo4jService.read(
+        const queryResult = await this.neo4jService.read(
             `
             MATCH (p:Post {postId: $postId})-[r:${PostToPostTagRelTypes.HAS_POST_TAG}]->(pt:PostTag)
             RETURN pt

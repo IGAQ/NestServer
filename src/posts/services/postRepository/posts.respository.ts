@@ -17,7 +17,7 @@ export class PostsRepository implements IPostsRepository {
         const allPosts = await this._neo4jService.read(`MATCH (p:Post) RETURN p`, {});
         let records = allPosts.records;
         if (records.length === 0) return [];
-        return records.map(record => new Post(record.get("p").properties));
+        return records.map(record => new Post(record.get("p").properties, this._neo4jService));
     }
 
     public async findPostById(postId: string): Promise<Post | undefined> {
@@ -26,7 +26,7 @@ export class PostsRepository implements IPostsRepository {
             { postId: postId }
         );
         if (post.records.length === 0) return undefined;
-        return new Post(post.records[0].get("p").properties);
+        return new Post(post.records[0].get("p").properties, this._neo4jService);
     }
 
     public async addPost(post: Post): Promise<void> {
