@@ -80,8 +80,8 @@ export class Neo4jSeedService {
         );
 
         // Populate post types
-        let postTypes = await this.getPostTypes();
-        for (let postTypeEntity of postTypes) {
+        const postTypes = await this.getPostTypes();
+        for (const postTypeEntity of postTypes) {
             await this._neo4jService.tryWriteAsync(
                 `CREATE (n:${this.postTypeLabel} { 
                 postTypeId: $postTypeId,
@@ -92,8 +92,8 @@ export class Neo4jSeedService {
         }
 
         // Populate post tags
-        let postTags = await this.getPostTags();
-        for (let postTagEntity of postTags) {
+        const postTags = await this.getPostTags();
+        for (const postTagEntity of postTags) {
             await this._neo4jService.tryWriteAsync(
                 `CREATE (n:${this.postTagLabel} { 
                 tagId: $tagId,
@@ -104,8 +104,8 @@ export class Neo4jSeedService {
         }
 
         // Populate awards
-        let awards = await this.getAwards();
-        for (let awardEntity of awards) {
+        const awards = await this.getAwards();
+        for (const awardEntity of awards) {
             await this._neo4jService.tryWriteAsync(
                 `CREATE (n:${this.awardLabel} { 
                 awardId: $awardId,
@@ -117,8 +117,8 @@ export class Neo4jSeedService {
         }
 
         // Populate sexualities
-        let sexualities = await this.getSexualities();
-        for (let sexualityEntity of sexualities) {
+        const sexualities = await this.getSexualities();
+        for (const sexualityEntity of sexualities) {
             await this._neo4jService.tryWriteAsync(
                 `CREATE (n:${this.sexualityLabel} {
                     sexualityId: $sexualityId,
@@ -130,8 +130,8 @@ export class Neo4jSeedService {
         }
 
         // Populate genders
-        let genders = await this.getGenders();
-        for (let genderEntity of genders) {
+        const genders = await this.getGenders();
+        for (const genderEntity of genders) {
             await this._neo4jService.tryWriteAsync(
                 `CREATE (n:${this.genderLabel} { 
                 genderId: $genderId,
@@ -144,8 +144,8 @@ export class Neo4jSeedService {
         }
 
         // Populate genders
-        let opennessRecords = await this.getOpennessRecords();
-        for (let opennessEntity of opennessRecords) {
+        const opennessRecords = await this.getOpennessRecords();
+        for (const opennessEntity of opennessRecords) {
             await this._neo4jService.tryWriteAsync(
                 `CREATE (n:${this.opennessLabel} { 
                 opennessId: $opennessId,
@@ -157,8 +157,8 @@ export class Neo4jSeedService {
         }
 
         // Populate users
-        let users = await this.getUsers();
-        for (let userEntity of users) {
+        const users = await this.getUsers();
+        for (const userEntity of users) {
             await this._neo4jService.tryWriteAsync(
                 `
                 MATCH (s:${this.sexualityLabel} { sexualityId: $sexualityId })
@@ -209,8 +209,8 @@ export class Neo4jSeedService {
         }
 
         // Populate posts
-        let posts = await this.getPosts();
-        for (let postEntity of posts) {
+        const posts = await this.getPosts();
+        for (const postEntity of posts) {
             let restrictedQueryString = "";
             let restrictedQueryParams = {};
             if (postEntity.restrictedProps !== null) {
@@ -226,7 +226,7 @@ export class Neo4jSeedService {
                 } as RestrictedProps;
             }
 
-            let authoredProps = new AuthoredProps({
+            const authoredProps = new AuthoredProps({
                 authoredAt: 1665770000,
                 anonymously: false,
             });
@@ -370,14 +370,14 @@ export class Neo4jSeedService {
                 }
             }
 
-            for (let childCommentEntity of commentEntity.childComments) {
+            for (const childCommentEntity of commentEntity.childComments) {
                 await populateCommentEntity(childCommentEntity);
             }
         };
 
         // Populate comments
-        let comments = await this.getComments();
-        for (let commentEntity of comments) {
+        const comments = await this.getComments();
+        for (const commentEntity of comments) {
             await populateCommentEntity(commentEntity);
         }
     }
