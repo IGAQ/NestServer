@@ -5,15 +5,16 @@ import { Sexuality } from "./sexuality";
 import { Gender } from "./gender";
 import { Openness } from "./openness";
 import { Post } from "../../posts/models";
-import { RichRelatedEntities } from "../../neo4j/neo4j.helper.types";
+import { Model, RichRelatedEntities } from "../../neo4j/neo4j.helper.types";
 import { UserToPostRelTypes } from "./toPost";
 import { Labels, NodeProperty } from "../../neo4j/neo4j.decorators";
+import { Neo4jService } from "../../neo4j/services/neo4j.service";
 
 export type AvatarUrl = string;
 export type AvatarAscii = string;
 
 @Labels("User")
-export class User {
+export class User extends Model {
     @ApiProperty({ type: String, format: "uuid" })
     @NodeProperty()
     userId: string;
@@ -74,7 +75,8 @@ export class User {
     @ApiProperty({ type: Openness })
     openness: Nullable<Openness>;
 
-    constructor(partial?: Partial<User>) {
+    constructor(partial?: Partial<User>, neo4jService?: Neo4jService) {
+        super(neo4jService);
         Object.assign(this, partial);
     }
 }
