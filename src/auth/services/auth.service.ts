@@ -10,7 +10,7 @@ import { User } from "../../users/models";
 @Injectable({})
 export class AuthService implements IAuthService {
     constructor(
-        @Inject("IUsersRepository") private _usersService: IUsersRepository,
+        @Inject("IUsersRepository") private _usersRepository: IUsersRepository,
         private _jwtService: JwtService,
         private _configService: ConfigService
     ) {}
@@ -20,7 +20,7 @@ export class AuthService implements IAuthService {
         const hash = await bcrypt.hash(signUpPayloadDto.password, salt);
 
         try {
-            await this._usersService.addUser({
+            await this._usersRepository.addUser({
                 username: signUpPayloadDto.username,
                 email: signUpPayloadDto.email,
                 password: hash,
@@ -35,7 +35,7 @@ export class AuthService implements IAuthService {
     }
 
     public async signIn(signInPayloadDto: SignInPayloadDto) {
-        const user = await this._usersService.findUserByUsername(signInPayloadDto.username);
+        const user = await this._usersRepository.findUserByUsername(signInPayloadDto.username);
         if (!user) {
             throw new HttpException("User not found", 404);
         }
