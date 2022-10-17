@@ -3,7 +3,7 @@ import { Labels, NodeProperty } from "../../neo4j/neo4j.decorators";
 import { Model, RelatedEntityRecordItem, RichRelatedEntities } from "../../neo4j/neo4j.helper.types";
 import { User } from "../../users/models";
 import { PostType, PostTag, Award } from "./index";
-import { RestrictedProps } from "../../common/models/toSelf";
+import { _ToSelfRelTypes, RestrictedProps } from "../../common/models/toSelf";
 import { HasAwardProps, PostToAwardRelTypes } from "./toAward";
 import { Neo4jService } from "../../neo4j/services/neo4j.service";
 import { PostToPostTypeRelTypes } from "./toPostType";
@@ -82,7 +82,7 @@ export class Post extends Model {
     public async getRestricted(): Promise<Nullable<RestrictedProps>> {
         const queryResult = await this.neo4jService.read(
             `
-            MATCH (p:Post {postId: $postId})-[r:${PostToPostTypeRelTypes.HAS_POST_TYPE}]->(p)
+            MATCH (p:Post {postId: $postId})-[r:${_ToSelfRelTypes.RESTRICTED}]->(p)
             RETURN r
             `,
             {
