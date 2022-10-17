@@ -260,7 +260,12 @@ export class Neo4jSeedService {
                 UNWIND awardIDsToBeConnected as awardIdToBeConnected
                     MATCH (p1:${this.postLabel}) WHERE p1.postId = $postId
                     MATCH (award:${this.awardLabel}) WHERE award.awardId = awardIdToBeConnected
-                        MERGE (p1)-[:${PostToAwardRelTypes.HAS_AWARD}]->(award)
+                        MERGE (p1)-[:${PostToAwardRelTypes.HAS_AWARD} { awardedBy: "${
+                    (
+                        postEntity.awards[PostToAwardRelTypes.HAS_AWARD].records[0]
+                            .relProps as HasAwardProps
+                    ).awardedBy
+                }" } ]->(award)
             `,
                 {
                     // Post Author User
