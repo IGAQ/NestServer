@@ -15,6 +15,7 @@ import { RestrictedProps } from "../../../common/models/toSelf";
 describe("PostsRepository", () => {
     let postsRepository: IPostsRepository;
     let neo4jSeedService: Neo4jSeedService;
+    let seedCalled = false;
 
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -40,6 +41,14 @@ describe("PostsRepository", () => {
         postsRepository = module.get<PostsRepository>("IPostsRepository");
 
         neo4jSeedService = module.get<Neo4jSeedService>(Neo4jSeedService);
+        try {
+            if (!seedCalled) {
+                seedCalled = true;
+                await neo4jSeedService.seed();
+            }
+        } catch (error) {
+            console.error(error);
+        }
     });
 
     it("should be defined", () => {

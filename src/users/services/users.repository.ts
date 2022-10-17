@@ -9,34 +9,41 @@ export class UsersRepository implements IUsersRepository {
     constructor(@Inject(Neo4jService) private _neo4jService: Neo4jService) {}
 
     public async findAll(): Promise<User[]> {
-        const allUsers = await this._neo4jService.read(`MATCH (u:User) RETURN u`, {});
-        console.debug(allUsers);
-        return allUsers.records.map(record => {
-            const user = record.get("u").properties;
-            user.role = user.role.map(r => r.low) as Role[];
-            return user;
+        const queryResult = await this._neo4jService.tryReadAsync(`MATCH (u:User) RETURN u`, {});
+        console.debug(queryResult);
+        return queryResult.records.map(record => {
+            const props = record.get("u").properties;
+            return new User({
+                roles: props.roles.map(r => r.low) as Role[],
+                ...props,
+            });
         });
     }
 
     public async findUserByUsername(username: string): Promise<User | undefined> {
-        const user = await this._neo4jService.read(
-            `MATCH (u:User {username: $username}) RETURN u`,
-            { username: username }
+        const queryResult = await this._neo4jService.tryReadAsync(
+            `MATCH (u:User { normalizedUsername: $normalizedUsername }) RETURN u`,
+            { normalizedUsername: username.toUpperCase() }
         );
-        if (user.records.length === 0) return undefined;
-        const foundUser = user.records[0].get("u").properties;
-        foundUser.role = foundUser.role.map(r => r.low) as Role[];
-        return foundUser;
+        console.log(queryResult, queryResult.records);
+        if (queryResult.records.length === 0) return undefined;
+        let props = queryResult.records[0].get("u").properties;
+        return new User({
+            roles: props.roles.map(r => r.low) as Role[],
+            ...props,
+        });
     }
 
     public async findUserById(userId: string): Promise<User | undefined> {
-        const user = await this._neo4jService.read(`MATCH (u:User {userId: $userId}) RETURN u`, {
+        const queryResult = await this._neo4jService.read(`MATCH (u:User {userId: $userId}) RETURN u`, {
             userId: userId,
         });
-        if (user.records.length === 0) return undefined;
-        const foundUser = user.records[0].get("u").properties;
-        foundUser.role = foundUser.role.map(r => r.low) as Role[];
-        return foundUser;
+        if (queryResult.records.length === 0) return undefined;
+        let props = queryResult.records[0].get("u").properties;
+        return new User({
+            roles: props.roles.map(r => r.low) as Role[],
+            ...props,
+        });
     }
 
     public async addUser(user: RegisterUserPayloadDto): Promise<void> {
