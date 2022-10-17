@@ -20,7 +20,7 @@ export class Post extends Model {
     postType: PostType;
 
     @ApiProperty({ type: PostTag, isArray: true })
-    postTags: PostTag[];
+    postTags: PostTag[] = new Array<PostTag>();
 
     @ApiProperty({ type: Award, isArray: true })
     awards: RichRelatedEntities<Award, PostToAwardRelTypes>;
@@ -47,11 +47,16 @@ export class Post extends Model {
     pending: boolean;
 
     @ApiProperty({ type: RestrictedProps })
-    restrictedProps: Nullable<RestrictedProps> = null;
+    restrictedProps: Nullable<RestrictedProps>;
 
     constructor(partial?: Partial<Post>, neo4jService?: Neo4jService) {
         super(neo4jService);
         Object.assign(this, partial);
+    }
+
+    public async getCreatedAt(): Promise<number> {
+        await this.getAuthorUser();
+        return this.createdAt;
     }
 
     public async getAuthorUser(): Promise<User> {

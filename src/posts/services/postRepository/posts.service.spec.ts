@@ -5,20 +5,12 @@ import { Neo4jService } from "../../../neo4j/services/neo4j.service";
 import { Neo4jConfig } from "../../../neo4j/neo4jConfig.interface";
 import { NEO4J_DRIVER, NEO4J_OPTIONS } from "../../../neo4j/neo4j.constants";
 import { createDriver } from "../../../neo4j/neo4j.utils";
+import { neo4jCredentials } from "../../../common/constants";
 
 describe("PostsRepository", () => {
     let postsRepository: IPostsRepository;
 
     beforeEach(async () => {
-        const neo4jCredentials: Neo4jConfig = {
-            scheme: "bolt",
-            host: "localhost",
-            port: 7687,
-            username: "neo4j",
-            password: "admin",
-            database: "",
-        };
-
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 {
@@ -52,6 +44,21 @@ describe("PostsRepository", () => {
             expect(Array.isArray(posts)).toBe(true);
         });
 
-        it("should return an array of posts with a length equal or greater than 0", async () => {});
+        it("should return an array of posts with a length equal or greater than 0", async () => {
+            const posts = await postsRepository.findAll();
+            expect(posts.length).toBeGreaterThanOrEqual(0);
+        });
+
+        it("every post has to only have the Node properties at the beginning", async () => {
+            const posts = await postsRepository.findAll();
+            posts.forEach((post) => {
+                expect(post.awards).toBeUndefined();
+                expect(post.postTags.length).toBe(0);
+                expect(post.postType).toBeUndefined();
+                expect(post.authorUser).toBeUndefined();
+                expect(post.createdAt).toBeUndefined();
+                expect(post.restrictedProps).toBeUndefined();
+            });
+        });
     });
 });
