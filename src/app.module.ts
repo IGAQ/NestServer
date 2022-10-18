@@ -1,4 +1,4 @@
-import { Inject, Logger, Module } from "@nestjs/common";
+import { Inject, Logger, MiddlewareConsumer, Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { AuthModule } from "./auth/auth.module";
 import { CommentsModule } from "./comments/comments.module";
@@ -7,6 +7,7 @@ import { Neo4jConfig } from "./neo4j/neo4jConfig.interface";
 import { Neo4jSeedService } from "./neo4j/services/neo4j.seed.service";
 import { PostsModule } from "./posts/posts.module";
 import { UsersModule } from "./users/users.module";
+import { AppLoggerMiddleware } from "./_domain/middlewares/appLogger.middleware";
 
 @Module({
     imports: [
@@ -35,6 +36,10 @@ export class AppModule {
     private readonly _logger = new Logger(AppModule.name);
 
     constructor(private _neo4jSeedService: Neo4jSeedService) {}
+
+    configure(consumer: MiddlewareConsumer): void {
+        consumer.apply(AppLoggerMiddleware).forRoutes("*");
+    }
 
     onModuleInit() {
         this._neo4jSeedService
