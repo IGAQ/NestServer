@@ -14,3 +14,4 @@ export interface IPostsRepository {
 
     unrestrictPost(postId: string): Promise<void>;
 }
+

@@ -15,3 +15,4 @@ export class RestrictedProps implements RelationshipProps {
         Object.assign(this, partial);
     }
 }
+
