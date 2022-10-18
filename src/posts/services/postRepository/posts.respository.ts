@@ -81,3 +81,4 @@ export class PostsRepository implements IPostsRepository {
         );
     }
 }
+

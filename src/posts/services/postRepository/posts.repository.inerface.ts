@@ -10,3 +10,4 @@ export interface IPostsRepository {
 
     restrictPost(postId: string, restrictedProps: RestrictedProps): Promise<void>;
 }
+
