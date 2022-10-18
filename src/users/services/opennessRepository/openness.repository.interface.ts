@@ -11,4 +11,3 @@ export interface IOpennessRepository {
 
     deleteOpenness(opennessId: string): Promise<void>;
 }
-

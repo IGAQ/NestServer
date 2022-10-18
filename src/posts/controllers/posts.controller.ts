@@ -8,4 +8,3 @@ export class PostsController {}
 // Create a Post
 
 // Find a Post by ID
-

@@ -6,7 +6,7 @@ import { IOpennessRepository } from "./openness.repository.interface";
 
 @Injectable()
 export class OpennessRepository implements IOpennessRepository {
-    constructor(@Inject(Neo4jService) private _neo4jService: Neo4jService) { }
+    constructor(@Inject(Neo4jService) private _neo4jService: Neo4jService) {}
 
     public async findAll(): Promise<Openness[]> {
         const allOpenness = await this._neo4jService.read(`MATCH (o:Openness) RETURN o`, {});
@@ -40,7 +40,7 @@ export class OpennessRepository implements IOpennessRepository {
 
                 opennessLevel: openness.opennessLevel,
 
-                opennessDescription: openness.opennessDescription
+                opennessDescription: openness.opennessDescription,
             }
         );
 
@@ -62,7 +62,7 @@ export class OpennessRepository implements IOpennessRepository {
 
                 opennessLevel: openness.opennessLevel,
 
-                opennessDescription: openness.opennessDescription
+                opennessDescription: openness.opennessDescription,
             }
         );
     }
@@ -80,4 +80,3 @@ export class OpennessRepository implements IOpennessRepository {
         );
     }
 }
-
