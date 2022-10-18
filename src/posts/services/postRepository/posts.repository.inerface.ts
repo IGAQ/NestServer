@@ -1,5 +1,5 @@
 import { Post } from "../../models";
-import { RestrictedProps } from "../../../common/models/toSelf";
+import { RestrictedProps } from "../../../_domain/models/toSelf";
 
 export interface IPostsRepository {
     findAll(): Promise<Post[]>;

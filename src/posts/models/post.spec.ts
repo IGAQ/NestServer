@@ -4,7 +4,7 @@ import { NEO4J_DRIVER, NEO4J_OPTIONS } from "../../neo4j/neo4j.constants";
 import { createDriver } from "../../neo4j/neo4j.utils";
 import { Neo4jService } from "../../neo4j/services/neo4j.service";
 import { PostsRepository } from "../services/postRepository/posts.respository";
-import { neo4jCredentials } from "../../common/constants";
+import { neo4jCredentials } from "../../_domain/constants";
 import { IPostsRepository } from "../services/postRepository/posts.repository.inerface";
 import { Post } from "./post";
 

@@ -5,12 +5,12 @@ import { Neo4jService } from "../../../neo4j/services/neo4j.service";
 import { Neo4jConfig } from "../../../neo4j/neo4jConfig.interface";
 import { NEO4J_DRIVER, NEO4J_OPTIONS } from "../../../neo4j/neo4j.constants";
 import { createDriver } from "../../../neo4j/neo4j.utils";
-import { neo4jCredentials } from "../../../common/constants";
+import { neo4jCredentials } from "../../../_domain/constants";
 import { Post } from "../../models";
 import { User } from "../../../users/models";
 import { HasAwardProps, PostToAwardRelTypes } from "../../models/toAward";
 import { Neo4jSeedService } from "../../../neo4j/services/neo4j.seed.service";
-import { RestrictedProps } from "../../../common/models/toSelf";
+import { RestrictedProps } from "../../../_domain/models/toSelf";
 
 describe("PostsRepository", () => {
     let postsRepository: IPostsRepository;
