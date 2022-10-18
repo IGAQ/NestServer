@@ -124,12 +124,14 @@ describe("UsersRepository", () => {
         const preAssignedUuid4 = uuidv4();
 
         beforeAll(async () => {
-            user = await usersRepository.addUser(new User({
-                userId: preAssignedUuid4,
-                username: "test",
-                passwordHash: "test",
-                email: "a@test.com",
-            }));
+            user = await usersRepository.addUser(
+                new User({
+                    userId: preAssignedUuid4,
+                    username: "test",
+                    passwordHash: "test",
+                    email: "a@test.com",
+                })
+            );
         });
 
         it("should return a user", async () => {
@@ -154,12 +156,14 @@ describe("UsersRepository", () => {
         const preAssignedUuid4 = uuidv4();
 
         beforeAll(async () => {
-            user = await usersRepository.addUser(new User({
-                userId: preAssignedUuid4,
-                username: "test",
-                passwordHash: "test",
-                email: "a@test.com",
-            }));
+            user = await usersRepository.addUser(
+                new User({
+                    userId: preAssignedUuid4,
+                    username: "test",
+                    passwordHash: "test",
+                    email: "a@test.com",
+                })
+            );
 
             user.emailVerified = true;
             user.phoneNumber = "123456789";

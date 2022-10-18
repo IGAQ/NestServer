@@ -11,4 +11,3 @@ export interface ISexualityRepository {
 
     deleteSexuality(sexualityId: string): Promise<void>;
 }
-

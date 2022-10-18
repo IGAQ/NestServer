@@ -86,4 +86,3 @@ export class GenderRepository implements IGenderRepository {
         );
     }
 }
-

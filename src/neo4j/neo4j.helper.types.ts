@@ -1,4 +1,5 @@
 import { Neo4jService } from "./services/neo4j.service";
+import { Exclude } from "class-transformer";
 
 export interface RelationshipProps {}
 
@@ -25,6 +26,7 @@ export type RichRelatedEntities<EntityType, T extends string> = {
 };
 
 export class Model {
+    @Exclude()
     protected neo4jService: Neo4jService;
 
     constructor(neo4jService: Neo4jService) {
