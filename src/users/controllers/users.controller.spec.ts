@@ -13,7 +13,7 @@ describe("UsersController", () => {
             controllers: [UsersController],
             providers: [
                 {
-                    provide: "IUsersService",
+                    provide: "IUsersRepository",
                     useClass: UsersRepository,
                 },
             ],

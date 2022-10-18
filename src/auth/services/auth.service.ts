@@ -20,11 +20,11 @@ export class AuthService implements IAuthService {
         const hash = await bcrypt.hash(signUpPayloadDto.password, salt);
 
         try {
-            await this._usersRepository.addUser({
+            await this._usersRepository.addUser(new User({
                 username: signUpPayloadDto.username,
                 email: signUpPayloadDto.email,
-                password: hash,
-            });
+                passwordHash: hash,
+            }));
             const token = await this.signToken(new User(signUpPayloadDto));
             return new SignTokenDto({
                 access_token: token,
