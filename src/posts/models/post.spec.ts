@@ -7,8 +7,6 @@ import { PostsRepository } from "../services/postRepository/posts.respository";
 import { neo4jCredentials } from "../../common/constants";
 import { IPostsRepository } from "../services/postRepository/posts.repository.inerface";
 import { Post } from "./post";
-import { PostToAwardRelTypes } from "./toAward";
-import { User } from "../../users/models";
 
 describe("Post Model Unit Test", () => {
 	let postsRepository: IPostsRepository;
@@ -38,7 +36,7 @@ describe("Post Model Unit Test", () => {
 		postsRepository = module.get<PostsRepository>("IPostsRepository");
 	});
 
-	it("both postRepository and post should be defined", () => {
+	it("should be defined", () => {
 		expect(postsRepository).toBeDefined();
 	});
 
