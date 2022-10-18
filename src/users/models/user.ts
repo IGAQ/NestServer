@@ -99,14 +99,17 @@ export class User extends Model {
                 userId: this.userId,
             }
         );
-        return queryResult.records.map((record) => {
+        return queryResult.records.map(record => {
             let postProps = record.get("p").properties;
             let authoredProps = new AuthoredProps(record.get("r").properties);
-            return new Post({
-                authorUser: this,
-                createdAt: authoredProps.authoredAt,
-                ...postProps,
-            }, this.neo4jService);
+            return new Post(
+                {
+                    authorUser: this,
+                    createdAt: authoredProps.authoredAt,
+                    ...postProps,
+                },
+                this.neo4jService
+            );
         });
     }
 
@@ -127,7 +130,9 @@ export class User extends Model {
         return this.sexuality;
     }
 
-    public async getFavoritePosts(): Promise<RelatedEntityRecord<Post, FavoritesProps, UserToPostRelTypes.FAVORITES>> {
+    public async getFavoritePosts(): Promise<
+        RelatedEntityRecord<Post, FavoritesProps, UserToPostRelTypes.FAVORITES>
+    > {
         const queryResult = await this.neo4jService.tryReadAsync(
             `
             MATCH (u:User { userId: $userId})-[r:${UserToPostRelTypes.FAVORITES}]-(p:Post)
@@ -139,20 +144,27 @@ export class User extends Model {
         );
         if (this.posts === undefined) this.posts = {} as any;
         this.posts[UserToPostRelTypes.FAVORITES] = {
-            records: queryResult.records.map((record) => {
+            records: queryResult.records.map(record => {
                 let postProps = record.get("p").properties;
                 let favoritedProps = new FavoritesProps(record.get("r").properties);
                 return new RelatedEntityRecordItem<Post, FavoritesProps>({
-                    entity: new Post({
-                        authorUser: this,
-                        ...postProps,
-                    }, this.neo4jService),
+                    entity: new Post(
+                        {
+                            authorUser: this,
+                            ...postProps,
+                        },
+                        this.neo4jService
+                    ),
                     relProps: favoritedProps,
                 });
             }),
             relType: UserToPostRelTypes.FAVORITES,
-        }
-        return this.posts[UserToPostRelTypes.FAVORITES] as RelatedEntityRecord<Post, FavoritesProps, UserToPostRelTypes.FAVORITES>;
+        };
+        return this.posts[UserToPostRelTypes.FAVORITES] as RelatedEntityRecord<
+            Post,
+            FavoritesProps,
+            UserToPostRelTypes.FAVORITES
+        >;
     }
 
     public async getGender(): Promise<Nullable<Gender>> {

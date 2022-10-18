@@ -1,6 +1,10 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Labels, NodeProperty } from "../../neo4j/neo4j.decorators";
-import { Model, RelatedEntityRecordItem, RichRelatedEntities } from "../../neo4j/neo4j.helper.types";
+import {
+    Model,
+    RelatedEntityRecordItem,
+    RichRelatedEntities,
+} from "../../neo4j/neo4j.helper.types";
 import { User } from "../../users/models";
 import { PostType, PostTag, Award } from "./index";
 import { _ToSelfRelTypes, RestrictedProps } from "../../common/models/toSelf";
@@ -110,7 +114,8 @@ export class Post extends Model {
             const relProps = record.get("r").properties;
             return { entity, relProps };
         });
-        if (this.awards === undefined) this.awards = {} as RichRelatedEntities<Award, PostToAwardRelTypes>;
+        if (this.awards === undefined)
+            this.awards = {} as RichRelatedEntities<Award, PostToAwardRelTypes>;
         this.awards[PostToAwardRelTypes.HAS_AWARD] = {
             records: result,
             relType: PostToAwardRelTypes.HAS_AWARD,

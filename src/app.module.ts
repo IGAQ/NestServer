@@ -34,7 +34,7 @@ import { UsersModule } from "./users/users.module";
 export class AppModule {
     private readonly _logger = new Logger(AppModule.name);
 
-    constructor(private _neo4jSeedService: Neo4jSeedService) { }
+    constructor(private _neo4jSeedService: Neo4jSeedService) {}
 
     onModuleInit() {
         this._neo4jSeedService

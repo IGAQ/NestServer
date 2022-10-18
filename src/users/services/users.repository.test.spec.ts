@@ -8,6 +8,8 @@ import { Neo4jConfig } from "../../neo4j/neo4jConfig.interface";
 import { neo4jCredentials } from "../../common/constants";
 import { createDriver } from "../../neo4j/neo4j.utils";
 import { Neo4jService } from "../../neo4j/services/neo4j.service";
+import { v4 as uuidv4 } from "uuid";
+import exp from "constants";
 
 describe("UsersRepository", () => {
     let usersRepository: IUsersRepository;
@@ -69,7 +71,7 @@ describe("UsersRepository", () => {
         });
 
         it("every user has to only have the Node properties at the beginning", async () => {
-            users.forEach((user) => {
+            users.forEach(user => {
                 expect(user.posts).toBeUndefined();
                 expect(user.gender).toBeUndefined();
                 expect(user.sexuality).toBeUndefined();
@@ -113,6 +115,70 @@ describe("UsersRepository", () => {
             expect(user.gender).toBeUndefined();
             expect(user.sexuality).toBeUndefined();
             expect(user.openness).toBeUndefined();
+        });
+    });
+
+    describe(".addUser() and .deleteUser()", () => {
+        let user: User;
+
+        const preAssignedUuid4 = uuidv4();
+
+        beforeAll(async () => {
+            user = await usersRepository.addUser(new User({
+                userId: preAssignedUuid4,
+                username: "test",
+                passwordHash: "test",
+                email: "a@test.com",
+            }));
+        });
+
+        it("should return a user", async () => {
+            expect(user).toBeDefined();
+            expect(user.userId).toBe(preAssignedUuid4);
+            expect(user.username).toBe("test");
+            expect(user.normalizedUsername).toBe("TEST");
+            expect(user.passwordHash).toBe("test");
+            expect(user.email).toBe("a@test.com");
+        });
+
+        afterAll(async () => {
+            await usersRepository.deleteUser(preAssignedUuid4);
+            let foundUser = await usersRepository.findUserById(preAssignedUuid4);
+            expect(foundUser).toBeUndefined();
+        });
+    });
+
+    describe(".updateUser()", () => {
+        let user: User;
+
+        const preAssignedUuid4 = uuidv4();
+
+        beforeAll(async () => {
+            user = await usersRepository.addUser(new User({
+                userId: preAssignedUuid4,
+                username: "test",
+                passwordHash: "test",
+                email: "a@test.com",
+            }));
+
+            user.emailVerified = true;
+            user.phoneNumber = "123456789";
+
+            await usersRepository.updateUser(user);
+
+            user = await usersRepository.findUserById(preAssignedUuid4);
+        });
+
+        it("should have the updated properties", async () => {
+            console.log(user);
+            expect(user.emailVerified).toBe(true);
+            expect(user.phoneNumber).toBe("123456789");
+        });
+
+        afterAll(async () => {
+            await usersRepository.deleteUser(preAssignedUuid4);
+            let foundUser = await usersRepository.findUserById(preAssignedUuid4);
+            expect(foundUser).toBeUndefined();
         });
     });
 });

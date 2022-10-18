@@ -72,7 +72,7 @@ describe("PostsRepository", () => {
         });
 
         it("every post has to only have the Node properties at the beginning", async () => {
-            posts.forEach((post) => {
+            posts.forEach(post => {
                 expect(post.awards).toBeUndefined();
                 expect(post.postTags.length).toBe(0);
                 expect(post.postType).toBeUndefined();
@@ -152,11 +152,14 @@ describe("PostsRepository", () => {
         let postId = "b73edbf4-ba84-4b11-a91c-e1d8b1366974";
 
         beforeAll(async () => {
-            await postsRepository.restrictPost(postId, new RestrictedProps({
-                restrictedAt: new Date().getTime(),
-                moderatorId: "5c0f145b-ffad-4881-8ee6-7647c3c1b695",
-                reason: "Test",
-            }));
+            await postsRepository.restrictPost(
+                postId,
+                new RestrictedProps({
+                    restrictedAt: new Date().getTime(),
+                    moderatorId: "5c0f145b-ffad-4881-8ee6-7647c3c1b695",
+                    reason: "Test",
+                })
+            );
             post = await postsRepository.findPostById(postId);
         });
 

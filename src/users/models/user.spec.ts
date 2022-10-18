@@ -1,4 +1,4 @@
- import { IUsersRepository } from "../services/users.repository.interface";
+import { IUsersRepository } from "../services/users.repository.interface";
 import { Test, TestingModule } from "@nestjs/testing";
 import { NEO4J_DRIVER, NEO4J_OPTIONS } from "../../neo4j/neo4j.constants";
 import { Neo4jConfig } from "../../neo4j/neo4jConfig.interface";
@@ -62,7 +62,7 @@ describe("Post Model Unit Test", () => {
 
             it("should return an array of posts", async () => {
                 let posts = await user.getAuthoredPosts();
-                posts.map((post) => {
+                posts.map(post => {
                     expect(post.postId).toBeDefined();
                     expect(post.postContent).toBeDefined();
                 });
@@ -78,7 +78,7 @@ describe("Post Model Unit Test", () => {
                 let favoritedPosts = await user.getFavoritePosts();
                 expect(favoritedPosts).toBeDefined();
                 expect(Array.isArray(favoritedPosts.records)).toBe(true);
-                favoritedPosts.records.map((entityItem) => {
+                favoritedPosts.records.map(entityItem => {
                     let post = entityItem.entity;
                     expect(post.postId).toBeDefined();
                     expect(post.postContent).toBeDefined();

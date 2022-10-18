@@ -1,7 +1,11 @@
 import { Inject, Injectable } from "@nestjs/common";
+import { v4 as uuidv4 } from "uuid";
 import { Role, User } from "../models";
 import { IUsersRepository } from "./users.repository.interface";
 import { Neo4jService } from "../../neo4j/services/neo4j.service";
+import { UserToSexualityRelTypes } from "../models/toSexuality";
+import { UserToGenderRelTypes } from "../models/toGender";
+import { UserToOpennessRelTypes } from "../models/toOpenness";
 
 @Injectable()
 export class UsersRepository implements IUsersRepository {
@@ -9,13 +13,15 @@ export class UsersRepository implements IUsersRepository {
 
     public async findAll(): Promise<User[]> {
         const queryResult = await this._neo4jService.tryReadAsync(`MATCH (u:User) RETURN u`, {});
-        console.debug(queryResult);
         return queryResult.records.map(record => {
             const props = record.get("u").properties;
-            return new User({
-                roles: props.roles.map(r => r.low) as Role[],
-                ...props,
-            }, this._neo4jService);
+            return new User(
+                {
+                    roles: props.roles.map(r => r.low) as Role[],
+                    ...props,
+                },
+                this._neo4jService
+            );
         });
     }
 
@@ -24,69 +30,122 @@ export class UsersRepository implements IUsersRepository {
             `MATCH (u:User { normalizedUsername: $normalizedUsername }) RETURN u`,
             { normalizedUsername: username.toUpperCase() }
         );
-        console.log(queryResult, queryResult.records);
         if (queryResult.records.length === 0) return undefined;
         let props = queryResult.records[0].get("u").properties;
-        return new User({
-            roles: props.roles.map(r => r.low) as Role[],
-            ...props,
-        }, this._neo4jService);
-    }
-
-    public async findUserById(userId: string): Promise<User | undefined> {
-        const queryResult = await this._neo4jService.read(`MATCH (u:User {userId: $userId}) RETURN u`, {
-            userId: userId,
-        });
-        if (queryResult.records.length === 0) return undefined;
-        let props = queryResult.records[0].get("u").properties;
-        return new User({
-            roles: props.roles.map(r => r.low) as Role[],
-            ...props,
-        }, this._neo4jService);
-    }
-
-    public async addUser(user: User): Promise<void> {
-        this._neo4jService.write(
-            `CREATE (u:User {
-			userId: $userId,
-			createdAt: $createdAt,
-			updatedAt: $updatedAt,
-			email: $email,
-			emailVerified: $emailVerified,
-			phoneNumber: $phoneNumber,
-			phoneNumberVerified: $phoneNumberVerified,
-			username: $username,
-			normalizedUsername: $normalizedUsername,
-			passwordHash: $passwordHash,
-			level: $level,
-			roles: $roles
-		})`,
+        return new User(
             {
-                userId: user.userId,
-
-                createdAt: user.createdAt,
-                updatedAt: user.updatedAt,
-
-                email: user.email,
-                emailVerified: user.emailVerified,
-
-                phoneNumber: user.phoneNumber,
-                phoneNumberVerified: user.phoneNumberVerified,
-
-                username: user.username,
-                normalizedUsername: user.username.toUpperCase(),
-
-                passwordHash: user.passwordHash,
-
-                roles: user.roles,
-
-                level: user.level,
-            } as User
+                roles: props.roles.map(r => r.low) as Role[],
+                ...props,
+            },
+            this._neo4jService
         );
     }
 
+    public async findUserById(userId: string): Promise<User | undefined> {
+        const queryResult = await this._neo4jService.read(
+            `MATCH (u:User {userId: $userId}) RETURN u`,
+            {
+                userId: userId,
+            }
+        );
+        if (queryResult.records.length === 0) return undefined;
+        let props = queryResult.records[0].get("u").properties;
+        return new User(
+            {
+                roles: props.roles.map(r => r.low) as Role[],
+                ...props,
+            },
+            this._neo4jService
+        );
+    }
+
+    public async addUser(user: User): Promise<User> {
+        const userId = uuidv4();
+        await this._neo4jService.tryWriteAsync(
+            `
+                    CREATE (u:User { 
+                        userId: $userId,
+                        
+                        createdAt: $createdAt,
+                        updatedAt: $updatedAt,
+                        
+                        username: $username,
+                        normalizedUsername: $normalizedUsername,
+                        
+                        passwordHash: $passwordHash,
+                        
+                        phoneNumber: $phoneNumber,
+                        phoneNumberVerified: $phoneNumberVerified,
+                        
+                        email: $email,
+                        emailVerified: $emailVerified,
+                        
+                        level: $level,
+                        
+                        roles: $roles
+                    })`,
+            {
+                userId: user.userId ?? userId,
+                createdAt: user.createdAt ?? new Date().getTime(),
+                updatedAt: user.updatedAt ?? new Date().getTime(),
+                username: user.username,
+                normalizedUsername: user.username.toUpperCase(),
+                passwordHash: user.passwordHash,
+                phoneNumber: user.phoneNumber ?? "",
+                phoneNumberVerified: user.phoneNumberVerified ?? false,
+                email: user.email ?? "",
+                emailVerified: user.emailVerified ?? false,
+                level: user.level ?? 0,
+                roles: user.roles ?? [Role.USER],
+            } as User
+        );
+
+        const addedUser = await this.findUserById(user.userId ?? userId);
+
+        if (user.sexuality) {
+            await this._neo4jService.tryWriteAsync(
+                `
+                    MATCH (u:User {userId: $userId}), (s:Sexuality {sexualityId: $sexualityId)
+                    CREATE (u)-[:${UserToSexualityRelTypes.HAS_SEXUALITY}]->(s)`,
+                {
+                    userId: user.userId,
+                    sexualityId: user.sexuality.sexualityId,
+                }
+            );
+            addedUser.sexuality = user.sexuality;
+        }
+
+        if (user.gender) {
+            await this._neo4jService.tryWriteAsync(
+                `
+                    MATCH (u:User {userId: $userId}), (g:Gender {genderId: $genderId)
+                    CREATE (u)-[:${UserToGenderRelTypes.HAS_GENDER}]->(g)`,
+                {
+                    userId: user.userId,
+                    genderId: user.gender.genderId,
+                }
+            );
+            addedUser.gender = user.gender;
+        }
+
+        if (user.openness) {
+            await this._neo4jService.tryWriteAsync(
+                `
+                    MATCH (u:User {userId: $userId}), (o:Openness {opennessId: $opennessId)
+                    CREATE (u)-[:${UserToOpennessRelTypes.HAS_OPENNESS_LEVEL_OF}]->(o)`,
+                {
+                    userId: user.userId,
+                    opennessId: user.openness.opennessId,
+                }
+            );
+            addedUser.openness = user.openness;
+        }
+
+        return addedUser;
+    }
+
     public async updateUser(user: User): Promise<void> {
-        this._neo4jService.write(
+        await this._neo4jService.tryWriteAsync(
             `MATCH (u:User {userId: $userId}) 
 		SET 
 			u.phoneNumber = $phoneNumber,
@@ -97,10 +156,11 @@ export class UsersRepository implements IUsersRepository {
 			u.emailVerified = $emailVerified,
 			u.passwordHash = $passwordHash,
 			u.level = $level,
-			u.role = $role,
+			u.roles = $roles,
 			u.updatedAt = $updatedAt
 		`,
             {
+                userId: user.userId,
                 phoneNumber: user.phoneNumber,
                 phoneNumberVerified: user.phoneNumberVerified,
                 username: user.username,
@@ -111,12 +171,12 @@ export class UsersRepository implements IUsersRepository {
                 level: user.level,
                 roles: user.roles,
                 updatedAt: new Date().getTime(),
-            } as Omit<User, "posts" | "userId" | "createdAt">
+            } as Omit<User, "posts" | "createdAt">
         );
     }
 
     public async deleteUser(userId: string): Promise<void> {
-        this._neo4jService.write(`MATCH (u:User {userId: $userId}) DETACH DELETE u`, {
+        await this._neo4jService.tryWriteAsync(`MATCH (u:User {userId: $userId}) DETACH DELETE u`, {
             userId: userId,
         });
     }
