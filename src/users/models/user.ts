@@ -90,7 +90,7 @@ export class User extends Model {
     }
 
     public async getAuthoredPosts(): Promise<Post[]> {
-        const queryResult = await this.neo4jService.read(
+        const queryResult = await this.neo4jService.tryReadAsync(
             `
             MATCH (u:User { userId: $userId})-[r:${UserToPostRelTypes.AUTHORED}]-(p:Post)
             RETURN p, r
@@ -111,7 +111,7 @@ export class User extends Model {
     }
 
     public async getSexuality(): Promise<Nullable<Sexuality>> {
-        const queryResult = await this.neo4jService.read(
+        const queryResult = await this.neo4jService.tryReadAsync(
             `
             MATCH (u:User { userId: $userId})-[r:${UserToSexualityRelTypes.HAS_SEXUALITY}]-(s:Sexuality)
             RETURN s, r
@@ -128,7 +128,7 @@ export class User extends Model {
     }
 
     public async getFavoritePosts(): Promise<RelatedEntityRecord<Post, FavoritesProps, UserToPostRelTypes.FAVORITES>> {
-        const queryResult = await this.neo4jService.read(
+        const queryResult = await this.neo4jService.tryReadAsync(
             `
             MATCH (u:User { userId: $userId})-[r:${UserToPostRelTypes.FAVORITES}]-(p:Post)
             RETURN p, r
@@ -137,6 +137,7 @@ export class User extends Model {
                 userId: this.userId,
             }
         );
+        if (this.posts === undefined) this.posts = {} as any;
         this.posts[UserToPostRelTypes.FAVORITES] = {
             records: queryResult.records.map((record) => {
                 let postProps = record.get("p").properties;
@@ -155,7 +156,7 @@ export class User extends Model {
     }
 
     public async getGender(): Promise<Nullable<Gender>> {
-        const queryResult = await this.neo4jService.read(
+        const queryResult = await this.neo4jService.tryReadAsync(
             `
             MATCH (u:User { userId: $userId})-[r:${UserToGenderRelTypes.HAS_GENDER}]-(g:Gender)
             RETURN g, r
@@ -172,7 +173,7 @@ export class User extends Model {
     }
 
     public async getOpenness(): Promise<Nullable<Openness>> {
-        const queryResult = await this.neo4jService.read(
+        const queryResult = await this.neo4jService.tryReadAsync(
             `
             MATCH (u:User { userId: $userId})-[r:${UserToOpennessRelTypes.HAS_OPENNESS_LEVEL_OF}]-(o:Openness)
             RETURN o, r

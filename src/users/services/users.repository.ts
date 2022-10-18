@@ -1,8 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { RegisterUserPayloadDto, Role, User } from "../models";
+import { Role, User } from "../models";
 import { IUsersRepository } from "./users.repository.interface";
 import { Neo4jService } from "../../neo4j/services/neo4j.service";
-import { v4 as uuidv4 } from "uuid";
 
 @Injectable()
 export class UsersRepository implements IUsersRepository {
@@ -16,7 +15,7 @@ export class UsersRepository implements IUsersRepository {
             return new User({
                 roles: props.roles.map(r => r.low) as Role[],
                 ...props,
-            });
+            }, this._neo4jService);
         });
     }
 
@@ -31,7 +30,7 @@ export class UsersRepository implements IUsersRepository {
         return new User({
             roles: props.roles.map(r => r.low) as Role[],
             ...props,
-        });
+        }, this._neo4jService);
     }
 
     public async findUserById(userId: string): Promise<User | undefined> {
@@ -43,7 +42,7 @@ export class UsersRepository implements IUsersRepository {
         return new User({
             roles: props.roles.map(r => r.low) as Role[],
             ...props,
-        });
+        }, this._neo4jService);
     }
 
     public async addUser(user: User): Promise<void> {
