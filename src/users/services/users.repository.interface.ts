@@ -1,5 +1,4 @@
 import { User } from "../models";
-import { RegisterUserPayloadDto } from "../models";
 
 export interface IUsersRepository {
     findAll(): Promise<User[]>;
@@ -8,7 +7,7 @@ export interface IUsersRepository {
 
     findUserById(userId: string): Promise<User | undefined>;
 
-    addUser(user: RegisterUserPayloadDto): Promise<void>;
+    addUser(user: User): Promise<User>;
 
     updateUser(user: User): Promise<void>;
 

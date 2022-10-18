@@ -15,6 +15,7 @@ import { RestrictedProps } from "../../../common/models/toSelf";
 describe("PostsRepository", () => {
     let postsRepository: IPostsRepository;
     let neo4jSeedService: Neo4jSeedService;
+    let seedCalled = false;
 
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -40,6 +41,14 @@ describe("PostsRepository", () => {
         postsRepository = module.get<PostsRepository>("IPostsRepository");
 
         neo4jSeedService = module.get<Neo4jSeedService>(Neo4jSeedService);
+        try {
+            if (!seedCalled) {
+                seedCalled = true;
+                await neo4jSeedService.seed();
+            }
+        } catch (error) {
+            console.error(error);
+        }
     });
 
     it("should be defined", () => {
@@ -63,7 +72,7 @@ describe("PostsRepository", () => {
         });
 
         it("every post has to only have the Node properties at the beginning", async () => {
-            posts.forEach((post) => {
+            posts.forEach(post => {
                 expect(post.awards).toBeUndefined();
                 expect(post.postTags.length).toBe(0);
                 expect(post.postType).toBeUndefined();
@@ -143,11 +152,14 @@ describe("PostsRepository", () => {
         let postId = "b73edbf4-ba84-4b11-a91c-e1d8b1366974";
 
         beforeAll(async () => {
-            await postsRepository.restrictPost(postId, new RestrictedProps({
-                restrictedAt: new Date().getTime(),
-                moderatorId: "5c0f145b-ffad-4881-8ee6-7647c3c1b695",
-                reason: "Test",
-            }));
+            await postsRepository.restrictPost(
+                postId,
+                new RestrictedProps({
+                    restrictedAt: new Date().getTime(),
+                    moderatorId: "5c0f145b-ffad-4881-8ee6-7647c3c1b695",
+                    reason: "Test",
+                })
+            );
             post = await postsRepository.findPostById(postId);
         });
 

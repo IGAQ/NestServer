@@ -64,8 +64,8 @@ export class PostsRepository implements IPostsRepository {
                     anonymously: $authoredProps_anonymously
                  }]-(u)
                 WITH [${post.postTags
-                .map(pt => `"${pt.tagId}"`)
-                .join(",")}] AS postTagIDsToBeConnected
+                    .map(pt => `"${pt.tagId}"`)
+                    .join(",")}] AS postTagIDsToBeConnected
                 UNWIND postTagIDsToBeConnected as postTagIdToBeConnected
                     MATCH (p1:Post) WHERE p1.postId = $postId
                     MATCH (postType:PostType) WHERE postType.postTypeId = $postTypeId
@@ -73,16 +73,14 @@ export class PostsRepository implements IPostsRepository {
                         MERGE (p1)-[:${PostToPostTypeRelTypes.HAS_POST_TYPE}]->(postType)
                         MERGE (p1)-[:${PostToPostTagRelTypes.HAS_POST_TAG}]->(postTag)
                 WITH [${post.awards[PostToAwardRelTypes.HAS_AWARD].records
-                .map(record => `"${record.entity.awardId}"`)
-                .join(",")}] AS awardIDsToBeConnected       
+                    .map(record => `"${record.entity.awardId}"`)
+                    .join(",")}] AS awardIDsToBeConnected       
                 UNWIND awardIDsToBeConnected as awardIdToBeConnected
                     MATCH (p1:Post) WHERE p1.postId = $postId
                     MATCH (award:Award) WHERE award.awardId = awardIdToBeConnected
                         MERGE (p1)-[:${PostToAwardRelTypes.HAS_AWARD} { awardedBy: "${
-                (
-                    post.awards[PostToAwardRelTypes.HAS_AWARD].records[0]
-                        .relProps as HasAwardProps
-                ).awardedBy
+                (post.awards[PostToAwardRelTypes.HAS_AWARD].records[0].relProps as HasAwardProps)
+                    .awardedBy
             }" } ]->(award)
             `,
             {
@@ -110,12 +108,9 @@ export class PostsRepository implements IPostsRepository {
     }
 
     public async deletePost(postId: string): Promise<void> {
-        this._neo4jService.write(
-            `MATCH (p:Post) WHERE p.postId = $postId DETACH DELETE p`,
-            {
-                postId: postId,
-            }
-        );
+        this._neo4jService.write(`MATCH (p:Post) WHERE p.postId = $postId DETACH DELETE p`, {
+            postId: postId,
+        });
     }
 
     public async restrictPost(postId: string, restrictedProps: RestrictedProps): Promise<void> {

@@ -6,17 +6,22 @@ export class RelatedEntityRecordItem<EntityType, RelType> {
     entity: EntityType;
     relProps: RelType;
 
-    constructor(entity: EntityType, relProps: RelType) {
-        this.entity = entity;
-        this.relProps = relProps;
+    constructor(object: Partial<RelatedEntityRecordItem<EntityType, RelType>>) {
+        Object.assign(this, object);
+    }
+}
+
+export class RelatedEntityRecord<EntityType, RelType, T extends string> {
+    records: Array<RelatedEntityRecordItem<EntityType, RelType>>;
+    relType: T;
+
+    constructor(object: Partial<RelatedEntityRecord<EntityType, RelType, T>>) {
+        Object.assign(this, object);
     }
 }
 
 export type RichRelatedEntities<EntityType, T extends string> = {
-    [key in T]: {
-        records: Array<RelatedEntityRecordItem<EntityType, RelationshipProps>>;
-        relType: T;
-    };
+    [key in T]: RelatedEntityRecord<EntityType, RelationshipProps, T>;
 };
 
 export class Model {

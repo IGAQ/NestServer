@@ -2,8 +2,8 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { AuthService } from "./auth.service";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
-import { UsersRepositoryTest } from "../../users/services/users.repository.test";
 import { SignInPayloadDto } from "../models";
+import { UsersRepository } from "../../users/services/users.repository";
 
 describe("AuthService", () => {
     let service: AuthService;
@@ -13,7 +13,7 @@ describe("AuthService", () => {
             providers: [
                 {
                     provide: "IUsersRepository",
-                    useClass: UsersRepositoryTest,
+                    useClass: UsersRepository,
                 },
                 JwtService,
                 ConfigService,
