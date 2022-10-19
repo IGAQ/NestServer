@@ -32,7 +32,7 @@ export class PostsController {
     ): Promise<Post | Error> {
         const post = await this._postsRepository.findPostById(postId);
         if (post === undefined) throw new HttpException("Post not found", 404);
-        return await (new Post(post).toJSON());
+        return await (post.toJSON());
     }
 
 

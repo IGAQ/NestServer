@@ -59,6 +59,10 @@ export class Post extends Model {
     }
 
     public async toJSON() {
+        await this.getPostType();
+        await this.getPostTags();
+        await this.getAwards();
+        await this.getAuthorUser();
         this.neo4jService = undefined;
         return { ...this };
     }
@@ -69,7 +73,7 @@ export class Post extends Model {
     }
 
     public async getAuthorUser(): Promise<User> {
-        const queryResult = await this.neo4jService.read(
+        const queryResult = await this.neo4jService.tryReadAsync(
             `
             MATCH (p:Post {postId: $postId})<-[r:${UserToPostRelTypes.AUTHORED}]-(u:User)
             RETURN u, r
@@ -78,7 +82,10 @@ export class Post extends Model {
                 postId: this.postId,
             }
         );
-        if (queryResult.records.length === 0) throw new Error("Post has no author");
+        if (queryResult.records.length === 0) {
+            this.authorUser = null;
+            return null;
+        }
         const record = queryResult.records[0];
         const result = new User(record.get("u").properties);
         this.authorUser = result;
