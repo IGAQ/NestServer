@@ -10,7 +10,9 @@ import {
 import { Post } from "../models";
 import { IPostsRepository } from "../services/postRepository/posts.repository.inerface";
 import { _$ } from "../../_domain/injectableTokens";
+import { ApiTags } from "@nestjs/swagger";
 
+@ApiTags("posts")
 @Controller("posts")
 export class PostsController {
     constructor(@Inject(_$.IPostsRepository) private _postsRepository: IPostsRepository) { }
