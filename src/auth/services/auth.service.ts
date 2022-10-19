@@ -2,7 +2,7 @@ import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
-import { IUsersRepository } from "../../users/services/users.repository.interface";
+import { IUsersRepository } from "../../users/services/usersRepository/users.repository.interface";
 import { SignInPayloadDto, SignTokenDto, SignUpPayloadDto } from "../models";
 import { IAuthService } from "./auth.service.interface";
 import { User } from "../../users/models";

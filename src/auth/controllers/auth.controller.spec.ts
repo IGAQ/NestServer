@@ -6,7 +6,7 @@ import { INestApplication, ValidationPipe } from "@nestjs/common";
 import { AuthService } from "../services/auth.service";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
-import { UsersRepository } from "../../users/services/users.repository";
+import { UsersRepository } from "../../users/services/usersRepository/users.repository";
 import { _$ } from "../../_domain/injectableTokens";
 
 describe("AuthController", () => {

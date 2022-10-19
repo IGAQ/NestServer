@@ -1,11 +1,11 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { v4 as uuidv4 } from "uuid";
-import { Role, User } from "../models";
+import { Role, User } from "../../models";
 import { IUsersRepository } from "./users.repository.interface";
-import { Neo4jService } from "../../neo4j/services/neo4j.service";
-import { UserToSexualityRelTypes } from "../models/toSexuality";
-import { UserToGenderRelTypes } from "../models/toGender";
-import { UserToOpennessRelTypes } from "../models/toOpenness";
+import { Neo4jService } from "../../../neo4j/services/neo4j.service";
+import { UserToSexualityRelTypes } from "../../models/toSexuality";
+import { UserToGenderRelTypes } from "../../models/toGender";
+import { UserToOpennessRelTypes } from "../../models/toOpenness";
 
 @Injectable()
 export class UsersRepository implements IUsersRepository {

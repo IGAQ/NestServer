@@ -2,7 +2,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
 import { ExtractJwt, Strategy } from "passport-jwt";
-import { IUsersRepository } from "../../users/services/users.repository.interface";
+import { IUsersRepository } from "../../users/services/usersRepository/users.repository.interface";
 import { _$ } from "../../_domain/injectableTokens";
 
 @Injectable()

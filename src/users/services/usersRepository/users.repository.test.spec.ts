@@ -1,15 +1,15 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { User } from "../models";
+import { User } from "../../models";
 import { UsersRepository } from "./users.repository";
 import { IUsersRepository } from "./users.repository.interface";
-import { Neo4jSeedService } from "../../neo4j/services/neo4j.seed.service";
-import { NEO4J_DRIVER, NEO4J_OPTIONS } from "../../neo4j/neo4j.constants";
-import { Neo4jConfig } from "../../neo4j/neo4jConfig.interface";
-import { neo4jCredentials } from "../../_domain/constants";
-import { createDriver } from "../../neo4j/neo4j.utils";
-import { Neo4jService } from "../../neo4j/services/neo4j.service";
+import { Neo4jSeedService } from "../../../neo4j/services/neo4j.seed.service";
+import { NEO4J_DRIVER, NEO4J_OPTIONS } from "../../../neo4j/neo4j.constants";
+import { Neo4jConfig } from "../../../neo4j/neo4jConfig.interface";
+import { neo4jCredentials } from "../../../_domain/constants";
+import { createDriver } from "../../../neo4j/neo4j.utils";
+import { Neo4jService } from "../../../neo4j/services/neo4j.service";
 import { v4 as uuidv4 } from "uuid";
-import { _$ } from "../../_domain/injectableTokens";
+import { _$ } from "../../../_domain/injectableTokens";
 
 describe("UsersRepository", () => {
     let usersRepository: IUsersRepository;

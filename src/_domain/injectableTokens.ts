@@ -15,6 +15,7 @@ const injectableTokens = {
 
     // Posts Module
     IPostsRepository: Symbol("IPostsRepository"),
+    IPostTypesRepository: Symbol("IPostTypesRepository"),
     IPostTagsRepository: Symbol("IPostTagsRepository"),
     IPostsService: Symbol("IPostsService"),
 
