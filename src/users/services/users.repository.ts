@@ -15,7 +15,7 @@ export class UsersRepository implements IUsersRepository {
         const queryResult = await this._neo4jService.tryReadAsync(`MATCH (u:User) RETURN u`, {});
         return queryResult.records.map(record => {
             const props = record.get("u").properties;
-            props.roles = props.roles.map(r => r.low) as Role[];
+            props.roles = props.roles.map(r => r?.low ?? r) as Role[];
             return new User(props, this._neo4jService);
         });
     }
@@ -27,7 +27,7 @@ export class UsersRepository implements IUsersRepository {
         );
         if (queryResult.records.length === 0) return undefined;
         let props = queryResult.records[0].get("u").properties;
-        props.roles = props.roles.map(r => r.low) as Role[];
+        props.roles = props.roles.map(r => r?.low ?? r) as Role[];
         return new User(props, this._neo4jService);
     }
 

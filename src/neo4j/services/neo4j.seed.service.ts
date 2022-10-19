@@ -489,6 +489,37 @@ export class Neo4jSeedService {
                     },
                     ...onlyAuthoredPosts,
                 },
+            }),
+            new User({
+                userId: "8f0c1ecf-6853-4642-9199-6e8244b89312",
+                createdAt: new Date().getTime(),
+                updatedAt: new Date().getTime(),
+                avatar: "🤠",
+                username: "ilia",
+                normalizedUsername: "ILIA",
+                passwordHash: "$2b$10$nBR48Qq3e27FWfO3Yxezseaz7GRDe9qo4wXnwT7XoaDnCx9.Id7x6",
+                phoneNumber: null,
+                phoneNumberVerified: false,
+                email: "b@b.com",
+                emailVerified: true,
+                level: 3,
+                roles: [Role.ADMIN, Role.MODERATOR],
+                gender: new Gender({
+                    genderId: "585d31aa-d5b3-4b8d-9690-ffcd57ce2862",
+                }),
+                sexuality: new Sexuality({
+                    sexualityId: "9164d89b-8d71-4fd1-af61-155d1d7ffe53",
+                }),
+                openness: new Openness({
+                    opennessId: "ae90b960-5f00-4298-b509-fac92a59b406",
+                }),
+                posts: {
+                    [UserToPostRelTypes.AUTHORED]: {
+                        records: [],
+                        relType: UserToPostRelTypes.AUTHORED,
+                    },
+                    ...onlyAuthoredPosts,
+                },
             })
         );
     }
@@ -668,17 +699,17 @@ export class Neo4jSeedService {
                 tagColor: "#FF758C",
             }),
             new PostTag({
-                tagId: "c9f9f9f9-9f9f-9f9f-9f9f-9f9f9f9f9f9f",
+                tagId: "04a67854-c56a-4342-9da8-0b6a3a4b2101",
                 tagName: "Coming Out",
                 tagColor: "#FF758C",
             }),
             new PostTag({
-                tagId: "c9f9f9f9-9f9f-9f9f-9f9f-9f9f9f9f9f9f",
+                tagId: "32bbe790-dc69-4253-b000-b2fbd1fb87b4",
                 tagName: "Gender",
                 tagColor: "#FF758C",
             }),
             new PostTag({
-                tagId: "c9f9f9f9-9f9f-9f9f-9f9f-9f9f9f9f9f9f",
+                tagId: "de8a77db-b819-43d3-9655-894a1cf183ee",
                 tagName: "Identity",
                 tagColor: "#FF758C",
             })
