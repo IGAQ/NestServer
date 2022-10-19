@@ -1,4 +1,9 @@
+import { IPostTagsRepository } from "../posts/services/postTagRepository/postTags.repository.interface";
+
 const injectableTokens = {
+    // Database Context
+    IDatabaseContext: Symbol.for("IDatabaseContext"),
+
     // Auth Module
     IAuthService: Symbol("IAuthService"),
 
@@ -10,6 +15,7 @@ const injectableTokens = {
 
     // Posts Module
     IPostsRepository: Symbol("IPostsRepository"),
+    IPostTagsRepository: Symbol("IPostTagsRepository"),
     IPostsService: Symbol("IPostsService"),
 
     // Neo4j Module
