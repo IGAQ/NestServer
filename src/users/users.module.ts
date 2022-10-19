@@ -1,5 +1,5 @@
 import { Module } from "@nestjs/common";
-import { UsersRepository } from "./services/users.repository";
+import { UsersRepository } from "./services/usersRepository/users.repository";
 import { UsersController } from "./controllers/users.controller";
 import { _$ } from "../_domain/injectableTokens";
 

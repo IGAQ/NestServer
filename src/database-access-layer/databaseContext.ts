@@ -2,7 +2,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import { Neo4jService } from "../neo4j/services/neo4j.service";
 import { IPostsRepository } from "../posts/services/postRepository/posts.repository.inerface";
 import { IPostTagsRepository } from "../posts/services/postTagRepository/postTags.repository.interface";
-import { IUsersRepository } from "../users/services/users.repository.interface";
+import { IUsersRepository } from "../users/services/usersRepository/users.repository.interface";
 import { ISexualityRepository } from "../users/services/sexualityRepository/sexuality.repository.interface";
 import { IGenderRepository } from "../users/services/genderRepository/gender.repository.interface";
 import { _$ } from "../_domain/injectableTokens";

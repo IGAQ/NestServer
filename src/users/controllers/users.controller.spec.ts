@@ -2,7 +2,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { UsersController } from "./users.controller";
 import { INestApplication, ValidationPipe } from "@nestjs/common";
 import * as request from "supertest";
-import { UsersRepository } from "../services/users.repository";
+import { UsersRepository } from "../services/usersRepository/users.repository";
 import { _$ } from "../../_domain/injectableTokens";
 
 describe("UsersController", () => {

@@ -13,7 +13,7 @@ import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { Role, User } from "../models";
 import { Roles } from "../../auth/decorators/roles.decorator";
 import { RolesGuard } from "../../auth/guards/roles.guard";
-import { IUsersRepository } from "../services/users.repository.interface";
+import { IUsersRepository } from "../services/usersRepository/users.repository.interface";
 import { AuthGuard } from "@nestjs/passport";
 import { _$ } from "../../_domain/injectableTokens";
 
