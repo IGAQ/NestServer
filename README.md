@@ -29,14 +29,13 @@
 
 ## Pre-Setup Environment
 
-1. Rename .env.example to .env
+1. Make a copy of `.env.example` and rename it to `.env`
 2. Change the value of the environment variables
 
 ## Installation
 
 ```bash
 $ npm install
-$ npx prisma generate --schema=./prisma/schema.development.prisma
 ```
 
 ## Running the app

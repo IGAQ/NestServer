@@ -58,6 +58,11 @@ export class Post extends Model {
         Object.assign(this, partial);
     }
 
+    public async toJSON() {
+        this.neo4jService = undefined;
+        return { ...this };
+    }
+
     public async getCreatedAt(): Promise<number> {
         await this.getAuthorUser();
         return this.createdAt;
