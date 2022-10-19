@@ -640,17 +640,47 @@ export class Neo4jSeedService {
             new PostTag({
                 tagId: "39b90340-82b7-4149-8f5d-40b00a61d2a2",
                 tagName: "serious",
-                tagColor: "#fa5050",
+                tagColor: "#FF758C",
             }),
             new PostTag({
                 tagId: "ee741539-151e-4fcd-91ce-8d4599a15cdf",
                 tagName: "advice",
-                tagColor: "#fa5050",
+                tagColor: "#FF758C",
             }),
             new PostTag({
                 tagId: "edf6897b-610d-4c03-8d25-791d47ca663b",
                 tagName: "vent",
-                tagColor: "#fa5050",
+                tagColor: "#FF758C",
+            }),
+            new PostTag({
+                tagId: "740f7690-4a7a-4a91-aec4-05c0c32b6aa4",
+                tagName: "Culture",
+                tagColor: "#FF758C",
+            }),
+            new PostTag({
+                tagId: "59c4221f-f2bb-4a0c-afb4-cc239228ff22",
+                tagName: "Gay",
+                tagColor: "#FF758C",
+            }),
+            new PostTag({
+                tagId: "fc3f85ad-d26b-432e-a0ff-10846d1abf50",
+                tagName: "Lesbian",
+                tagColor: "#FF758C",
+            }),
+            new PostTag({
+                tagId: "c9f9f9f9-9f9f-9f9f-9f9f-9f9f9f9f9f9f",
+                tagName: "Coming Out",
+                tagColor: "#FF758C",
+            }),
+            new PostTag({
+                tagId: "c9f9f9f9-9f9f-9f9f-9f9f-9f9f9f9f9f9f",
+                tagName: "Gender",
+                tagColor: "#FF758C",
+            }),
+            new PostTag({
+                tagId: "c9f9f9f9-9f9f-9f9f-9f9f-9f9f9f9f9f9f",
+                tagName: "Identity",
+                tagColor: "#FF758C",
             })
         );
     }
@@ -748,3 +778,4 @@ export class Neo4jSeedService {
         );
     }
 }
+
