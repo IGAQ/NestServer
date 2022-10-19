@@ -2,93 +2,121 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { AuthService } from "./auth.service";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
-import { SignInPayloadDto } from "../models";
+import { SignInPayloadDto, SignTokenDto } from "../models";
 import { UsersRepository } from "../../users/services/users.repository";
+import { NEO4J_DRIVER, NEO4J_OPTIONS } from "../../neo4j/neo4j.constants";
+import { Neo4jConfig } from "../../neo4j/neo4jConfig.interface";
+import { neo4jCredentials } from "../../_domain/constants";
+import { createDriver } from "../../neo4j/neo4j.utils";
+import { Neo4jService } from "../../neo4j/services/neo4j.service";
+import { Neo4jSeedService } from "../../neo4j/services/neo4j.seed.service";
+import { _$ } from "../../_domain/injectableTokens";
+import { IUsersRepository } from "../../users/services/users.repository.interface";
+import exp from "constants";
+import { RegisterUserPayloadDto, User } from "../../users/models";
+import { type } from "os";
 
 describe("AuthService", () => {
-    let service: AuthService;
+    let usersRepository: IUsersRepository;
+
+    let authService: AuthService;
+    let neo4jSeedService: Neo4jSeedService;
+    let seedCalled = false;
 
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 {
-                    provide: "IUsersRepository",
+                    provide: NEO4J_OPTIONS,
+                    useFactory: (): Neo4jConfig => neo4jCredentials,
+                },
+                {
+                    provide: NEO4J_DRIVER,
+                    inject: [NEO4J_OPTIONS],
+                    useFactory: async () => createDriver(neo4jCredentials),
+                },
+                Neo4jService,
+                Neo4jSeedService,
+                {
+                    provide: _$.IUsersRepository,
                     useClass: UsersRepository,
                 },
                 JwtService,
                 ConfigService,
                 {
-                    provide: "IAuthService",
+                    provide: _$.IAuthService,
                     useClass: AuthService,
                 },
             ],
         }).compile();
 
-        service = module.get<AuthService>("IAuthService");
+        usersRepository = module.get<UsersRepository>(_$.IUsersRepository);
+        authService = module.get<AuthService>(_$.IAuthService);
+
+        neo4jSeedService = module.get<Neo4jSeedService>(Neo4jSeedService);
+        try {
+            if (!seedCalled) {
+                seedCalled = true;
+                await neo4jSeedService.seed();
+            }
+        } catch (error) {
+            console.error(error);
+        }
     });
 
     it("should be defined", () => {
-        expect(service).toBeDefined();
+        expect(usersRepository).toBeDefined();
+        expect(authService).toBeDefined();
     });
 
-    describe("IAuthService.signToken", () => {
-        describe("happy path", () => {
-            let result;
+    describe(".signup() and .signIn()", () => {
+        let user: User;
+        let signTokenDto: SignTokenDto;
 
-            beforeAll(async () => {
-                result = await service.signIn(
-                    new SignInPayloadDto({
-                        username: "john",
-                        password: "john123", // john123
-                    })
-                );
+        beforeAll(async () => {
+            let userToCreate = new RegisterUserPayloadDto({
+                username: "test",
+                password: "test",
+                email: "a@test.com",
             });
 
-            it("should return an object with the access_token property", async () => {
-                expect(result).toHaveProperty("access_token");
-            });
+            signTokenDto = await authService.signup(userToCreate);
 
-            it("access_token property value has to be a string and be semantically valid.", () => {
-                expect(typeof result.access_token).toBe("string");
-                expect(result.access_token).toMatch(
-                    /^[A-Za-z0-9-_=]+.[A-Za-z0-9-_=]+.[A-Za-z0-9-_.+/=]*$/
-                );
-            });
+            user = await usersRepository.findUserByUsername("test");
         });
 
-        describe("sad path", () => {
-            let result;
-            let exception;
+        it("should make the new user in the database", async () => {
+            expect(user).toBeDefined();
+            expect(user.username).toBe("test");
+        });
 
-            const makeResult = async (signInPayloadDto: SignInPayloadDto) => {
-                try {
-                    result = await service.signIn(new SignInPayloadDto(signInPayloadDto));
-                } catch (error) {
-                    exception = error;
-                }
-            };
+        it("should return a jwt token", async () => {
+            expect(signTokenDto).toBeDefined();
+            expect(signTokenDto.access_token).toBeDefined();
+            expect(typeof signTokenDto.access_token).toBe("string");
+            expect(signTokenDto.access_token).toMatch(
+                /^[A-Za-z0-9-_=]+.[A-Za-z0-9-_=]+.[A-Za-z0-9-_.+/=]*$/
+            );
+        });
 
-            it("should throw an error when the password is wrong", async () => {
-                await makeResult(
-                    new SignInPayloadDto({
-                        username: "john",
-                        password: "john1234", // john123
-                    })
-                );
-                expect(exception).toBeDefined();
-                expect(exception.message).toBe("Incorrect password");
+        it("should let the reason login.", async () => {
+            let signInPayloadDto = new SignInPayloadDto({
+                username: "test",
+                password: "test",
             });
 
-            it("should throw an error when the username is wrong", async () => {
-                await makeResult(
-                    new SignInPayloadDto({
-                        username: "john1",
-                        password: "john123", // john123
-                    })
-                );
-                expect(exception).toBeDefined();
-                expect(exception.message).toBe("User not found");
-            });
+            let signTokenDto = await authService.signIn(signInPayloadDto);
+
+            expect(signTokenDto).toBeDefined();
+            expect(signTokenDto.access_token).toBeDefined();
+            expect(typeof signTokenDto.access_token).toBe("string");
+            expect(signTokenDto.access_token).toMatch(
+                /^[A-Za-z0-9-_=]+.[A-Za-z0-9-_=]+.[A-Za-z0-9-_.+/=]*$/
+            );
+        });
+
+        afterAll(async () => {
+            await usersRepository.deleteUser(user.userId);
         });
     });
 });
