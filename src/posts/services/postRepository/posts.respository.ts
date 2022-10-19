@@ -3,7 +3,7 @@ import { IPostsRepository } from "./posts.repository.inerface";
 import { v4 as uuidv4 } from "uuid";
 import { RelatedEntityRecordItem } from "../../../neo4j/neo4j.helper.types";
 import { Neo4jService } from "../../../neo4j/services/neo4j.service";
-import { _ToSelfRelTypes, RestrictedProps } from "../../../common/models/toSelf";
+import { _ToSelfRelTypes, RestrictedProps } from "../../../_domain/models/toSelf";
 import { PostToPostTypeRelTypes } from "../../models/toPostType";
 import { PostToPostTagRelTypes } from "../../models/toTags";
 import { HasAwardProps, PostToAwardRelTypes } from "../../models/toAward";

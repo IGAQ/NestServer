@@ -3,6 +3,7 @@ import { UsersController } from "./users.controller";
 import { INestApplication, ValidationPipe } from "@nestjs/common";
 import * as request from "supertest";
 import { UsersRepository } from "../services/users.repository";
+import { _$ } from "../../_domain/injectableTokens";
 
 describe("UsersController", () => {
     let app: INestApplication;
@@ -13,7 +14,7 @@ describe("UsersController", () => {
             controllers: [UsersController],
             providers: [
                 {
-                    provide: "IUsersRepository",
+                    provide: _$.IUsersRepository,
                     useClass: UsersRepository,
                 },
             ],
