@@ -8,6 +8,7 @@ import { Neo4jSeedService } from "./neo4j/services/neo4j.seed.service";
 import { PostsModule } from "./posts/posts.module";
 import { UsersModule } from "./users/users.module";
 import { AppLoggerMiddleware } from "./_domain/middlewares/appLogger.middleware";
+import { DatabaseAccessLayerModule } from './database-access-layer/database-access-layer.module';
 
 @Module({
     imports: [
@@ -30,6 +31,7 @@ import { AppLoggerMiddleware } from "./_domain/middlewares/appLogger.middleware"
         UsersModule,
         PostsModule,
         CommentsModule,
+        DatabaseAccessLayerModule,
     ],
 })
 export class AppModule {
@@ -42,9 +44,9 @@ export class AppModule {
     }
 
     onModuleInit() {
-        this._neo4jSeedService
-            .seed()
-            .then(() => this._logger.log("Neo4j database seeded ✅"))
-            .catch(error => this._logger.error(error));
+        // this._neo4jSeedService
+        //     .seed()
+        //     .then(() => this._logger.log("Neo4j database seeded ✅"))
+        //     .catch(error => this._logger.error(error));
     }
 }
