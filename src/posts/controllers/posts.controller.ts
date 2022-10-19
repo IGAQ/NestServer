@@ -19,7 +19,11 @@ export class PostsController {
 
     @Get()
     public async index(): Promise<Post[] | Error> {
-        return (await this._postsRepository.findAll()).map(p => new Post(p));
+        let posts = await this._postsRepository.findAll();
+        for (let i = 0; i < posts.length; i++) {
+            posts[i] = await posts[i].toJSON();
+        }
+        return posts;
     }
 
     @Get(":postId")
@@ -28,7 +32,7 @@ export class PostsController {
     ): Promise<Post | Error> {
         const post = await this._postsRepository.findPostById(postId);
         if (post === undefined) throw new HttpException("Post not found", 404);
-        return new Post(post);
+        return await (new Post(post).toJSON());
     }
 
 
