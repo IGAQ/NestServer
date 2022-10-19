@@ -11,6 +11,7 @@ import { User } from "../../../users/models";
 import { HasAwardProps, PostToAwardRelTypes } from "../../models/toAward";
 import { Neo4jSeedService } from "../../../neo4j/services/neo4j.seed.service";
 import { RestrictedProps } from "../../../_domain/models/toSelf";
+import { _$ } from "../../../_domain/injectableTokens";
 
 describe("PostsRepository", () => {
     let postsRepository: IPostsRepository;
@@ -32,13 +33,13 @@ describe("PostsRepository", () => {
                 Neo4jService,
                 Neo4jSeedService,
                 {
-                    provide: "IPostsRepository",
+                    provide: _$.IPostsRepository,
                     useClass: PostsRepository,
                 },
             ],
         }).compile();
 
-        postsRepository = module.get<PostsRepository>("IPostsRepository");
+        postsRepository = module.get<PostsRepository>(_$.IPostsRepository);
 
         neo4jSeedService = module.get<Neo4jSeedService>(Neo4jSeedService);
         try {

@@ -7,6 +7,7 @@ import { AuthService } from "../services/auth.service";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import { UsersRepository } from "../../users/services/users.repository";
+import { _$ } from "../../_domain/injectableTokens";
 
 describe("AuthController", () => {
     let app: INestApplication;
@@ -19,11 +20,11 @@ describe("AuthController", () => {
                 JwtService,
                 ConfigService,
                 {
-                    provide: "IUsersService",
+                    provide: _$.IUsersRepository,
                     useClass: UsersRepository,
                 },
                 {
-                    provide: "IAuthService",
+                    provide: _$.IAuthService,
                     useClass: AuthService,
                 },
             ],

@@ -6,28 +6,29 @@ import { IUsersRepository } from "../../users/services/users.repository.interfac
 import { SignInPayloadDto, SignTokenDto, SignUpPayloadDto } from "../models";
 import { IAuthService } from "./auth.service.interface";
 import { User } from "../../users/models";
+import { _$ } from "../../_domain/injectableTokens";
 
 @Injectable({})
 export class AuthService implements IAuthService {
     constructor(
-        @Inject("IUsersRepository") private _usersRepository: IUsersRepository,
+        @Inject(_$.IUsersRepository) private _usersRepository: IUsersRepository,
         private _jwtService: JwtService,
         private _configService: ConfigService
     ) {}
 
-    public async signup(signUpPayloadDto: SignUpPayloadDto) {
+    public async signup(signUpPayloadDto: SignUpPayloadDto): Promise<SignTokenDto> {
         const salt = await bcrypt.genSalt(10);
         const hash = await bcrypt.hash(signUpPayloadDto.password, salt);
 
         try {
-            await this._usersRepository.addUser(
+            const addedUser = await this._usersRepository.addUser(
                 new User({
                     username: signUpPayloadDto.username,
                     email: signUpPayloadDto.email,
                     passwordHash: hash,
                 })
             );
-            const token = await this.signToken(new User(signUpPayloadDto));
+            const token = await this.signToken(addedUser);
             return new SignTokenDto({
                 access_token: token,
             });
@@ -36,7 +37,7 @@ export class AuthService implements IAuthService {
         }
     }
 
-    public async signIn(signInPayloadDto: SignInPayloadDto) {
+    public async signIn(signInPayloadDto: SignInPayloadDto): Promise<SignTokenDto> {
         const user = await this._usersRepository.findUserByUsername(signInPayloadDto.username);
         if (!user) {
             throw new HttpException("User not found", 404);

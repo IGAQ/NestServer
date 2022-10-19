@@ -7,6 +7,7 @@ import { PostsRepository } from "../services/postRepository/posts.respository";
 import { neo4jCredentials } from "../../_domain/constants";
 import { IPostsRepository } from "../services/postRepository/posts.repository.inerface";
 import { Post } from "./post";
+import { _$ } from "../../_domain/injectableTokens";
 
 describe("Post Model Unit Test", () => {
     let postsRepository: IPostsRepository;
@@ -27,13 +28,13 @@ describe("Post Model Unit Test", () => {
                 },
                 Neo4jService,
                 {
-                    provide: "IPostsRepository",
+                    provide: _$.IPostsRepository,
                     useClass: PostsRepository,
                 },
             ],
         }).compile();
 
-        postsRepository = module.get<PostsRepository>("IPostsRepository");
+        postsRepository = module.get<PostsRepository>(_$.IPostsRepository);
     });
 
     it("should be defined", () => {

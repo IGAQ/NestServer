@@ -15,13 +15,14 @@ import { Roles } from "../../auth/decorators/roles.decorator";
 import { RolesGuard } from "../../auth/guards/roles.guard";
 import { IUsersRepository } from "../services/users.repository.interface";
 import { AuthGuard } from "@nestjs/passport";
+import { _$ } from "../../_domain/injectableTokens";
 
 @UseInterceptors(ClassSerializerInterceptor)
 @ApiTags("users")
 @ApiBearerAuth()
 @Controller("users")
 export class UsersController {
-    constructor(@Inject("IUsersRepository") private _usersRepository: IUsersRepository) {}
+    constructor(@Inject(_$.IUsersRepository) private _usersRepository: IUsersRepository) {}
 
     @Get()
     @Roles(Role.ADMIN)

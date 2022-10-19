@@ -9,7 +9,7 @@ import { neo4jCredentials } from "../../_domain/constants";
 import { createDriver } from "../../neo4j/neo4j.utils";
 import { Neo4jService } from "../../neo4j/services/neo4j.service";
 import { v4 as uuidv4 } from "uuid";
-import exp from "constants";
+import { _$ } from "../../_domain/injectableTokens";
 
 describe("UsersRepository", () => {
     let usersRepository: IUsersRepository;
@@ -31,13 +31,13 @@ describe("UsersRepository", () => {
                 Neo4jService,
                 Neo4jSeedService,
                 {
-                    provide: "IUsersRepository",
+                    provide: _$.IUsersRepository,
                     useClass: UsersRepository,
                 },
             ],
         }).compile();
 
-        usersRepository = module.get<UsersRepository>("IUsersRepository");
+        usersRepository = module.get<UsersRepository>(_$.IUsersRepository);
 
         neo4jSeedService = module.get<Neo4jSeedService>(Neo4jSeedService);
         try {

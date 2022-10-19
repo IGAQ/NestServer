@@ -7,6 +7,7 @@ import { createDriver } from "../../neo4j/neo4j.utils";
 import { Neo4jService } from "../../neo4j/services/neo4j.service";
 import { UsersRepository } from "../services/users.repository";
 import { User } from "./user";
+import { _$ } from "../../_domain/injectableTokens";
 
 describe("Post Model Unit Test", () => {
     let usersRepository: IUsersRepository;
@@ -27,13 +28,13 @@ describe("Post Model Unit Test", () => {
                 },
                 Neo4jService,
                 {
-                    provide: "IUsersRepository",
+                    provide: _$.IUsersRepository,
                     useClass: UsersRepository,
                 },
             ],
         }).compile();
 
-        usersRepository = module.get<UsersRepository>("IUsersRepository");
+        usersRepository = module.get<UsersRepository>(_$.IUsersRepository);
     });
 
     it("should be defined", () => {
