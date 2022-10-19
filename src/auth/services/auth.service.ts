@@ -20,9 +20,7 @@ export class AuthService implements IAuthService {
         const salt = await bcrypt.genSalt(10);
         const hash = await bcrypt.hash(signUpPayloadDto.password, salt);
 
-        const foundUser = await this._usersRepository.findUserByUsername(
-            signUpPayloadDto.username
-        );
+        const foundUser = await this._usersRepository.findUserByUsername(signUpPayloadDto.username);
         if (foundUser) {
             throw new HttpException("User already exists", 400);
         }
