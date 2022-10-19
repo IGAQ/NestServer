@@ -1,5 +1,5 @@
 import { Module } from "@nestjs/common";
-import { PostsController } from './controllers/posts.controller';
+import { PostsController } from "./controllers/posts.controller";
 import { PostsRepository } from "./services/postRepository/posts.respository";
 import { _$ } from "../_domain/injectableTokens";
 
@@ -18,4 +18,4 @@ import { _$ } from "../_domain/injectableTokens";
     ],
     controllers: [PostsController],
 })
-export class PostsModule { }
+export class PostsModule {}

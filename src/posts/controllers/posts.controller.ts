@@ -5,7 +5,8 @@ import {
     HttpException,
     Inject,
     Param,
-    ParseUUIDPipe, UseInterceptors,
+    ParseUUIDPipe,
+    UseInterceptors,
 } from "@nestjs/common";
 import { Post } from "../models";
 import { IPostsRepository } from "../services/postRepository/posts.repository.inerface";
@@ -16,7 +17,7 @@ import { ApiTags } from "@nestjs/swagger";
 @ApiTags("posts")
 @Controller("posts")
 export class PostsController {
-    constructor(@Inject(_$.IPostsRepository) private _postsRepository: IPostsRepository) { }
+    constructor(@Inject(_$.IPostsRepository) private _postsRepository: IPostsRepository) {}
 
     @Get()
     public async index(): Promise<Post[] | Error> {
@@ -35,8 +36,6 @@ export class PostsController {
         if (post === undefined) throw new HttpException("Post not found", 404);
         return await post.toJSON();
     }
-
-
 }
 
 // Find all Posts

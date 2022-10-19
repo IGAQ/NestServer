@@ -67,17 +67,45 @@ export class Post extends Model {
         await this.getAwards();
         await this.getRestricted();
         await this.getCreatedAt();
+        await this.getTotalVotes();
         await this.authorUser?.toJSON();
         this.neo4jService = undefined;
         return { ...this };
     }
 
+    public async getTotalVotes(): Promise<number> {
+        const queryResult = await this.neo4jService.tryReadAsync(
+            `
+            MATCH (u:User)-[n:${UserToPostRelTypes.UPVOTES}]->(p:Post { postId: $postId }) 
+                RETURN COUNT(n) as totalVotes
+            `,
+            {
+                postId: this.postId,
+            }
+        );
+        let upVotes = queryResult.records[0].get("totalVotes");
+        const queryResult2 = await this.neo4jService.tryReadAsync(
+            `
+            MATCH (u:User)-[n:${UserToPostRelTypes.DOWN_VOTES}]->(p:Post { postId: $postId })
+                RETURN COUNT(n) as totalVotes
+            `,
+            {
+                postId: this.postId,
+            }
+        );
+        let downVotes = queryResult2.records[0].get("totalVotes");
+        this.totalVotes = upVotes - downVotes;
+        return this.totalVotes;
+    }
+
     public async getCreatedAt(): Promise<number> {
+        if (this.createdAt !== undefined) return this.createdAt;
         await this.getAuthorUser();
         return this.createdAt;
     }
 
     public async getAuthorUser(): Promise<User> {
+        if (this.authorUser !== undefined) return this.authorUser;
         const queryResult = await this.neo4jService.tryReadAsync(
             `
             MATCH (p:Post {postId: $postId})<-[r:${UserToPostRelTypes.AUTHORED}]-(u:User)

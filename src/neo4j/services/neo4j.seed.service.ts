@@ -211,7 +211,10 @@ export class Neo4jSeedService {
         // Populate posts
         const posts = await this.getPosts();
 
-        const votesUserIds = ["5c0f145b-ffad-4881-8ee6-7647c3c1b695", "3109f9e2-a262-4aef-b648-90d86d6fbf6c"];
+        const votesUserIds = [
+            "5c0f145b-ffad-4881-8ee6-7647c3c1b695",
+            "3109f9e2-a262-4aef-b648-90d86d6fbf6c",
+        ];
 
         for (const postEntity of posts) {
             let restrictedQueryString = "";
@@ -269,7 +272,9 @@ export class Neo4jSeedService {
                             .relProps as HasAwardProps
                     ).awardedBy
                 }" } ]->(award)
-                WITH [${votesUserIds.map(voterUserId => `"${voterUserId}"`).join(",")}] AS voterUserIdsToBeConnected
+                WITH [${votesUserIds
+                    .map(voterUserId => `"${voterUserId}"`)
+                    .join(",")}] AS voterUserIdsToBeConnected
                 UNWIND voterUserIdsToBeConnected as voterUserIdToBeConnected
                     MATCH (p1:${this.postLabel}) WHERE p1.postId = $postId
                     MATCH (u1:${this.userLabel}) WHERE u1.userId = voterUserIdToBeConnected
