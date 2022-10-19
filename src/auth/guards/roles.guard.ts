@@ -22,6 +22,8 @@ export class RolesGuard implements CanActivate {
         if (!user) {
             return false;
         }
+        console.log("requiredRoles", user.roles, requiredRoles, requiredRoles.some(role => user.roles?.includes(role)));
+
         return requiredRoles.some(role => user.roles?.includes(role));
     }
 }
