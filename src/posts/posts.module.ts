@@ -7,6 +7,7 @@ import { DatabaseAccessLayerModule } from "../database-access-layer/database-acc
 import { PostTagsRepository } from "./services/postTagRepository/postTags.repository";
 import { GenderRepository } from "../users/services/genderRepository/gender.repository";
 import { SexualityRepository } from "../users/services/sexualityRepository/sexuality.repository";
+import { PostTypesRepository } from "./services/postTypeRepository/postTypes.repository";
 
 @Module({
     imports: [forwardRef(() => DatabaseAccessLayerModule)],
@@ -22,6 +23,10 @@ import { SexualityRepository } from "../users/services/sexualityRepository/sexua
         {
             provide: _$.IPostTagsRepository,
             useClass: PostTagsRepository,
+        },
+        {
+            provide: _$.IPostTypesRepository,
+            useClass: PostTypesRepository,
         },
         {
             provide: _$.IGenderRepository,
@@ -44,6 +49,10 @@ import { SexualityRepository } from "../users/services/sexualityRepository/sexua
         {
             provide: _$.IPostTagsRepository,
             useClass: PostTagsRepository,
+        },
+        {
+            provide: _$.IPostTypesRepository,
+            useClass: PostTypesRepository,
         },
         {
             provide: _$.IGenderRepository,
