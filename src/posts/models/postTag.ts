@@ -11,6 +11,10 @@ export class PostTag {
     @NodeProperty()
     tagName: string;
 
+    @ApiProperty({ type: String })
+    @NodeProperty()
+    tagColor: string;
+
     constructor(partial?: Partial<PostTag>) {
         Object.assign(this, partial);
     }

@@ -5,13 +5,14 @@ import {
     HttpException,
     Inject,
     Param,
-    ParseUUIDPipe
+    ParseUUIDPipe, UseInterceptors,
 } from "@nestjs/common";
 import { Post } from "../models";
 import { IPostsRepository } from "../services/postRepository/posts.repository.inerface";
 import { _$ } from "../../_domain/injectableTokens";
 import { ApiTags } from "@nestjs/swagger";
 
+@UseInterceptors(ClassSerializerInterceptor)
 @ApiTags("posts")
 @Controller("posts")
 export class PostsController {
@@ -32,7 +33,7 @@ export class PostsController {
     ): Promise<Post | Error> {
         const post = await this._postsRepository.findPostById(postId);
         if (post === undefined) throw new HttpException("Post not found", 404);
-        return await (post.toJSON());
+        return await post.toJSON();
     }
 
 

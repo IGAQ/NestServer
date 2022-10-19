@@ -96,7 +96,8 @@ export class Neo4jSeedService {
             await this._neo4jService.tryWriteAsync(
                 `CREATE (n:${this.postTagLabel} { 
                 tagId: $tagId,
-                tagName: $tagName
+                tagName: $tagName,
+                tagColor: $tagColor
              })`,
                 postTagEntity
             );
@@ -209,6 +210,9 @@ export class Neo4jSeedService {
 
         // Populate posts
         const posts = await this.getPosts();
+
+        const votesUserIds = ["5c0f145b-ffad-4881-8ee6-7647c3c1b695", "3109f9e2-a262-4aef-b648-90d86d6fbf6c"];
+
         for (const postEntity of posts) {
             let restrictedQueryString = "";
             let restrictedQueryParams = {};
@@ -265,6 +269,11 @@ export class Neo4jSeedService {
                             .relProps as HasAwardProps
                     ).awardedBy
                 }" } ]->(award)
+                WITH [${votesUserIds.map(voterUserId => `"${voterUserId}"`).join(",")}] AS voterUserIdsToBeConnected
+                UNWIND voterUserIdsToBeConnected as voterUserIdToBeConnected
+                    MATCH (p1:${this.postLabel}) WHERE p1.postId = $postId
+                    MATCH (u1:${this.userLabel}) WHERE u1.userId = voterUserIdToBeConnected
+                        MERGE (u1)-[:${UserToPostRelTypes.UPVOTES}]->(p1)
             `,
                 {
                     // Post Author User
@@ -493,6 +502,7 @@ export class Neo4jSeedService {
                     userId: "3109f9e2-a262-4aef-b648-90d86d6fbf6c",
                 }),
                 pending: false,
+                totalVotes: 1,
                 awards: {
                     [PostToAwardRelTypes.HAS_AWARD]: {
                         records: (await this.getAwards()).slice(0, 2).map(award => ({
@@ -521,6 +531,7 @@ export class Neo4jSeedService {
                     userId: "3109f9e2-a262-4aef-b648-90d86d6fbf6c",
                 }),
                 pending: true,
+                totalVotes: 3,
                 awards: {
                     [PostToAwardRelTypes.HAS_AWARD]: {
                         records: (await this.getAwards()).slice(0, 2).map(award => ({
@@ -624,14 +635,17 @@ export class Neo4jSeedService {
             new PostTag({
                 tagId: "39b90340-82b7-4149-8f5d-40b00a61d2a2",
                 tagName: "serious",
+                tagColor: "#fa5050",
             }),
             new PostTag({
                 tagId: "ee741539-151e-4fcd-91ce-8d4599a15cdf",
                 tagName: "advice",
+                tagColor: "#fa5050",
             }),
             new PostTag({
                 tagId: "edf6897b-610d-4c03-8d25-791d47ca663b",
                 tagName: "vent",
+                tagColor: "#fa5050",
             })
         );
     }

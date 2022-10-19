@@ -89,6 +89,12 @@ export class User extends Model {
         Object.assign(this, partial);
     }
 
+    public async toJSON() {
+        this.passwordHash = undefined;
+        this.neo4jService = undefined;
+        return { ...this };
+    }
+
     public async getAuthoredPosts(): Promise<Post[]> {
         const queryResult = await this.neo4jService.tryReadAsync(
             `

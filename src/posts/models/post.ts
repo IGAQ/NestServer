@@ -53,6 +53,9 @@ export class Post extends Model {
     @ApiProperty({ type: RestrictedProps })
     restrictedProps: Nullable<RestrictedProps>;
 
+    @ApiProperty({ type: Number })
+    totalVotes: number;
+
     constructor(partial?: Partial<Post>, neo4jService?: Neo4jService) {
         super(neo4jService);
         Object.assign(this, partial);
@@ -62,7 +65,9 @@ export class Post extends Model {
         await this.getPostType();
         await this.getPostTags();
         await this.getAwards();
-        await this.getAuthorUser();
+        await this.getRestricted();
+        await this.getCreatedAt();
+        await this.authorUser?.toJSON();
         this.neo4jService = undefined;
         return { ...this };
     }
@@ -87,7 +92,7 @@ export class Post extends Model {
             return null;
         }
         const record = queryResult.records[0];
-        const result = new User(record.get("u").properties);
+        const result = new User(record.get("u").properties, this.neo4jService);
         this.authorUser = result;
 
         this.createdAt = (record.get("r").properties as AuthoredProps).authoredAt;
@@ -96,7 +101,7 @@ export class Post extends Model {
     }
 
     public async getRestricted(): Promise<Nullable<RestrictedProps>> {
-        const queryResult = await this.neo4jService.read(
+        const queryResult = await this.neo4jService.tryReadAsync(
             `
             MATCH (p:Post {postId: $postId})-[r:${_ToSelfRelTypes.RESTRICTED}]->(p)
             RETURN r
@@ -112,7 +117,7 @@ export class Post extends Model {
     }
 
     public async getAwards(): Promise<Array<RelatedEntityRecordItem<Award, HasAwardProps>>> {
-        const queryResult = await this.neo4jService.read(
+        const queryResult = await this.neo4jService.tryReadAsync(
             `
             MATCH (p:Post {postId: $postId})-[r:${PostToAwardRelTypes.HAS_AWARD}]->(a:Award)
             RETURN a, r
@@ -136,7 +141,7 @@ export class Post extends Model {
     }
 
     public async getPostType(): Promise<PostType> {
-        const queryResult = await this.neo4jService.read(
+        const queryResult = await this.neo4jService.tryReadAsync(
             `
             MATCH (p:Post {postId: $postId})-[r:${PostToPostTypeRelTypes.HAS_POST_TYPE}]->(pt:PostType)
             RETURN pt
@@ -152,7 +157,7 @@ export class Post extends Model {
     }
 
     public async getPostTags(): Promise<PostTag[]> {
-        const queryResult = await this.neo4jService.read(
+        const queryResult = await this.neo4jService.tryReadAsync(
             `
             MATCH (p:Post {postId: $postId})-[r:${PostToPostTagRelTypes.HAS_POST_TAG}]->(pt:PostTag)
             RETURN pt
