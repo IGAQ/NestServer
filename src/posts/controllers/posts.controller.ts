@@ -13,9 +13,9 @@ import { IPostsRepository } from "../services/postRepository/posts.repository.in
 import { _$ } from "../../_domain/injectableTokens";
 import { ApiTags } from "@nestjs/swagger";
 
-@UseInterceptors(ClassSerializerInterceptor)
 @ApiTags("posts")
 @Controller("posts")
+@UseInterceptors(ClassSerializerInterceptor)
 export class PostsController {
     constructor(@Inject(_$.IPostsRepository) private _postsRepository: IPostsRepository) {}
 
