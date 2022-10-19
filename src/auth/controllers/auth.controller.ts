@@ -4,12 +4,13 @@ import { SignInPayloadDto, SignUpPayloadDto } from "../models";
 import { IAuthService } from "../services/auth.service.interface";
 import { AuthGuard } from "@nestjs/passport";
 import { Response } from "express";
+import { _$ } from "../../_domain/injectableTokens";
 
 @ApiTags("auth")
 @ApiBearerAuth()
 @Controller("auth")
 export class AuthController {
-    constructor(@Inject("IAuthService") private _authService: IAuthService) {}
+    constructor(@Inject(_$.IAuthService) private _authService: IAuthService) {}
 
     @Post("signup")
     public signup(@Body() signUpPayloadDto: SignUpPayloadDto) {

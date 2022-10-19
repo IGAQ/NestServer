@@ -15,19 +15,20 @@ import { Roles } from "../../auth/decorators/roles.decorator";
 import { RolesGuard } from "../../auth/guards/roles.guard";
 import { IUsersRepository } from "../services/users.repository.interface";
 import { AuthGuard } from "@nestjs/passport";
+import { _$ } from "../../_domain/injectableTokens";
 
 @UseInterceptors(ClassSerializerInterceptor)
 @ApiTags("users")
 @ApiBearerAuth()
 @Controller("users")
 export class UsersController {
-    constructor(@Inject("IUsersRepository") private _usersService: IUsersRepository) {}
+    constructor(@Inject(_$.IUsersRepository) private _usersRepository: IUsersRepository) {}
 
     @Get()
     @Roles(Role.ADMIN)
     @UseGuards(AuthGuard("jwt"), RolesGuard)
     public async index(): Promise<User[] | Error> {
-        return (await this._usersService.findAll()).map(u => new User(u));
+        return await this._usersRepository.findAll();
     }
 
     @Get(":userId")
@@ -36,15 +37,15 @@ export class UsersController {
     public async getUserById(
         @Param("userId", new ParseUUIDPipe()) userId: string
     ): Promise<User | Error> {
-        const user = await this._usersService.findUserById(userId);
+        const user = await this._usersRepository.findUserById(userId);
         if (user === undefined) throw new HttpException("User not found", 404);
-        return new User(user);
+        return user;
     }
 
     @Get("/username/:username")
     public async getUserByUsername(@Param("username") username: string): Promise<User | Error> {
-        const user = await this._usersService.findUserByUsername(username);
+        const user = await this._usersRepository.findUserByUsername(username);
         if (user === undefined) throw new HttpException("User not found", 404);
-        return new User(user);
+        return user;
     }
 }

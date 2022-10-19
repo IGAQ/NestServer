@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { RestrictedProps } from "../../common/models/toSelf";
+import { RestrictedProps } from "../../_domain/models/toSelf";
 import { User } from "../../users/models";
 import { Labels, NodeProperty } from "../../neo4j/neo4j.decorators";
 import { Model } from "../../neo4j/neo4j.helper.types";

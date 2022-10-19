@@ -7,7 +7,7 @@ import { Gender, Role, Sexuality, User, Openness } from "../../users/models";
 import { AuthoredProps, UserToPostRelTypes } from "../../users/models/toPost";
 import { PostToPostTypeRelTypes } from "../../posts/models/toPostType";
 import { PostToPostTagRelTypes } from "../../posts/models/toTags";
-import { _ToSelfRelTypes, RestrictedProps } from "../../common/models/toSelf";
+import { _ToSelfRelTypes, RestrictedProps } from "../../_domain/models/toSelf";
 import { UserToSexualityRelTypes } from "../../users/models/toSexuality";
 import { UserToGenderRelTypes } from "../../users/models/toGender";
 import { Comment } from "../../comments/models";

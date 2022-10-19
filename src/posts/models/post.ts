@@ -7,7 +7,7 @@ import {
 } from "../../neo4j/neo4j.helper.types";
 import { User } from "../../users/models";
 import { PostType, PostTag, Award } from "./index";
-import { _ToSelfRelTypes, RestrictedProps } from "../../common/models/toSelf";
+import { _ToSelfRelTypes, RestrictedProps } from "../../_domain/models/toSelf";
 import { HasAwardProps, PostToAwardRelTypes } from "./toAward";
 import { Neo4jService } from "../../neo4j/services/neo4j.service";
 import { PostToPostTypeRelTypes } from "./toPostType";

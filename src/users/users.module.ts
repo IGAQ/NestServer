@@ -1,17 +1,18 @@
 import { Module } from "@nestjs/common";
 import { UsersRepository } from "./services/users.repository";
 import { UsersController } from "./controllers/users.controller";
+import { _$ } from "../_domain/injectableTokens";
 
 @Module({
     providers: [
         {
-            provide: "IUsersRepository",
+            provide: _$.IUsersRepository,
             useClass: UsersRepository,
         },
     ],
     exports: [
         {
-            provide: "IUsersRepository",
+            provide: _$.IUsersRepository,
             useClass: UsersRepository,
         },
     ],

@@ -5,11 +5,11 @@ import { IUsersRepository } from "./users.repository.interface";
 import { Neo4jSeedService } from "../../neo4j/services/neo4j.seed.service";
 import { NEO4J_DRIVER, NEO4J_OPTIONS } from "../../neo4j/neo4j.constants";
 import { Neo4jConfig } from "../../neo4j/neo4jConfig.interface";
-import { neo4jCredentials } from "../../common/constants";
+import { neo4jCredentials } from "../../_domain/constants";
 import { createDriver } from "../../neo4j/neo4j.utils";
 import { Neo4jService } from "../../neo4j/services/neo4j.service";
 import { v4 as uuidv4 } from "uuid";
-import exp from "constants";
+import { _$ } from "../../_domain/injectableTokens";
 
 describe("UsersRepository", () => {
     let usersRepository: IUsersRepository;
@@ -31,13 +31,13 @@ describe("UsersRepository", () => {
                 Neo4jService,
                 Neo4jSeedService,
                 {
-                    provide: "IUsersRepository",
+                    provide: _$.IUsersRepository,
                     useClass: UsersRepository,
                 },
             ],
         }).compile();
 
-        usersRepository = module.get<UsersRepository>("IUsersRepository");
+        usersRepository = module.get<UsersRepository>(_$.IUsersRepository);
 
         neo4jSeedService = module.get<Neo4jSeedService>(Neo4jSeedService);
         try {
@@ -124,12 +124,14 @@ describe("UsersRepository", () => {
         const preAssignedUuid4 = uuidv4();
 
         beforeAll(async () => {
-            user = await usersRepository.addUser(new User({
-                userId: preAssignedUuid4,
-                username: "test",
-                passwordHash: "test",
-                email: "a@test.com",
-            }));
+            user = await usersRepository.addUser(
+                new User({
+                    userId: preAssignedUuid4,
+                    username: "test",
+                    passwordHash: "test",
+                    email: "a@test.com",
+                })
+            );
         });
 
         it("should return a user", async () => {
@@ -154,12 +156,14 @@ describe("UsersRepository", () => {
         const preAssignedUuid4 = uuidv4();
 
         beforeAll(async () => {
-            user = await usersRepository.addUser(new User({
-                userId: preAssignedUuid4,
-                username: "test",
-                passwordHash: "test",
-                email: "a@test.com",
-            }));
+            user = await usersRepository.addUser(
+                new User({
+                    userId: preAssignedUuid4,
+                    username: "test",
+                    passwordHash: "test",
+                    email: "a@test.com",
+                })
+            );
 
             user.emailVerified = true;
             user.phoneNumber = "123456789";

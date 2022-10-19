@@ -4,9 +4,10 @@ import { NEO4J_DRIVER, NEO4J_OPTIONS } from "../../neo4j/neo4j.constants";
 import { createDriver } from "../../neo4j/neo4j.utils";
 import { Neo4jService } from "../../neo4j/services/neo4j.service";
 import { PostsRepository } from "../services/postRepository/posts.respository";
-import { neo4jCredentials } from "../../common/constants";
+import { neo4jCredentials } from "../../_domain/constants";
 import { IPostsRepository } from "../services/postRepository/posts.repository.inerface";
 import { Post } from "./post";
+import { _$ } from "../../_domain/injectableTokens";
 
 describe("Post Model Unit Test", () => {
     let postsRepository: IPostsRepository;
@@ -27,13 +28,13 @@ describe("Post Model Unit Test", () => {
                 },
                 Neo4jService,
                 {
-                    provide: "IPostsRepository",
+                    provide: _$.IPostsRepository,
                     useClass: PostsRepository,
                 },
             ],
         }).compile();
 
-        postsRepository = module.get<PostsRepository>("IPostsRepository");
+        postsRepository = module.get<PostsRepository>(_$.IPostsRepository);
     });
 
     it("should be defined", () => {
