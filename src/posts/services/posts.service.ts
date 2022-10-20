@@ -1,7 +1,14 @@
 import { HttpException, Inject, Injectable, Logger } from "@nestjs/common";
 import { PostCreationPayloadDto } from "../models/postCreationPayload.dto";
 import { User } from "../../users/models";
-import { Post, PostTag, HateSpeechResponseDto, HateSpeechRequestPayloadDto } from "../models";
+import {
+    Post,
+    PostTag,
+    HateSpeechResponseDto,
+    HateSpeechRequestPayloadDto,
+    ReportPostPayloadDto,
+    VotePostPayloadDto,
+} from "../models";
 import { IPostsService } from "./posts.service.interface";
 import { _$ } from "../../_domain/injectableTokens";
 import { DatabaseContext } from "../../database-access-layer/databaseContext";
@@ -176,5 +183,13 @@ export class PostsService implements IPostsService {
                 deletedByUserId: post.authorUser.userId,
             })
         );
+    }
+
+    public async reportPost(reportPostPayload: ReportPostPayloadDto): Promise<void> {
+        throw new Error("Not implemented");
+    }
+
+    public async votePost(votePostPayload: VotePostPayloadDto): Promise<void> {
+        throw new Error("Not implemented");
     }
 }
