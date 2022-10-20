@@ -28,7 +28,10 @@ export class PostsRepository implements IPostsRepository {
         return new Post(post.records[0].get("p").properties, this._neo4jService);
     }
 
-    public async addPost(post: Post, anonymous: boolean): Promise<void> {
+    public async addPost(post: Post, anonymous: boolean): Promise<Post> {
+        if (post.postId === undefined) {
+            post.postId = this._neo4jService.generateId();
+        }
         let restrictedQueryString = "";
         let restrictedQueryParams = {};
         if (post.restrictedProps !== null) {
@@ -103,6 +106,8 @@ export class PostsRepository implements IPostsRepository {
                 ...restrictedQueryParams,
             }
         );
+
+        return await this.findPostById(post.postId);
     }
 
     public async updatePost(post: Post): Promise<void> {
