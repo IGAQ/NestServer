@@ -8,7 +8,7 @@ import { Neo4jSeedService } from "./neo4j/services/neo4j.seed.service";
 import { PostsModule } from "./posts/posts.module";
 import { UsersModule } from "./users/users.module";
 import { AppLoggerMiddleware } from "./_domain/middlewares/appLogger.middleware";
-import { DatabaseAccessLayerModule } from './database-access-layer/database-access-layer.module';
+import { DatabaseAccessLayerModule } from "./database-access-layer/database-access-layer.module";
 
 @Module({
     imports: [

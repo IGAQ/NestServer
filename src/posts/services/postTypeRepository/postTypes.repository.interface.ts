@@ -1,7 +1,7 @@
 import { PostType } from "../../models";
 
 export interface IPostTypesRepository {
-	findAll(): Promise<PostType[]>;
+    findAll(): Promise<PostType[]>;
 
-	findPostTypeById(postTypeId: string): Promise<PostType | undefined>;
+    findPostTypeById(postTypeId: string): Promise<PostType | undefined>;
 }

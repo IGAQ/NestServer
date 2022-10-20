@@ -86,7 +86,7 @@ export class User extends Model {
     openness: Nullable<Openness>;
 
     @ApiProperty({ type: WasOffendingProps, isArray: true })
-	@Exclude()
+    @Exclude()
     wasOffendingRecords: WasOffendingProps[] = [];
 
     constructor(partial?: Partial<User>, neo4jService?: Neo4jService) {
@@ -131,7 +131,9 @@ export class User extends Model {
                 userId: this.userId,
             }
         );
-        this.wasOffendingRecords = queryResult.records.map(record => new WasOffendingProps(record.get("r").properties));
+        this.wasOffendingRecords = queryResult.records.map(
+            record => new WasOffendingProps(record.get("r").properties)
+        );
         return this.wasOffendingRecords;
     }
 

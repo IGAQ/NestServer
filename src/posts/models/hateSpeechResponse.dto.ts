@@ -1,11 +1,11 @@
 export class HateSpeechResponseDto {
-	response: string;
+    response: string;
 
-	class: string;
+    class: string;
 
-	confidence: number;
+    confidence: number;
 
-	constructor(partial?: Partial<HateSpeechResponseDto>) {
-		Object.assign(this, partial);
-	}
+    constructor(partial?: Partial<HateSpeechResponseDto>) {
+        Object.assign(this, partial);
+    }
 }

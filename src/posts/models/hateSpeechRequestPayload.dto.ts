@@ -1,9 +1,9 @@
 export class HateSpeechRequestPayloadDto {
-	token: string;
+    token: string;
 
-	text: string;
+    text: string;
 
-	constructor(partial?: Partial<HateSpeechRequestPayloadDto>) {
-		Object.assign(this, partial);
-	}
+    constructor(partial?: Partial<HateSpeechRequestPayloadDto>) {
+        Object.assign(this, partial);
+    }
 }

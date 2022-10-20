@@ -19,7 +19,8 @@ export class DatabaseContext {
         @Inject(_$.IPostTagsRepository) postTagsRepository: IPostTagsRepository,
         @Inject(_$.IUsersRepository) usersRepository: IUsersRepository,
         @Inject(_$.ISexualityRepository) sexualityRepository: ISexualityRepository,
-        @Inject(_$.IGenderRepository) genderRepository: IGenderRepository) {
+        @Inject(_$.IGenderRepository) genderRepository: IGenderRepository
+    ) {
         this._neo4jService = neo4jService;
 
         this.Posts = postsRepository;
@@ -36,5 +37,4 @@ export class DatabaseContext {
     public Users: IUsersRepository;
     public Sexualities: ISexualityRepository;
     public Genders: IGenderRepository;
-
 }
