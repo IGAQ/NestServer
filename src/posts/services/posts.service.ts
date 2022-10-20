@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from "@nestjs/common";
+import { HttpException, Inject, Injectable, Logger } from "@nestjs/common";
 import { PostCreationPayloadDto } from "../models/postCreationPayload.dto";
 import { User } from "../../users/models";
 import { Post, PostTag, HateSpeechResponseDto, HateSpeechRequestPayloadDto } from "../models";
@@ -9,6 +9,7 @@ import { HttpService } from "@nestjs/axios";
 import { ConfigService } from "@nestjs/config";
 import { catchError, lastValueFrom, map, throwError } from "rxjs";
 import { WasOffendingProps } from "../../users/models/toSelf";
+import { DeletedProps } from "../models/toSelf";
 
 @Injectable()
 export class PostsService implements IPostsService {
@@ -20,7 +21,8 @@ export class PostsService implements IPostsService {
     constructor(
         @Inject(_$.IDatabaseContext) databaseContext: DatabaseContext,
         httpService: HttpService,
-        configService: ConfigService) {
+        configService: ConfigService
+    ) {
         this._dbContext = databaseContext;
         this._httpService = httpService;
         this._configService = configService;
@@ -45,16 +47,21 @@ export class PostsService implements IPostsService {
         let autoModerationApiUrl = this._configService.get<string>("MODERATE_HATESPEECH_API_URL");
 
         const hateSpeechResponseDto = await lastValueFrom(
-            this._httpService.post<HateSpeechResponseDto>(autoModerationApiUrl, new HateSpeechRequestPayloadDto({
-                token: autoModerationApiKey,
-                text: postPayload.postTitle + postPayload.postContent,
-            })).pipe(
-                map(response => response.data),
-                catchError((err) => {
-                    this.logger.error(err);
-                    return throwError(() => err);
-                }),
-            )
+            this._httpService
+                .post<HateSpeechResponseDto>(
+                    autoModerationApiUrl,
+                    new HateSpeechRequestPayloadDto({
+                        token: autoModerationApiKey,
+                        text: postPayload.postTitle + postPayload.postContent,
+                    })
+                )
+                .pipe(
+                    map(response => response.data),
+                    catchError(err => {
+                        this.logger.error(err);
+                        return throwError(() => err);
+                    })
+                )
         );
 
         // if moderation failed, throw error
@@ -62,40 +69,114 @@ export class PostsService implements IPostsService {
             if (hateSpeechResponseDto.confidence >= 0.8) {
                 // TODO: create a ticket for the admin to review
 
-				await user.addWasOffendingRecord(new WasOffendingProps({
-					timestamp: new Date().getTime(),
-					userContent: postPayload.postTitle + postPayload.postContent,
-					autoModConfidenceLevel: hateSpeechResponseDto.confidence,
-				}));
+                await user.addWasOffendingRecord(
+                    new WasOffendingProps({
+                        timestamp: new Date().getTime(),
+                        userContent: postPayload.postTitle + postPayload.postContent,
+                        autoModConfidenceLevel: hateSpeechResponseDto.confidence,
+                    })
+                );
                 throw new Error("Hate speech detected");
             }
         }
 
-		// get all records of them offending. And, get all posts that this user authored.
-		const userOffendingRecords = await user.getWasOffendingRecords();
-		const userAuthoredPosts = await user.getAuthoredPosts();
+        // get all records of them offending. And, get all posts that this user authored.
+        const userOffendingRecords = await user.getWasOffendingRecords();
+        const userAuthoredPosts = await user.getAuthoredPosts();
 
-		// lazy-query the restriction state of the posts.
-		for (let i in userAuthoredPosts) {
-			await userAuthoredPosts[i].getRestricted();
-		}
+        // lazy-query the restriction state of the posts.
+        for (let i in userAuthoredPosts) {
+            await userAuthoredPosts[i].getRestricted();
+        }
 
-		// calculate the honour level of the user. (0 < honourLevel < 1)
-		const numberOfCleanPosts = userAuthoredPosts.map(p => !p.pending && p.restrictedProps === null).length;
+        // calculate the honour level of the user. (0 < honourLevel < 1)
+        const numberOfCleanPosts = userAuthoredPosts.map(
+            p => !p.pending && p.restrictedProps === null
+        ).length;
 
-		const honourGainHardshipCoefficient = 0.1; // 0.1 means: for the user to achieve the full level of honour, they need at least 10 clean posts while not having any offending records.
+        const honourGainHardshipCoefficient = 0.1; // 0.1 means: for the user to achieve the full level of honour, they need at least 10 clean posts while not having any offending records.
 
-		let honourLevel = (1 + (numberOfCleanPosts * honourGainHardshipCoefficient)) / (2 + userOffendingRecords.length);
-		honourLevel = honourLevel > 1 ? 1 : honourLevel;
+        let honourLevel =
+            (1 + numberOfCleanPosts * honourGainHardshipCoefficient) /
+            (2 + userOffendingRecords.length);
+        honourLevel = honourLevel > 1 ? 1 : honourLevel;
 
         // if moderation passed, create post and return it.
-        return await this._dbContext.Posts.addPost(new Post({
-            postType: postType,
-            postTags: postTags,
-            postTitle: postPayload.postTitle,
-            postContent: postPayload.postContent,
-            authorUser: user,
-			pending: honourLevel < 0.4, // the post will not be in the pending state only if user's honour level is higher than 0.4
-        }), postPayload.anonymous);
+        return await this._dbContext.Posts.addPost(
+            new Post({
+                postType: postType,
+                postTags: postTags,
+                postTitle: postPayload.postTitle,
+                postContent: postPayload.postContent,
+                authorUser: user,
+                pending: honourLevel < 0.4, // the post will not be in the pending state only if user's honour level is higher than 0.4
+            }),
+            postPayload.anonymous
+        );
+    }
+
+    public async getQueeryOfTheDay(): Promise<Post> {
+        let allPosts = await this._dbContext.Posts.findAll();
+        if (allPosts.length === 0)
+            throw new HttpException(
+                "No posts found in the database. Please checkout this application's usage tutorials.",
+                404
+            );
+
+        const queeryPosts: Post[] = [];
+        for (let i in allPosts) {
+            if (!allPosts[i].pending) continue;
+
+            await allPosts[i].getDeletedProps();
+            if (allPosts[i].deletedProps !== null) continue;
+
+            await allPosts[i].getRestricted();
+            if (allPosts[i].restrictedProps !== null) continue;
+
+            await allPosts[i].getPostType();
+            if (allPosts[i].postType.postType === "Queery") {
+                queeryPosts.push(allPosts[i]);
+            }
+        }
+
+        if (queeryPosts.length === 0) throw new HttpException("No Queery posts found", 404);
+
+        let queeryOfTheDayIndex = Math.floor(Math.random() * queeryPosts.length);
+        return queeryPosts[queeryOfTheDayIndex];
+    }
+
+    public async findPostById(postId: string): Promise<Post> {
+        let foundPost = await this._dbContext.Posts.findPostById(postId);
+		if (foundPost === null) throw new HttpException("Post not found", 404);
+
+		if (foundPost.pending)
+			throw new HttpException("Post cannot be shown publicly due to striking policies", 403);
+
+		await foundPost.getDeletedProps();
+		if (foundPost.deletedProps !== null)
+			throw new HttpException("Post was deleted", 404);
+
+		await foundPost.getRestricted();
+		if (foundPost.restrictedProps !== null)
+			throw new HttpException("Post is restricted", 404);
+
+		return await foundPost.toJSON();
+    }
+
+    public async markAsDeleted(postId: string): Promise<void> {
+        let post = await this._dbContext.Posts.findPostById(postId);
+        if (post === undefined) throw new Error("Post not found");
+
+        await post.getDeletedProps();
+        if (post.deletedProps !== null) throw new Error("Post already deleted");
+
+        await post.getAuthorUser();
+
+        await post.setDeletedProps(
+            new DeletedProps({
+                deletedAt: new Date().getTime(),
+                deletedByUserId: post.authorUser.userId,
+            })
+        );
     }
 }
