@@ -138,7 +138,10 @@ export class Post extends Model {
                 postId: this.postId,
             }
         );
-        if (queryResult.records.length === 0) return null;
+        if (queryResult.records.length === 0) {
+			this.restrictedProps = null;
+			return null;
+		}
         const result = new RestrictedProps(queryResult.records[0].get("r").properties);
         this.restrictedProps = result;
         return result;
