@@ -8,6 +8,7 @@ import { DatabaseContext } from "../../database-access-layer/databaseContext";
 import { HttpService } from "@nestjs/axios";
 import { ConfigService } from "@nestjs/config";
 import { catchError, lastValueFrom, map, throwError } from "rxjs";
+import { WasOffendingProps } from "../../users/models/toSelf";
 
 @Injectable()
 export class PostsService implements IPostsService {
@@ -60,20 +61,41 @@ export class PostsService implements IPostsService {
         if (hateSpeechResponseDto.class === "flag") {
             if (hateSpeechResponseDto.confidence >= 0.8) {
                 // TODO: create a ticket for the admin to review
+
+				await user.addWasOffendingRecord(new WasOffendingProps({
+					timestamp: new Date().getTime(),
+					userContent: postPayload.postTitle + postPayload.postContent,
+					autoModConfidenceLevel: hateSpeechResponseDto.confidence,
+				}));
                 throw new Error("Hate speech detected");
             }
         }
 
+		// get all records of them offending. And, get all posts that this user authored.
+		const userOffendingRecords = await user.getWasOffendingRecords();
+		const userAuthoredPosts = await user.getAuthoredPosts();
+
+		// lazy-query the restriction state of the posts.
+		for (let i in userAuthoredPosts) {
+			await userAuthoredPosts[i].getRestricted();
+		}
+
+		// calculate the honour level of the user. (0 < honourLevel < 1)
+		const numberOfCleanPosts = userAuthoredPosts.map(p => !p.pending && p.restrictedProps === null).length;
+
+		const honourGainHardshipCoefficient = 0.1; // 0.1 means: for the user to achieve the full level of honour, they need at least 10 clean posts while not having any offending records.
+
+		let honourLevel = (1 + (numberOfCleanPosts * honourGainHardshipCoefficient)) / (2 + userOffendingRecords.length);
+		honourLevel = honourLevel > 1 ? 1 : honourLevel;
+
         // if moderation passed, create post and return it.
-        await this._dbContext.Posts.addPost(new Post({
+        return await this._dbContext.Posts.addPost(new Post({
             postType: postType,
             postTags: postTags,
             postTitle: postPayload.postTitle,
             postContent: postPayload.postContent,
             authorUser: user,
-            pending: false,
+			pending: honourLevel < 0.4, // the post will not be in the pending state only if user's honour level is higher than 0.4
         }), postPayload.anonymous);
-
-        throw new Error("Not implemented");
     }
 }
