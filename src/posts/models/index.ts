@@ -4,3 +4,4 @@ export { PostTag } from "./postTag";
 export { Award } from "./award";
 export { HateSpeechResponseDto } from "./hateSpeechResponse.dto";
 export { HateSpeechRequestPayloadDto } from "./hateSpeechRequestPayload.dto";
+export { DeletePostPayloadDto } from "./deletePostPayload.dto";
