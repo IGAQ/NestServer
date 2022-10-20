@@ -147,20 +147,18 @@ export class PostsService implements IPostsService {
 
     public async findPostById(postId: string): Promise<Post> {
         let foundPost = await this._dbContext.Posts.findPostById(postId);
-		if (foundPost === null) throw new HttpException("Post not found", 404);
+        if (foundPost === null) throw new HttpException("Post not found", 404);
 
-		if (foundPost.pending)
-			throw new HttpException("Post cannot be shown publicly due to striking policies", 403);
+        if (foundPost.pending)
+            throw new HttpException("Post cannot be shown publicly due to striking policies", 403);
 
-		await foundPost.getDeletedProps();
-		if (foundPost.deletedProps !== null)
-			throw new HttpException("Post was deleted", 404);
+        await foundPost.getDeletedProps();
+        if (foundPost.deletedProps !== null) throw new HttpException("Post was deleted", 404);
 
-		await foundPost.getRestricted();
-		if (foundPost.restrictedProps !== null)
-			throw new HttpException("Post is restricted", 404);
+        await foundPost.getRestricted();
+        if (foundPost.restrictedProps !== null) throw new HttpException("Post is restricted", 404);
 
-		return await foundPost.toJSON();
+        return await foundPost.toJSON();
     }
 
     public async markAsDeleted(postId: string): Promise<void> {
