@@ -105,6 +105,25 @@ export class PostsRepository implements IPostsRepository {
         );
     }
 
+    public async updatePost(post: Post): Promise<void> {
+        await this._neo4jService.tryWriteAsync(
+            `
+                MATCH (p:Post) WHERE p.postId = $postId
+                SET p.updatedAt = $updatedAt,
+                    p.postTitle = $postTitle,
+                    p.postContent = $postContent,
+                    p.pending = $pending
+            `,
+            {
+                postId: post.postId,
+                updatedAt: post.updatedAt,
+                postTitle: post.postTitle,
+                postContent: post.postContent,
+                pending: post.pending,
+            }
+        );
+    }
+
     public async deletePost(postId: string): Promise<void> {
         this._neo4jService.write(`MATCH (p:Post) WHERE p.postId = $postId DETACH DELETE p`, {
             postId: postId,

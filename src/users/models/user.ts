@@ -18,6 +18,7 @@ import { Neo4jService } from "../../neo4j/services/neo4j.service";
 import { UserToSexualityRelTypes } from "./toSexuality";
 import { UserToGenderRelTypes } from "./toGender";
 import { UserToOpennessRelTypes } from "./toOpenness";
+import { UserToSelfRelTypes, WasOffendingProps } from "./toSelf";
 
 export type AvatarUrl = string;
 export type AvatarAscii = string;
@@ -84,6 +85,9 @@ export class User extends Model {
     @ApiProperty({ type: Openness })
     openness: Nullable<Openness>;
 
+    @ApiProperty({ type: WasOffendingProps, isArray: true })
+    wasOffendingRecords: WasOffendingProps[] = [];
+
     constructor(partial?: Partial<User>, neo4jService?: Neo4jService) {
         super(neo4jService);
         Object.assign(this, partial);
@@ -93,6 +97,41 @@ export class User extends Model {
         this.passwordHash = undefined;
         this.neo4jService = undefined;
         return { ...this };
+    }
+
+    public async addWasOffendingRecord(record: WasOffendingProps): Promise<void> {
+        await this.neo4jService.tryWriteAsync(
+            `
+            MATCH (u:User { userId: $userId })
+                CREATE (u)-[r:${UserToSelfRelTypes.WAS_OFFENDING}
+                   {
+                       timestamp: $timestamp,
+                       userContent: $userContent,
+                       autoModConfidenceLevel: $autoModFromConfidence
+                   }
+                ]->(u)
+            `,
+            {
+                userId: this.userId,
+                timestamp: record.timestamp,
+                userContent: record.userContent,
+                autoModFromConfidence: record.autoModConfidenceLevel,
+            }
+        );
+    }
+
+    public async getWasOffendingRecords(): Promise<WasOffendingProps[]> {
+        const queryResult = await this.neo4jService.tryReadAsync(
+            `
+            MATCH (u:User { userId: $userId})-[r:${UserToSelfRelTypes.WAS_OFFENDING}]-(u)
+            RETURN r
+            `,
+            {
+                userId: this.userId,
+            }
+        );
+        this.wasOffendingRecords = queryResult.records.map(record => new WasOffendingProps(record.get("r").properties));
+        return this.wasOffendingRecords;
     }
 
     public async getAuthoredPosts(): Promise<Post[]> {

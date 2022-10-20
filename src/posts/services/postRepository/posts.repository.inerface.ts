@@ -8,6 +8,8 @@ export interface IPostsRepository {
 
     addPost(post: Post, anonymous: boolean): Promise<void>;
 
+    updatePost(post: Post): Promise<void>;
+
     deletePost(postId: string): Promise<void>;
 
     restrictPost(postId: string, restrictedProps: RestrictedProps): Promise<void>;

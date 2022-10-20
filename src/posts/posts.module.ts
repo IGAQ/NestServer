@@ -8,9 +8,10 @@ import { PostTagsRepository } from "./services/postTagRepository/postTags.reposi
 import { GenderRepository } from "../users/services/genderRepository/gender.repository";
 import { SexualityRepository } from "../users/services/sexualityRepository/sexuality.repository";
 import { PostTypesRepository } from "./services/postTypeRepository/postTypes.repository";
+import { HttpModule } from "@nestjs/axios";
 
 @Module({
-    imports: [forwardRef(() => DatabaseAccessLayerModule)],
+    imports: [forwardRef(() => DatabaseAccessLayerModule), HttpModule],
     providers: [
         {
             provide: _$.IPostsRepository,
