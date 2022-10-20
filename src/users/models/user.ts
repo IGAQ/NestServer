@@ -86,6 +86,7 @@ export class User extends Model {
     openness: Nullable<Openness>;
 
     @ApiProperty({ type: WasOffendingProps, isArray: true })
+	@Exclude()
     wasOffendingRecords: WasOffendingProps[] = [];
 
     constructor(partial?: Partial<User>, neo4jService?: Neo4jService) {
