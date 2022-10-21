@@ -2,12 +2,12 @@ import { HttpException, Inject, Injectable, Logger, Scope } from "@nestjs/common
 import { PostCreationPayloadDto } from "../models/postCreationPayload.dto";
 import { User } from "../../users/models";
 import {
+    HateSpeechRequestPayloadDto,
+    HateSpeechResponseDto,
     Post,
     PostTag,
-    HateSpeechResponseDto,
-    HateSpeechRequestPayloadDto,
-    ReportPostPayloadDto,
     VotePostPayloadDto,
+    VoteType,
 } from "../models";
 import { IPostsService } from "./posts.service.interface";
 import { _$ } from "../../_domain/injectableTokens";
@@ -19,6 +19,7 @@ import { WasOffendingProps } from "../../users/models/toSelf";
 import { DeletedProps } from "../models/toSelf";
 import { REQUEST } from "@nestjs/core";
 import { Request } from "express";
+import { UserToPostRelTypes } from "../../users/models/toPost";
 
 @Injectable({ scope: Scope.REQUEST })
 export class PostsService implements IPostsService {
@@ -192,8 +193,50 @@ export class PostsService implements IPostsService {
     }
 
     public async votePost(votePostPayload: VotePostPayloadDto): Promise<void> {
-        let user = this._request.user as User;
-        throw new Error("Not implemented");
+        let user = this.getUserFromRequest();
+
+        let post = await this._dbContext.Posts.findPostById(votePostPayload.postId);
+        if (post === undefined) throw new HttpException("Post not found", 404);
+
+        let queryResult = await this._dbContext.neo4jService.tryReadAsync(
+            `
+            MATCH (u:User { userId: $userId })-[r:${UserToPostRelTypes.UPVOTES}|${UserToPostRelTypes.DOWN_VOTES}]->(p:Post { postId: $postId })
+            `,
+            {
+                userId: user.userId,
+                postId: votePostPayload.postId,
+            }
+        );
+
+        if (queryResult.records.length > 0) {
+            let relType = queryResult.records[0].get("r").type;
+            if (relType === UserToPostRelTypes.UPVOTES && votePostPayload.voteType === VoteType.UPVOTES) {
+                throw new HttpException("User already upvoted this post", 400);
+            } else if (relType === UserToPostRelTypes.DOWN_VOTES && votePostPayload.voteType === VoteType.DOWN_VOTES) {
+                throw new HttpException("User already downvoted this post", 400);
+            } else {
+                await this._dbContext.neo4jService.tryWriteAsync(
+                    `
+                    MATCH (u:User { userId: $userId })-[r:${relType}]->(p:Post { postId: $postId })
+                    DELETE r
+                    `,
+                    {
+                        userId: user.userId,
+                        postId: votePostPayload.postId,
+                    }
+                );
+            }
+        }
+
+        await this._dbContext.neo4jService.tryWriteAsync(
+            `
+            MATCH (u:User { userId: $userId }), (p:Post { postId: $postId })
+            MERGE (u)-[r:${votePostPayload.voteType}]->(p)
+            `,
+            {
+                userId: user.userId,
+                postId: votePostPayload.postId,
+            });
     }
 
     private getUserFromRequest(): User {

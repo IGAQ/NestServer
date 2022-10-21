@@ -1,8 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
 
 export enum VoteType {
-    UPVOTE = "UPVOTE",
-    DOWNVOTE = "DOWNVOTE",
+    UPVOTES = "UPVOTES",
+    DOWN_VOTES = "DOWN_VOTES",
 }
 
 export class VotePostPayloadDto {
