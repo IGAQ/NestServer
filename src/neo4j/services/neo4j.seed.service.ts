@@ -413,6 +413,10 @@ export class Neo4jSeedService {
                 records: [],
                 relType: UserToPostRelTypes.FAVORITES,
             },
+            [UserToPostRelTypes.REPORTED]: {
+                records: [],
+                relType: UserToPostRelTypes.REPORTED,
+            },
         };
 
         return new Array<User>(
