@@ -1,4 +1,4 @@
-import { HttpException, Inject, Injectable, Logger } from "@nestjs/common";
+import { HttpException, Inject, Injectable, Logger, Scope } from "@nestjs/common";
 import { PostCreationPayloadDto } from "../models/postCreationPayload.dto";
 import { User } from "../../users/models";
 import {
@@ -17,25 +17,31 @@ import { ConfigService } from "@nestjs/config";
 import { catchError, lastValueFrom, map, throwError } from "rxjs";
 import { WasOffendingProps } from "../../users/models/toSelf";
 import { DeletedProps } from "../models/toSelf";
+import { REQUEST } from "@nestjs/core";
+import { Request } from "express";
 
-@Injectable()
+@Injectable({ scope: Scope.REQUEST })
 export class PostsService implements IPostsService {
-    private readonly logger = new Logger(PostsService.name);
+    private readonly _logger = new Logger(PostsService.name);
+    private readonly _request: Request;
     private readonly _dbContext: DatabaseContext;
     private readonly _httpService: HttpService;
     private readonly _configService: ConfigService;
 
     constructor(
+        @Inject(REQUEST) request: Request,
         @Inject(_$.IDatabaseContext) databaseContext: DatabaseContext,
         httpService: HttpService,
         configService: ConfigService
     ) {
+        this._request = request;
         this._dbContext = databaseContext;
         this._httpService = httpService;
         this._configService = configService;
     }
 
-    public async authorNewPost(postPayload: PostCreationPayloadDto, user: User): Promise<Post> {
+    public async authorNewPost(postPayload: PostCreationPayloadDto): Promise<Post> {
+        let user = this.getUserFromRequest();
         // validate the post payload
         const postType = await this._dbContext.PostTypes.findPostTypeById(postPayload.postTypeId);
         if (postType === undefined) throw new Error("Post type not found");
@@ -65,7 +71,7 @@ export class PostsService implements IPostsService {
                 .pipe(
                     map(response => response.data),
                     catchError(err => {
-                        this.logger.error(err);
+                        this._logger.error(err);
                         return throwError(() => err);
                     })
                 )
@@ -185,11 +191,14 @@ export class PostsService implements IPostsService {
         );
     }
 
-    public async reportPost(reportPostPayload: ReportPostPayloadDto): Promise<void> {
+    public async votePost(votePostPayload: VotePostPayloadDto): Promise<void> {
+        let user = this._request.user as User;
         throw new Error("Not implemented");
     }
 
-    public async votePost(votePostPayload: VotePostPayloadDto): Promise<void> {
-        throw new Error("Not implemented");
+    private getUserFromRequest(): User {
+        let user = this._request.user as User;
+        if (user === undefined) throw new Error("User not found");
+        return user;
     }
 }

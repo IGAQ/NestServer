@@ -58,10 +58,9 @@ export class PostsController {
     @Post("create")
     @UseGuards(AuthGuard("jwt"))
     public async createPost(
-        @Body() postPayload: PostCreationPayloadDto,
-        @AuthedUser() authedUser: User
+        @Body() postPayload: PostCreationPayloadDto
     ): Promise<PostModel | Error> {
-        const post = await this._postsService.authorNewPost(postPayload, authedUser);
+        const post = await this._postsService.authorNewPost(postPayload);
         throw new HttpException("Not implemented", 501);
     }
 }

@@ -10,7 +10,7 @@ import { _$ } from "../_domain/injectableTokens";
 
 @Injectable()
 export class DatabaseContext {
-    private readonly _neo4jService: Neo4jService;
+    public readonly neo4jService: Neo4jService;
 
     constructor(
         neo4jService: Neo4jService,
@@ -21,7 +21,7 @@ export class DatabaseContext {
         @Inject(_$.ISexualityRepository) sexualityRepository: ISexualityRepository,
         @Inject(_$.IGenderRepository) genderRepository: IGenderRepository
     ) {
-        this._neo4jService = neo4jService;
+        this.neo4jService = neo4jService;
 
         this.Posts = postsRepository;
         this.PostTypes = postTypesRepository;
