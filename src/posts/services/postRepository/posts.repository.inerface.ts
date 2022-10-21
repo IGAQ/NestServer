@@ -6,7 +6,9 @@ export interface IPostsRepository {
 
     findPostById(postId: string): Promise<Post | undefined>;
 
-    addPost(post: Post, anonymous: boolean): Promise<void>;
+    addPost(post: Post, anonymous: boolean): Promise<Post>;
+
+    updatePost(post: Post): Promise<void>;
 
     deletePost(postId: string): Promise<void>;
 

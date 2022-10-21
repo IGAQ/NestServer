@@ -1,5 +1,4 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { v4 as uuidv4 } from "uuid";
 import { Role, User } from "../../models";
 import { IUsersRepository } from "./users.repository.interface";
 import { Neo4jService } from "../../../neo4j/services/neo4j.service";
@@ -50,7 +49,7 @@ export class UsersRepository implements IUsersRepository {
     }
 
     public async addUser(user: User): Promise<User> {
-        const userId = uuidv4();
+        const userId = this._neo4jService.generateId();
         await this._neo4jService.tryWriteAsync(
             `
                     CREATE (u:User { 

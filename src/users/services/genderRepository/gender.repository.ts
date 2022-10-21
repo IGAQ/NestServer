@@ -2,7 +2,6 @@ import { Inject, Injectable } from "@nestjs/common";
 import { IGenderRepository } from "./gender.repository.interface";
 import { Neo4jService } from "src/neo4j/services/neo4j.service";
 import { Gender } from "src/users/models";
-import { v4 as uuidv4 } from "uuid";
 
 @Injectable()
 export class GenderRepository implements IGenderRepository {
@@ -25,7 +24,7 @@ export class GenderRepository implements IGenderRepository {
     }
 
     public async addGender(gender: Gender): Promise<Gender> {
-        const genderId = uuidv4();
+        const genderId = this._neo4jService.generateId();
         await this._neo4jService.tryWriteAsync(
             `
             CREATE (g:Gender {

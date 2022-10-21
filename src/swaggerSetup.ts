@@ -11,6 +11,6 @@ async function swaggerSetup(app: any) {
         .build();
 
     const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup("api-documentation", app, document);
+    SwaggerModule.setup("/", app, document);
 }
 export default swaggerSetup;

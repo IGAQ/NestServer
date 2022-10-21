@@ -1,7 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { Neo4jService } from "src/neo4j/services/neo4j.service";
 import { Openness } from "src/users/models";
-import { v4 as uuidv4 } from "uuid";
 import { IOpennessRepository } from "./openness.repository.interface";
 
 @Injectable()
@@ -25,7 +24,7 @@ export class OpennessRepository implements IOpennessRepository {
     }
 
     public async addOpenness(openness: Openness): Promise<Openness> {
-        const opennessId = uuidv4();
+        const opennessId = this._neo4jService.generateId();
         await this._neo4jService.tryWriteAsync(
             `
             CREATE (o:Openness {
