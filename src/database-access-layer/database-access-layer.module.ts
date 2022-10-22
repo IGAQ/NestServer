@@ -10,13 +10,13 @@ import { _$ } from "../_domain/injectableTokens";
         {
             provide: _$.IDatabaseContext,
             useClass: DatabaseContext,
-        }
+        },
     ],
     exports: [
         {
             provide: _$.IDatabaseContext,
             useClass: DatabaseContext,
-        }
-    ]
+        },
+    ],
 })
 export class DatabaseAccessLayerModule {}

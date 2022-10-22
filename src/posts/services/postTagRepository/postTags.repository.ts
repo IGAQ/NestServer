@@ -8,6 +8,7 @@ import { _$ } from "src/_domain/injectableTokens";
 
 @Injectable()
 export class PostTagsRepository implements IPostTagsRepository {
+
     constructor(
         @Inject(Neo4jService) private _neo4jService: Neo4jService,
         @Inject(_$.IPostsRepository) private _usersRepository: IPostsRepository
@@ -91,4 +92,3 @@ export class PostTagsRepository implements IPostTagsRepository {
         );
     }
 }
-

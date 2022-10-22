@@ -13,6 +13,8 @@ import { Neo4jService } from "../../neo4j/services/neo4j.service";
 import { PostToPostTypeRelTypes } from "./toPostType";
 import { PostToPostTagRelTypes } from "./toTags";
 import { AuthoredProps, UserToPostRelTypes } from "../../users/models/toPost";
+import { DeletedProps, PostToSelfRelTypes } from "./toSelf";
+import { Exclude } from "class-transformer";
 
 @Labels("Post")
 export class Post extends Model {
@@ -51,10 +53,15 @@ export class Post extends Model {
     pending: boolean;
 
     @ApiProperty({ type: RestrictedProps })
-    restrictedProps: Nullable<RestrictedProps>;
+    restrictedProps: Nullable<RestrictedProps> = null;
 
     @ApiProperty({ type: Number })
     totalVotes: number;
+
+    @ApiProperty({ type: Boolean })
+    @NodeProperty()
+    @Exclude()
+    deletedProps: Nullable<DeletedProps> = null;
 
     constructor(partial?: Partial<Post>, neo4jService?: Neo4jService) {
         super(neo4jService);
@@ -126,6 +133,37 @@ export class Post extends Model {
         this.createdAt = (record.get("r").properties as AuthoredProps).authoredAt;
 
         return result;
+    }
+
+    public async getDeletedProps(): Promise<DeletedProps> {
+        const queryResult = await this.neo4jService.tryReadAsync(
+            `
+            MATCH (p:Post {postId: $postId})-[r:${PostToSelfRelTypes.DELETED}]->(p)
+            RETURN r
+            `,
+            {
+                postId: this.postId,
+            }
+        );
+        if (queryResult.records.length === 0) return null;
+        const result = new DeletedProps(queryResult.records[0].get("r").properties);
+        this.deletedProps = result;
+        return result;
+    }
+
+    public async setDeletedProps(deletedProps: DeletedProps): Promise<void> {
+        await this.neo4jService.tryWriteAsync(
+            `
+            MATCH (p:Post {postId: $postId})
+            MERGE (p)-[r:${PostToSelfRelTypes.DELETED}]->(p)
+            SET r = $deletedProps
+            `,
+            {
+                postId: this.postId,
+                deletedProps,
+            }
+        );
+        this.deletedProps = deletedProps;
     }
 
     public async getRestricted(): Promise<Nullable<RestrictedProps>> {

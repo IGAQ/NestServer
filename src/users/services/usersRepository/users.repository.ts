@@ -1,5 +1,4 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { v4 as uuidv4 } from "uuid";
 import { Role, User } from "../../models";
 import { IUsersRepository } from "./users.repository.interface";
 import { Neo4jService } from "../../../neo4j/services/neo4j.service";
@@ -31,6 +30,17 @@ export class UsersRepository implements IUsersRepository {
         return new User(props, this._neo4jService);
     }
 
+    public async findUserByEmail(email: string): Promise<User | undefined> {
+        const queryResult = await this._neo4jService.tryReadAsync(
+            `MATCH (u:User { email: $email }) RETURN u`,
+            { email: email }
+        );
+        if (queryResult.records.length === 0) return undefined;
+        let props = queryResult.records[0].get("u").properties;
+        props.roles = props.roles.map(r => r?.low ?? r) as Role[];
+        return new User(props, this._neo4jService);
+    }
+
     public async findUserById(userId: string): Promise<User | undefined> {
         const queryResult = await this._neo4jService.read(
             `MATCH (u:User {userId: $userId}) RETURN u`,
@@ -50,7 +60,7 @@ export class UsersRepository implements IUsersRepository {
     }
 
     public async addUser(user: User): Promise<User> {
-        const userId = uuidv4();
+        const userId = this._neo4jService.generateId();
         await this._neo4jService.tryWriteAsync(
             `
                     CREATE (u:User { 
@@ -171,3 +181,4 @@ export class UsersRepository implements IUsersRepository {
         });
     }
 }
+
