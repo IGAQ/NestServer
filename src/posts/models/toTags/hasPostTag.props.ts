@@ -8,7 +8,11 @@ export class HasPostTagProps implements RelationshipProps {
     @ApiProperty({ type: String })
     tagName: string;
 
+    @ApiProperty({ type: String })
+    tagColor: string;
+
     constructor(partial?: Partial<HasPostTagProps>) {
         Object.assign(this, partial);
     }
 }
+
