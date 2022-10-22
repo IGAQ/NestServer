@@ -25,6 +25,13 @@ export class AuthService implements IAuthService {
             throw new HttpException("User already exists", 400);
         }
 
+        const foundUserByEmail = await this._usersRepository.findUserByEmail(
+            signUpPayloadDto.email
+        );
+        if (foundUserByEmail) {
+            throw new HttpException("Email already exists", 400);
+        }
+
         try {
             const addedUser = await this._usersRepository.addUser(
                 new User({
@@ -73,3 +80,4 @@ export class AuthService implements IAuthService {
         });
     }
 }
+
