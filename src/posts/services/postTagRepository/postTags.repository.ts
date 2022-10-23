@@ -23,8 +23,7 @@ export class PostTagsRepository implements IPostTagsRepository {
 
     public async getPostTagsByPostId(postId: string): Promise<PostTag[]> {
         const post = await this._usersRepository.findPostById(postId);
-        const postTagsOfPost = await post.getPostTags();
-        return postTagsOfPost;
+        return await post.getPostTags();
     }
 
     public async getPostTagByTagId(tagId: string): Promise<PostTag | undefined> {
@@ -56,9 +55,7 @@ export class PostTagsRepository implements IPostTagsRepository {
             }
         );
 
-        const addedPostTag = await this.getPostTagByTagId(postTag.tagId ?? tagId);
-
-        return addedPostTag;
+        return await this.getPostTagByTagId(postTag.tagId ?? tagId);
     }
 
     public async updatePostTag(postTag: PostTag): Promise<void> {

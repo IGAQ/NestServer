@@ -50,7 +50,7 @@ export class PostsService implements IPostsService {
         const postTags = new Array<PostTag>(postPayload.postTagIds.length);
         for (let i in postPayload.postTagIds) {
             const postTagId = postPayload.postTagIds[i];
-            const foundPostTag = await this._dbContext.PostTags.getPostTagById(postTagId);
+            const foundPostTag = await this._dbContext.PostTags.getPostTagByTagId(postTagId);
             if (foundPostTag === undefined) throw new Error("Post tag not found: " + postTagId);
 
             postTags[i] = foundPostTag;
