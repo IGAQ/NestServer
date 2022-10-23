@@ -6,7 +6,7 @@ import { AuthGuard } from "@nestjs/passport";
 import { Response } from "express";
 import { _$ } from "../../_domain/injectableTokens";
 
-@ApiTags("auth")
+@ApiTags("authentication")
 @ApiBearerAuth()
 @Controller("auth")
 export class AuthController {

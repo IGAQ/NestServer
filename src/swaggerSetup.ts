@@ -6,8 +6,6 @@ async function swaggerSetup(app: any) {
         .setDescription("IGAQ REST API Documentation")
         .setVersion("1.0")
         .addBearerAuth()
-        .addTag("users")
-        .addTag("auth")
         .build();
 
     const document = SwaggerModule.createDocument(app, config);
