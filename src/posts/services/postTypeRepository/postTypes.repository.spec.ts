@@ -81,7 +81,9 @@ describe("PostTypesRepository", () => {
         let postType: PostType | undefined;
 
         beforeAll(async () => {
-            postType = await postTypesRepository.findPostTypeById("1");
+            postType = await postTypesRepository.findPostTypeById(
+                "postTypeId: 2677fd94-976b-4c81-8165-55edd038c581"
+            );
         });
 
         it("should return the story post type", () => {
