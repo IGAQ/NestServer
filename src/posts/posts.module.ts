@@ -1,14 +1,15 @@
+import { HttpModule } from "@nestjs/axios";
 import { forwardRef, Module } from "@nestjs/common";
-import { PostsController } from "./controllers/posts.controller";
-import { PostsRepository } from "./services/postRepository/posts.respository";
-import { _$ } from "../_domain/injectableTokens";
-import { PostsService } from "./services/posts.service";
 import { DatabaseAccessLayerModule } from "../database-access-layer/database-access-layer.module";
-import { PostTagsRepository } from "./services/postTagRepository/postTags.repository";
 import { GenderRepository } from "../users/services/genderRepository/gender.repository";
 import { SexualityRepository } from "../users/services/sexualityRepository/sexuality.repository";
+import { _$ } from "../_domain/injectableTokens";
+import { PostsController } from "./controllers/posts.controller";
+import { PostTagsController } from "./controllers/postTags.controller";
+import { PostsRepository } from "./services/postRepository/posts.respository";
+import { PostsService } from "./services/posts.service";
+import { PostTagsRepository } from "./services/postTagRepository/postTags.repository";
 import { PostTypesRepository } from "./services/postTypeRepository/postTypes.repository";
-import { HttpModule } from "@nestjs/axios";
 
 @Module({
     imports: [forwardRef(() => DatabaseAccessLayerModule), HttpModule],
@@ -64,6 +65,6 @@ import { HttpModule } from "@nestjs/axios";
             useClass: SexualityRepository,
         },
     ],
-    controllers: [PostsController],
+    controllers: [PostsController, PostTagsController],
 })
-export class PostsModule {}
+export class PostsModule { }
