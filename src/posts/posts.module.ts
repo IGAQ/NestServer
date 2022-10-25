@@ -10,6 +10,7 @@ import { PostsRepository } from "./services/postRepository/posts.respository";
 import { PostsService } from "./services/posts.service";
 import { PostTagsRepository } from "./services/postTagRepository/postTags.repository";
 import { PostTypesRepository } from "./services/postTypeRepository/postTypes.repository";
+import { PostAwardRepository } from "./services/postAwardRepository/postAward.repository";
 
 @Module({
     imports: [forwardRef(() => DatabaseAccessLayerModule), HttpModule],
@@ -38,6 +39,10 @@ import { PostTypesRepository } from "./services/postTypeRepository/postTypes.rep
             provide: _$.ISexualityRepository,
             useClass: SexualityRepository,
         },
+        {
+            provide: _$.IPostAwardRepository,
+            useClass: PostAwardRepository,
+        },
     ],
     exports: [
         {
@@ -64,7 +69,12 @@ import { PostTypesRepository } from "./services/postTypeRepository/postTypes.rep
             provide: _$.ISexualityRepository,
             useClass: SexualityRepository,
         },
+        {
+            provide: _$.IPostAwardRepository,
+            useClass: PostAwardRepository,
+        },
     ],
     controllers: [PostsController, PostTagsController],
 })
-export class PostsModule { }
+export class PostsModule {}
+

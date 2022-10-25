@@ -1,7 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { IPostTypesRepository } from "./postTypes.repository.interface";
-import { PostTypesRepository } from "./postTypes.repository";
-import { PostType } from "../../models";
+import { IPostTagsRepository } from "./postTags.repository.interface";
+import { PostTagsRepository } from "./postTags.repository";
+import { PostTag } from "../../models";
 import { Neo4jService } from "../../../neo4j/services/neo4j.service";
 import { Neo4jConfig } from "../../../neo4j/neo4jConfig.interface";
 import { NEO4J_DRIVER, NEO4J_OPTIONS } from "../../../neo4j/neo4j.constants";
@@ -11,8 +11,8 @@ import { Neo4jSeedService } from "../../../neo4j/services/neo4j.seed.service";
 import { RestrictedProps } from "../../../_domain/models/toSelf";
 import { _$ } from "../../../_domain/injectableTokens";
 
-describe("PostTypesRepository", () => {
-    let postTypesRepository: IPostTypesRepository;
+describe("PostTagsRepository", () => {
+    let postTagsRepository: IPostTagsRepository;
     let neo4jSeedService: Neo4jSeedService;
     let seedCalled = false;
 
@@ -31,13 +31,13 @@ describe("PostTypesRepository", () => {
                 Neo4jService,
                 Neo4jSeedService,
                 {
-                    provide: _$.IPostTypesRepository,
-                    useClass: PostTypesRepository,
+                    provide: _$.IPostTagsRepository,
+                    useClass: PostTagsRepository,
                 },
             ],
         }).compile();
 
-        postTypesRepository = module.get<PostTypesRepository>(_$.IPostTypesRepository);
+        postTagsRepository = module.get<PostTagsRepository>(_$.IPostTagsRepository);
 
         neo4jSeedService = module.get<Neo4jSeedService>(Neo4jSeedService);
         try {
@@ -51,51 +51,24 @@ describe("PostTypesRepository", () => {
     });
 
     it("should be defined", () => {
-        expect(postTypesRepository).toBeDefined();
+        expect(postTagsRepository).toBeDefined();
         expect(neo4jSeedService).toBeDefined();
     });
 
     describe(".findAll()", () => {
-        let postTypes: PostType[];
+        let postTags: PostTag[];
 
         beforeAll(async () => {
-            postTypes = await postTypesRepository.findAll();
+            postTags = await postTagsRepository.findAll();
         });
 
-        it("should return an array of PostType objects", () => {
-            expect(postTypes).toBeInstanceOf(Array);
-            expect(postTypes[0]).toBeInstanceOf(PostType);
+        it("should return an array of PostTag objects", () => {
+            expect(postTags).toBeInstanceOf(Array);
+            expect(postTags[0]).toBeInstanceOf(PostTag);
         });
 
-        it("should return an array of PostType objects with the correct properties", () => {
-            const postType = postTypes[0];
-            const restrictedProps = new RestrictedProps();
-            const postTypeProps = Object.keys(postType);
-            const restrictedPropsKeys = Object.keys(restrictedProps);
-
-            expect(postTypeProps).toEqual(expect.arrayContaining(restrictedPropsKeys));
-        });
-    });
-
-    describe(".findPostTypeById()", () => {
-        let postType: PostType | undefined;
-
-        beforeAll(async () => {
-            postType = await postTypesRepository.findPostTypeById(
-                "2677fd94-976b-4c81-8165-55edd038c581"
-            );
-        });
-
-        it("should return the story post type", () => {
-            expect(postType).toBeInstanceOf(PostType);
-            expect(postType?.postType).toBe("Story");
-        });
-
-        it("should return a PostType object", () => {
-            expect(postType).toBeInstanceOf(PostType);
-        });
-
-        it("should return a PostType object with the correct properties", () => {
+        it("should return an array of PostTag objects with the correct properties", () => {
+            const postType = postTags[0];
             const restrictedProps = new RestrictedProps();
             const postTypeProps = Object.keys(postType);
             const restrictedPropsKeys = Object.keys(restrictedProps);

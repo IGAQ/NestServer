@@ -1,28 +1,19 @@
 import { IPostTagsRepository } from "./postTags.repository.interface";
 import { PostTag } from "../../models";
-import { IPostsRepository } from "../postRepository/posts.repository.inerface";
 import { Inject, Injectable } from "@nestjs/common";
-import { Neo4jService } from "src/neo4j/services/neo4j.service";
+import { Neo4jService } from "../../../neo4j/services/neo4j.service";
 import { v4 as uuidv4 } from "uuid";
-import { _$ } from "src/_domain/injectableTokens";
+import { _$ } from "../../../_domain/injectableTokens";
 
 @Injectable()
 export class PostTagsRepository implements IPostTagsRepository {
-    constructor(
-        @Inject(Neo4jService) private _neo4jService: Neo4jService,
-        @Inject(_$.IPostsRepository) private _usersRepository: IPostsRepository
-    ) {}
+    constructor(@Inject(Neo4jService) private _neo4jService: Neo4jService) {}
 
     public async findAll(): Promise<PostTag[]> {
         const allPostTags = await this._neo4jService.read(`MATCH (t:PostTag) RETURN t`, {});
         let records = allPostTags.records;
         if (records.length === 0) return [];
         return records.map(record => new PostTag(record.get("t").properties));
-    }
-
-    public async getPostTagsByPostId(postId: string): Promise<PostTag[]> {
-        const post = await this._usersRepository.findPostById(postId);
-        return await post.getPostTags();
     }
 
     public async getPostTagByTagId(tagId: string): Promise<PostTag | undefined> {
