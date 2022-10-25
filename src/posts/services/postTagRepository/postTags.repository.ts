@@ -32,7 +32,7 @@ export class PostTagsRepository implements IPostTagsRepository {
             CREATE (t:PostTag {
                 tagId: $tagId,
                 tagName: $tagName,
-                postTagFlagSvg: $postTagFlagSvg
+                tagColor: $tagColor
             })
         `,
             {
