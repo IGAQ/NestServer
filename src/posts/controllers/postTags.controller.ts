@@ -2,7 +2,9 @@ import {
     Body,
     ClassSerializerInterceptor,
     Controller,
+    Delete,
     Get,
+    Put,
     HttpException,
     Inject,
     Param,
@@ -33,4 +35,34 @@ export class PostTagsController {
         let postTags = await this._postTagsRepository.findAll();
         return postTags;
     }
+
+    @Get(":tagId")
+    public async getPostTagByTagId(
+        @Param("tagId", new ParseUUIDPipe()) tagId: string
+    ): Promise<PostTag | Error> {
+        const postTag = await this._postTagsRepository.getPostTagByTagId(tagId);
+        if (postTag === undefined) throw new HttpException("PostTag not found", 404);
+        return postTag;
+    }
+
+    // @Post("create")
+    // @UseGuards(AuthGuard("jwt"))
+    // public async addPostTag(@Body() postTag: PostTag): Promise<PostTag | Error> {
+    //     const createdPostTag = await this._postTagsRepository.addPostTag(postTag);
+    //     return createdPostTag;
+    // }
+
+    // @Put(":tagId")
+    // @UseGuards(AuthGuard("jwt"))
+    // public async updatePostTag(@Body() postTag: PostTag): Promise<void | Error> {
+    //     await this._postTagsRepository.updatePostTag(postTag);
+    // }
+
+    // @Delete(":tagId")
+    // public async deletePostTag(
+    //     @Param("tagId", new ParseUUIDPipe()) tagId: string
+    // ): Promise<void | Error> {
+    //     await this._postTagsRepository.deletePostTag(tagId);
+    // }
 }
+
