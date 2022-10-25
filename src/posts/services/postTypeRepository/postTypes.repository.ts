@@ -1,8 +1,8 @@
 import { IPostTypesRepository } from "./postTypes.repository.interface";
 import { PostType } from "../../models";
 import { Inject, Injectable } from "@nestjs/common";
-import { Neo4jService } from "src/neo4j/services/neo4j.service";
-import { _$ } from "src/_domain/injectableTokens";
+import { Neo4jService } from "../../../neo4j/services/neo4j.service";
+import { _$ } from "../../../_domain/injectableTokens";
 
 @Injectable()
 export class PostTypesRepository implements IPostTypesRepository {

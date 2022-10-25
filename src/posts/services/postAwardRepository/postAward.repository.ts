@@ -1,9 +1,9 @@
 import { IPostAwardRepository } from "./postAward.repository.interface";
 import { Award } from "../../models";
 import { Inject, Injectable } from "@nestjs/common";
-import { Neo4jService } from "src/neo4j/services/neo4j.service";
+import { Neo4jService } from "../../../neo4j/services/neo4j.service";
 import { v4 as uuidv4 } from "uuid";
-import { _$ } from "src/_domain/injectableTokens";
+import { _$ } from "../../../_domain/injectableTokens";
 
 @Injectable()
 export class PostAwardRepository implements IPostAwardRepository {
