@@ -95,8 +95,15 @@ export class User extends Model {
     }
 
     public async toJSON() {
-        this.passwordHash = undefined;
-        this.neo4jService = undefined;
+        await Promise.all([
+            this.getSexuality(),
+            this.getGender(),
+            this.getOpenness(),
+        ]);
+
+        delete this.passwordHash;
+        delete this.neo4jService;
+        delete this.wasOffendingRecords;
         return { ...this };
     }
 
