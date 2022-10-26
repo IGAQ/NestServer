@@ -2,13 +2,13 @@ import { Inject, Logger, MiddlewareConsumer, Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { AuthModule } from "./auth/auth.module";
 import { CommentsModule } from "./comments/comments.module";
+import { DatabaseAccessLayerModule } from "./database-access-layer/database-access-layer.module";
 import { Neo4jModule } from "./neo4j/neo4j.module";
 import { Neo4jConfig } from "./neo4j/neo4jConfig.interface";
 import { Neo4jSeedService } from "./neo4j/services/neo4j.seed.service";
 import { PostsModule } from "./posts/posts.module";
 import { UsersModule } from "./users/users.module";
 import { AppLoggerMiddleware } from "./_domain/middlewares/appLogger.middleware";
-import { DatabaseAccessLayerModule } from "./database-access-layer/database-access-layer.module";
 
 @Module({
     imports: [
@@ -37,16 +37,16 @@ import { DatabaseAccessLayerModule } from "./database-access-layer/database-acce
 export class AppModule {
     private readonly _logger = new Logger(AppModule.name);
 
-    constructor(private _neo4jSeedService: Neo4jSeedService) {}
+    constructor(private _neo4jSeedService: Neo4jSeedService) { }
 
     configure(consumer: MiddlewareConsumer): void {
         consumer.apply(AppLoggerMiddleware).forRoutes("*");
     }
 
     onModuleInit() {
-        // this._neo4jSeedService
-        //     .seed()
-        //     .then(() => this._logger.log("Neo4j database seeded ✅"))
-        //     .catch(error => this._logger.error(error));
+        this._neo4jSeedService
+            .seed()
+            .then(() => this._logger.log("Neo4j database seeded ✅"))
+            .catch(error => this._logger.error(error));
     }
 }

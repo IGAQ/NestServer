@@ -1,23 +1,23 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { Neo4jService } from "./neo4j.service";
-import { Award, Post, PostTag, PostType } from "../../posts/models";
-import { LABELS_DECORATOR_KEY } from "../neo4j.constants";
-import { HasAwardProps, PostToAwardRelTypes } from "../../posts/models/toAward";
-import { Gender, Role, Sexuality, User, Openness } from "../../users/models";
-import { AuthoredProps, UserToPostRelTypes } from "../../users/models/toPost";
-import { PostToPostTypeRelTypes } from "../../posts/models/toPostType";
-import { PostToPostTagRelTypes } from "../../posts/models/toTags";
-import { _ToSelfRelTypes, RestrictedProps } from "../../_domain/models/toSelf";
-import { UserToSexualityRelTypes } from "../../users/models/toSexuality";
-import { UserToGenderRelTypes } from "../../users/models/toGender";
 import { Comment } from "../../comments/models";
 import { CommentToSelfRelTypes } from "../../comments/models/toSelf";
+import { Award, Post, PostTag, PostType } from "../../posts/models";
+import { HasAwardProps, PostToAwardRelTypes } from "../../posts/models/toAward";
 import { PostToCommentRelTypes } from "../../posts/models/toComment";
+import { PostToPostTypeRelTypes } from "../../posts/models/toPostType";
+import { PostToPostTagRelTypes } from "../../posts/models/toTags";
+import { Gender, Openness, Role, Sexuality, User } from "../../users/models";
+import { UserToGenderRelTypes } from "../../users/models/toGender";
 import { UserToOpennessRelTypes } from "../../users/models/toOpenness";
+import { AuthoredProps, UserToPostRelTypes } from "../../users/models/toPost";
+import { UserToSexualityRelTypes } from "../../users/models/toSexuality";
+import { RestrictedProps, _ToSelfRelTypes } from "../../_domain/models/toSelf";
+import { LABELS_DECORATOR_KEY } from "../neo4j.constants";
+import { Neo4jService } from "./neo4j.service";
 
 @Injectable()
 export class Neo4jSeedService {
-    constructor(@Inject(Neo4jService) private _neo4jService: Neo4jService) {}
+    constructor(@Inject(Neo4jService) private _neo4jService: Neo4jService) { }
 
     private postTypeLabel = Reflect.get(PostType, LABELS_DECORATOR_KEY)[0];
     private postTagLabel = Reflect.get(PostTag, LABELS_DECORATOR_KEY)[0];
@@ -255,9 +255,8 @@ export class Neo4jSeedService {
                 UNWIND postTagIDsToBeConnected as postTagIdToBeConnected
                     MATCH (p1:${this.postLabel}) WHERE p1.postId = $postId
                     MATCH (postType:${this.postTypeLabel}) WHERE postType.postTypeId = $postTypeId
-                    MATCH (postTag:${
-                        this.postTagLabel
-                    }) WHERE postTag.tagId = postTagIdToBeConnected
+                    MATCH (postTag:${this.postTagLabel
+                }) WHERE postTag.tagId = postTagIdToBeConnected
                         MERGE (p1)-[:${PostToPostTypeRelTypes.HAS_POST_TYPE}]->(postType)
                         MERGE (p1)-[:${PostToPostTagRelTypes.HAS_POST_TAG}]->(postTag)
                 WITH [${postEntity.awards[PostToAwardRelTypes.HAS_AWARD].records
@@ -266,11 +265,10 @@ export class Neo4jSeedService {
                 UNWIND awardIDsToBeConnected as awardIdToBeConnected
                     MATCH (p1:${this.postLabel}) WHERE p1.postId = $postId
                     MATCH (award:${this.awardLabel}) WHERE award.awardId = awardIdToBeConnected
-                        MERGE (p1)-[:${PostToAwardRelTypes.HAS_AWARD} { awardedBy: "${
-                    (
-                        postEntity.awards[PostToAwardRelTypes.HAS_AWARD].records[0]
-                            .relProps as HasAwardProps
-                    ).awardedBy
+                        MERGE (p1)-[:${PostToAwardRelTypes.HAS_AWARD} { awardedBy: "${(
+                    postEntity.awards[PostToAwardRelTypes.HAS_AWARD].records[0]
+                        .relProps as HasAwardProps
+                ).awardedBy
                 }" } ]->(award)
                 WITH [${votesUserIds
                     .map(voterUserId => `"${voterUserId}"`)
@@ -673,50 +671,35 @@ export class Neo4jSeedService {
     public async getPostTags(): Promise<PostTag[]> {
         return new Array<PostTag>(
             new PostTag({
-                tagId: "39b90340-82b7-4149-8f5d-40b00a61d2a2",
-                tagName: "serious",
+                tagId: "79d8aca0-b08d-4910-9629-487567f9ab1c",
+                tagName: "Serious",
                 tagColor: "#FF758C",
             }),
             new PostTag({
-                tagId: "ee741539-151e-4fcd-91ce-8d4599a15cdf",
-                tagName: "advice",
+                tagId: "e0e6a19f-b535-4e0e-a14b-28d4e4c9972f",
+                tagName: "Advice",
                 tagColor: "#FF758C",
             }),
             new PostTag({
-                tagId: "edf6897b-610d-4c03-8d25-791d47ca663b",
-                tagName: "vent",
+                tagId: "86dc09bb-f659-4210-b0e8-d66c7e34fe06",
+                tagName: "Discussion",
                 tagColor: "#FF758C",
             }),
             new PostTag({
-                tagId: "740f7690-4a7a-4a91-aec4-05c0c32b6aa4",
-                tagName: "Culture",
+                tagId: "0bdd1de7-33dd-4464-b28b-d299720925d2",
+                tagName: "Trigger",
                 tagColor: "#FF758C",
             }),
             new PostTag({
-                tagId: "59c4221f-f2bb-4a0c-afb4-cc239228ff22",
-                tagName: "Gay",
+                tagId: "22d97b3b-f853-4afa-8274-5c78085c806b",
+                tagName: "General",
                 tagColor: "#FF758C",
             }),
             new PostTag({
-                tagId: "fc3f85ad-d26b-432e-a0ff-10846d1abf50",
-                tagName: "Lesbian",
+                tagId: "2a598b96-b878-4575-9601-180b3ac135e9",
+                tagName: "Casual",
                 tagColor: "#FF758C",
             }),
-            new PostTag({
-                tagId: "04a67854-c56a-4342-9da8-0b6a3a4b2101",
-                tagName: "Coming Out",
-                tagColor: "#FF758C",
-            }),
-            new PostTag({
-                tagId: "32bbe790-dc69-4253-b000-b2fbd1fb87b4",
-                tagName: "Gender",
-                tagColor: "#FF758C",
-            }),
-            new PostTag({
-                tagId: "de8a77db-b819-43d3-9655-894a1cf183ee",
-                tagName: "Identity",
-                tagColor: "#FF758C",
-            })
         );
     }
 
