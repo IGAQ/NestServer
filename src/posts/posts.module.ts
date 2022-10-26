@@ -6,7 +6,7 @@ import { SexualityRepository } from "../users/services/sexualityRepository/sexua
 import { _$ } from "../_domain/injectableTokens";
 import { PostsController } from "./controllers/posts.controller";
 import { PostTagsController } from "./controllers/postTags.controller";
-import { PostsRepository } from "./services/postRepository/posts.respository";
+import { PostsRepository } from "./services/postRepository/posts.repository";
 import { PostsService } from "./services/posts.service";
 import { PostTagsRepository } from "./services/postTagRepository/postTags.repository";
 import { PostTypesRepository } from "./services/postTypeRepository/postTypes.repository";

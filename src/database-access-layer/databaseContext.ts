@@ -1,6 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { Neo4jService } from "../neo4j/services/neo4j.service";
-import { IPostsRepository } from "../posts/services/postRepository/posts.repository.inerface";
+import { IPostsRepository } from "../posts/services/postRepository/posts.repository.interface";
 import { IPostTypesRepository } from "../posts/services/postTypeRepository/postTypes.repository.interface";
 import { IPostTagsRepository } from "../posts/services/postTagRepository/postTags.repository.interface";
 import { IUsersRepository } from "../users/services/usersRepository/users.repository.interface";

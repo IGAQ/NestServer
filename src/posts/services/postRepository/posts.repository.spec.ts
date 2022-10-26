@@ -1,6 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { IPostsRepository } from "./posts.repository.inerface";
-import { PostsRepository } from "./posts.respository";
+import { IPostsRepository } from "./posts.repository.interface";
+import { PostsRepository } from "./posts.repository";
 import { Neo4jService } from "../../../neo4j/services/neo4j.service";
 import { Neo4jConfig } from "../../../neo4j/neo4jConfig.interface";
 import { NEO4J_DRIVER, NEO4J_OPTIONS } from "../../../neo4j/neo4j.constants";

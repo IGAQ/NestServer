@@ -3,7 +3,9 @@ import { PostTag } from "../../models";
 export interface IPostTagsRepository {
     findAll(): Promise<PostTag[]>;
 
-    getPostTagByTagId(tagId: string): Promise<PostTag | undefined>;
+    findPostTagByTagId(tagId: string): Promise<PostTag | undefined>;
+
+    findPostTagByName(tagName: string): Promise<PostTag | undefined>
 
     addPostTag(postTag: PostTag): Promise<PostTag>;
 

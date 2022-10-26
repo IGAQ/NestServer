@@ -1,20 +1,13 @@
 import {
-    Body,
     ClassSerializerInterceptor,
     Controller,
-    Delete,
     Get,
-    Put,
     HttpException,
     Inject,
     Param,
     ParseUUIDPipe,
-    Post,
-    Req,
-    UseGuards,
     UseInterceptors,
 } from "@nestjs/common";
-import { AuthGuard } from "@nestjs/passport";
 import { ApiTags } from "@nestjs/swagger";
 import { _$ } from "../../_domain/injectableTokens";
 import { PostTag } from "../models";
@@ -32,15 +25,23 @@ export class PostTagsController {
 
     @Get()
     public async index(): Promise<PostTag[] | Error> {
-        let postTags = await this._postTagsRepository.findAll();
-        return postTags;
+        return await this._postTagsRepository.findAll();
     }
 
     @Get(":tagId")
     public async getPostTagByTagId(
         @Param("tagId", new ParseUUIDPipe()) tagId: string
     ): Promise<PostTag | Error> {
-        const postTag = await this._postTagsRepository.getPostTagByTagId(tagId);
+        const postTag = await this._postTagsRepository.findPostTagByTagId(tagId);
+        if (postTag === undefined) throw new HttpException("PostTag not found", 404);
+        return postTag;
+    }
+
+    @Get("/name/:tagName")
+    public async getPostTagByTagName(
+        @Param("tagName") tagName: string
+    ) {
+        const postTag = await this._postTagsRepository.findPostTagByName(tagName);
         if (postTag === undefined) throw new HttpException("PostTag not found", 404);
         return postTag;
     }

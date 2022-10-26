@@ -81,7 +81,7 @@ describe("PostTagsRepository", () => {
         let postTag: PostTag;
 
         beforeAll(async () => {
-            postTag = await postTagsRepository.getPostTagByTagId(
+            postTag = await postTagsRepository.findPostTagByTagId(
                 "59c4221f-f2bb-4a0c-afb4-cc239228ff22"
             );
         });
