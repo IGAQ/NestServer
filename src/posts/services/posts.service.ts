@@ -45,13 +45,14 @@ export class PostsService implements IPostsService {
         let user = this.getUserFromRequest();
         // validate the post payload
         const postType = await this._dbContext.PostTypes.findPostTypeById(postPayload.postTypeId);
-        if (postType === undefined) throw new Error("Post type not found");
+        if (postType === undefined) throw new HttpException("Post type not found", 404);
 
         const postTags = new Array<PostTag>(postPayload.postTagIds.length);
         for (let i in postPayload.postTagIds) {
             const postTagId = postPayload.postTagIds[i];
             const foundPostTag = await this._dbContext.PostTags.getPostTagByTagId(postTagId);
-            if (foundPostTag === undefined) throw new Error("Post tag not found: " + postTagId);
+            if (foundPostTag === undefined)
+                throw new HttpException("Post tag not found: " + postTagId, 404);
 
             postTags[i] = foundPostTag;
         }
@@ -210,9 +211,15 @@ export class PostsService implements IPostsService {
 
         if (queryResult.records.length > 0) {
             let relType = queryResult.records[0].get("r").type;
-            if (relType === UserToPostRelTypes.UPVOTES && votePostPayload.voteType === VoteType.UPVOTES) {
+            if (
+                relType === UserToPostRelTypes.UPVOTES &&
+                votePostPayload.voteType === VoteType.UPVOTES
+            ) {
                 throw new HttpException("User already upvoted this post", 400);
-            } else if (relType === UserToPostRelTypes.DOWN_VOTES && votePostPayload.voteType === VoteType.DOWN_VOTES) {
+            } else if (
+                relType === UserToPostRelTypes.DOWN_VOTES &&
+                votePostPayload.voteType === VoteType.DOWN_VOTES
+            ) {
                 throw new HttpException("User already downvoted this post", 400);
             } else {
                 await this._dbContext.neo4jService.tryWriteAsync(
@@ -236,7 +243,8 @@ export class PostsService implements IPostsService {
             {
                 userId: user.userId,
                 postId: votePostPayload.postId,
-            });
+            }
+        );
     }
 
     private getUserFromRequest(): User {

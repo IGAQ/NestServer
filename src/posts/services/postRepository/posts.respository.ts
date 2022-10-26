@@ -73,16 +73,6 @@ export class PostsRepository implements IPostsRepository {
                     MATCH (postTag:PostTag) WHERE postTag.tagId = postTagIdToBeConnected
                         MERGE (p1)-[:${PostToPostTypeRelTypes.HAS_POST_TYPE}]->(postType)
                         MERGE (p1)-[:${PostToPostTagRelTypes.HAS_POST_TAG}]->(postTag)
-                WITH [${post.awards[PostToAwardRelTypes.HAS_AWARD].records
-                    .map(record => `"${record.entity.awardId}"`)
-                    .join(",")}] AS awardIDsToBeConnected       
-                UNWIND awardIDsToBeConnected as awardIdToBeConnected
-                    MATCH (p1:Post) WHERE p1.postId = $postId
-                    MATCH (award:Award) WHERE award.awardId = awardIdToBeConnected
-                        MERGE (p1)-[:${PostToAwardRelTypes.HAS_AWARD} { awardedBy: "${
-                (post.awards[PostToAwardRelTypes.HAS_AWARD].records[0].relProps as HasAwardProps)
-                    .awardedBy
-            }" } ]->(award)
             `,
             {
                 // Post Author User
@@ -90,7 +80,7 @@ export class PostsRepository implements IPostsRepository {
 
                 // Post
                 postId: post.postId,
-                updatedAt: post.updatedAt,
+                updatedAt: post.updatedAt ?? new Date().getTime(),
                 postTitle: post.postTitle,
                 postContent: post.postContent,
                 pending: post.pending,
@@ -99,13 +89,37 @@ export class PostsRepository implements IPostsRepository {
                 postTypeId: post.postType.postTypeId,
 
                 // AuthoredProps
-                authoredProps_authoredAt: authoredProps.authoredAt,
+                authoredProps_authoredAt: authoredProps.authoredAt ?? new Date().getTime(),
                 authoredProps_anonymously: authoredProps.anonymously,
 
                 // RestrictedProps (if applicable)
                 ...restrictedQueryParams,
             }
         );
+
+        if (post.awards !== undefined && post.awards.HAS_AWARD.records.length > 0) {
+            await this._neo4jService.tryWriteAsync(
+                `
+                    MATCH (p:Post) WHERE p.postId = $postId
+                    WITH [${
+                        post.awards[PostToAwardRelTypes.HAS_AWARD]?.records ??
+                        [].map(record => `"${record.entity.awardId}"`).join(",")
+                    }] AS awardIDsToBeConnected       
+                UNWIND awardIDsToBeConnected as awardIdToBeConnected
+                    MATCH (p1:Post) WHERE p1.postId = $postId
+                    MATCH (award:Award) WHERE award.awardId = awardIdToBeConnected
+                        MERGE (p1)-[:${PostToAwardRelTypes.HAS_AWARD} { awardedBy: "${
+                    (
+                        post.awards[PostToAwardRelTypes.HAS_AWARD]?.records[0]
+                            .relProps as HasAwardProps
+                    ).awardedBy
+                }" } ]->(award)
+                `,
+                {
+                    postId: post.postId,
+                }
+            );
+        }
 
         return await this.findPostById(post.postId);
     }

@@ -95,11 +95,9 @@ export class User extends Model {
     }
 
     public async toJSON() {
-        await Promise.all([
-            this.getSexuality(),
-            this.getGender(),
-            this.getOpenness(),
-        ]);
+        if (this.neo4jService) {
+            await Promise.all([this.getSexuality(), this.getGender(), this.getOpenness()]);
+        }
 
         delete this.passwordHash;
         delete this.neo4jService;
