@@ -16,13 +16,22 @@ export class PostTagsRepository implements IPostTagsRepository {
         return records.map(record => new PostTag(record.get("t").properties));
     }
 
-    public async getPostTagByTagId(tagId: string): Promise<PostTag | undefined> {
+    public async findPostTagByTagId(tagId: string): Promise<PostTag | undefined> {
         const postTag = await this._neo4jService.read(
             `MATCH (t:PostTag) WHERE t.tagId = $tagId RETURN t`,
             { tagId: tagId }
         );
         if (postTag.records.length === 0) return undefined;
         return new PostTag(postTag.records[0].get("t").properties);
+    }
+
+    public async findPostTagByName(tagName: string): Promise<PostTag | undefined> {
+        const queryResult = await this._neo4jService.tryReadAsync(
+            `MATCH (t:PostTag) WHERE t.tagName = $tagName RETURN t`,
+            { tagName: tagName.trim().toLowerCase() }
+        );
+        if (queryResult.records.length === 0) return undefined;
+        return new PostTag(queryResult.records[0].get("t").properties);
     }
 
     public async addPostTag(postTag: PostTag): Promise<PostTag> {
@@ -45,7 +54,7 @@ export class PostTagsRepository implements IPostTagsRepository {
             }
         );
 
-        return await this.getPostTagByTagId(postTag.tagId ?? tagId);
+        return await this.findPostTagByTagId(postTag.tagId ?? tagId);
     }
 
     public async updatePostTag(postTag: PostTag): Promise<void> {

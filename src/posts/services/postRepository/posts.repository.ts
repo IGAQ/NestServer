@@ -1,5 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { IPostsRepository } from "./posts.repository.inerface";
+import { IPostsRepository } from "./posts.repository.interface";
 import { Neo4jService } from "../../../neo4j/services/neo4j.service";
 import { _ToSelfRelTypes, RestrictedProps } from "../../../_domain/models/toSelf";
 import { PostToPostTypeRelTypes } from "../../models/toPostType";
