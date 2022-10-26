@@ -671,16 +671,6 @@ export class Neo4jSeedService {
     public async getPostTags(): Promise<PostTag[]> {
         return new Array<PostTag>(
             new PostTag({
-                tagId: "79d8aca0-b08d-4910-9629-487567f9ab1c",
-                tagName: "Serious",
-                tagColor: "#FF758C",
-            }),
-            new PostTag({
-                tagId: "e0e6a19f-b535-4e0e-a14b-28d4e4c9972f",
-                tagName: "Advice",
-                tagColor: "#FF758C",
-            }),
-            new PostTag({
                 tagId: "86dc09bb-f659-4210-b0e8-d66c7e34fe06",
                 tagName: "Discussion",
                 tagColor: "#FF758C",
