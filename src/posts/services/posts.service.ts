@@ -91,7 +91,7 @@ export class PostsService implements IPostsService {
                         autoModConfidenceLevel: hateSpeechResponseDto.confidence,
                     })
                 );
-                throw new Error("Hate speech detected");
+                throw new HttpException("Hate speech detected", 400);
             }
         }
 
