@@ -37,16 +37,17 @@ import { AppLoggerMiddleware } from "./_domain/middlewares/appLogger.middleware"
 export class AppModule {
     private readonly _logger = new Logger(AppModule.name);
 
-    constructor(private _neo4jSeedService: Neo4jSeedService) { }
+    constructor(private _neo4jSeedService: Neo4jSeedService) {}
 
     configure(consumer: MiddlewareConsumer): void {
         consumer.apply(AppLoggerMiddleware).forRoutes("*");
     }
 
     onModuleInit() {
-        this._neo4jSeedService
-            .seed()
-            .then(() => this._logger.log("Neo4j database seeded ✅"))
-            .catch(error => this._logger.error(error));
+        // this._neo4jSeedService
+        //     .seed()
+        //     .then(() => this._logger.log("Neo4j database seeded ✅"))
+        //     .catch(error => this._logger.error(error));
     }
 }
+
