@@ -69,12 +69,18 @@ export class Post extends Model {
     }
 
     public async toJSON() {
-        await this.getPostType();
-        await this.getPostTags();
-        await this.getAwards();
-        await this.getRestricted();
-        await this.getCreatedAt();
-        await this.getTotalVotes();
+        if (this.neo4jService) {
+            await Promise.all([
+                this.getPostType(),
+                this.getPostTags(),
+                this.getAwards(),
+                this.getRestricted(),
+                this.getCreatedAt(),
+                this.getTotalVotes(),
+                this.getAuthorUser(),
+            ]);
+        }
+
         await this.authorUser?.toJSON();
         this.neo4jService = undefined;
         return { ...this };

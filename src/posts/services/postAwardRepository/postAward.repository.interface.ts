@@ -11,4 +11,3 @@ export interface IPostAwardRepository {
 
     deleteAward(awardId: string): Promise<void>;
 }
-

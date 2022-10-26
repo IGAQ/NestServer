@@ -25,4 +25,3 @@ export class SignUpPayloadDto {
         Object.assign(this, partial);
     }
 }
-

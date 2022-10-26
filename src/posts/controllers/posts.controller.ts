@@ -8,22 +8,19 @@ import {
     Inject,
     Param,
     ParseUUIDPipe,
-    UseInterceptors,
-    UseGuards,
-    Req,
+    UseGuards, UseInterceptors,
 } from "@nestjs/common";
 import { Post as PostModel } from "../models";
 import { IPostsRepository } from "../services/postRepository/posts.repository.inerface";
 import { _$ } from "../../_domain/injectableTokens";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { PostCreationPayloadDto } from "../models/postCreationPayload.dto";
 import { AuthGuard } from "@nestjs/passport";
-import { AuthedUser } from "../../auth/decorators/authedUser.param.decorator";
-import { User } from "../../users/models";
 import { IPostsService } from "../services/posts.service.interface";
 
 @ApiTags("posts")
 @Controller("posts")
+@ApiBearerAuth()
 @UseInterceptors(ClassSerializerInterceptor)
 export class PostsController {
     private readonly _postsRepository: IPostsRepository;
@@ -58,9 +55,9 @@ export class PostsController {
     @Post("create")
     @UseGuards(AuthGuard("jwt"))
     public async createPost(
-        @Body() postPayload: PostCreationPayloadDto
+        @Body() postPayload: PostCreationPayloadDto,
     ): Promise<PostModel | Error> {
         const post = await this._postsService.authorNewPost(postPayload);
-        throw new HttpException("Not implemented", 501);
+        return await post.toJSON();
     }
 }

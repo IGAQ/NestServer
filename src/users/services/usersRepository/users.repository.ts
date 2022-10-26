@@ -106,7 +106,7 @@ export class UsersRepository implements IUsersRepository {
             await this._neo4jService.tryWriteAsync(
                 `
                     MATCH (u:User {userId: $userId}), (s:Sexuality {sexualityId: $sexualityId)
-                    CREATE (u)-[:${UserToSexualityRelTypes.HAS_SEXUALITY}]->(s)`,
+                    MERGE (u)-[:${UserToSexualityRelTypes.HAS_SEXUALITY}]->(s)`,
                 {
                     userId: user.userId,
                     sexualityId: user.sexuality.sexualityId,
@@ -181,4 +181,3 @@ export class UsersRepository implements IUsersRepository {
         });
     }
 }
-

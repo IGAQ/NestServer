@@ -11,4 +11,3 @@ export interface IPostTagsRepository {
 
     deletePostTag(postTagId: string): Promise<void>;
 }
-

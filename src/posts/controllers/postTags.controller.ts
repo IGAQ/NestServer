@@ -65,4 +65,3 @@ export class PostTagsController {
     //     await this._postTagsRepository.deletePostTag(tagId);
     // }
 }
-

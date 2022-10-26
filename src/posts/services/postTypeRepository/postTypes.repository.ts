@@ -24,4 +24,3 @@ export class PostTypesRepository implements IPostTypesRepository {
         return new PostType(postType.records[0].get("t").properties);
     }
 }
-

@@ -79,4 +79,3 @@ export class PostTagsRepository implements IPostTagsRepository {
         );
     }
 }
-

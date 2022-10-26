@@ -77,4 +77,3 @@ import { PostAwardRepository } from "./services/postAwardRepository/postAward.re
     controllers: [PostsController, PostTagsController],
 })
 export class PostsModule {}
-

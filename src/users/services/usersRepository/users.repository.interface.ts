@@ -15,4 +15,3 @@ export interface IUsersRepository {
 
     deleteUser(userId: string): Promise<void>;
 }
-
