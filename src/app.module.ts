@@ -1,4 +1,4 @@
-import { Logger, MiddlewareConsumer, Module } from "@nestjs/common";
+import { CacheModule, Logger, MiddlewareConsumer, Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { AuthModule } from "./auth/auth.module";
 import { CommentsModule } from "./comments/comments.module";
@@ -27,6 +27,7 @@ import { AppLoggerMiddleware } from "./_domain/middlewares/appLogger.middleware"
         ConfigModule.forRoot({
             isGlobal: true,
         }),
+        CacheModule.register(),
         AuthModule,
         UsersModule,
         PostsModule,

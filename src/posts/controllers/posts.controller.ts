@@ -10,6 +10,8 @@ import {
     ParseUUIDPipe,
     UseGuards,
     UseInterceptors,
+    CacheInterceptor,
+    CacheTTL,
 } from "@nestjs/common";
 import { Post as PostModel } from "../models";
 import { _$ } from "../../_domain/injectableTokens";
@@ -36,6 +38,8 @@ export class PostsController {
     }
 
     @Get()
+    @CacheTTL(10)
+    @UseInterceptors(CacheInterceptor)
     public async index(): Promise<PostModel[] | Error> {
         const posts = await this._dbContext.Posts.findAll();
         for (let i = 0; i < posts.length; i++) {
