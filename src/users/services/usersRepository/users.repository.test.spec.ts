@@ -145,7 +145,7 @@ describe("UsersRepository", () => {
 
         afterAll(async () => {
             await usersRepository.deleteUser(preAssignedUuid4);
-            let foundUser = await usersRepository.findUserById(preAssignedUuid4);
+            const foundUser = await usersRepository.findUserById(preAssignedUuid4);
             expect(foundUser).toBeUndefined();
         });
     });
@@ -181,7 +181,7 @@ describe("UsersRepository", () => {
 
         afterAll(async () => {
             await usersRepository.deleteUser(preAssignedUuid4);
-            let foundUser = await usersRepository.findUserById(preAssignedUuid4);
+            const foundUser = await usersRepository.findUserById(preAssignedUuid4);
             expect(foundUser).toBeUndefined();
         });
     });

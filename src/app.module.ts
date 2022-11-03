@@ -1,4 +1,4 @@
-import { Inject, Logger, MiddlewareConsumer, Module } from "@nestjs/common";
+import { Logger, MiddlewareConsumer, Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { AuthModule } from "./auth/auth.module";
 import { CommentsModule } from "./comments/comments.module";
@@ -50,4 +50,3 @@ export class AppModule {
         //     .catch(error => this._logger.error(error));
     }
 }
-

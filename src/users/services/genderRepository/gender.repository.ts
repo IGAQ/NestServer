@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { IGenderRepository } from "./gender.repository.interface";
-import { Neo4jService } from "src/neo4j/services/neo4j.service";
-import { Gender } from "src/users/models";
+import { Neo4jService } from "../../../neo4j/services/neo4j.service";
+import { Gender } from "../../models";
 
 @Injectable()
 export class GenderRepository implements IGenderRepository {
@@ -9,7 +9,7 @@ export class GenderRepository implements IGenderRepository {
 
     public async findAll(): Promise<Gender[]> {
         const allGenders = await this._neo4jService.read(`MATCH (g:Gender) RETURN g`, {});
-        let records = allGenders.records;
+        const records = allGenders.records;
         if (records.length === 0) return [];
         return records.map(record => new Gender(record.get("g").properties));
     }

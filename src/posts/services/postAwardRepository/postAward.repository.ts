@@ -3,7 +3,6 @@ import { Award } from "../../models";
 import { Inject, Injectable } from "@nestjs/common";
 import { Neo4jService } from "../../../neo4j/services/neo4j.service";
 import { v4 as uuidv4 } from "uuid";
-import { _$ } from "../../../_domain/injectableTokens";
 
 @Injectable()
 export class PostAwardRepository implements IPostAwardRepository {
@@ -11,7 +10,7 @@ export class PostAwardRepository implements IPostAwardRepository {
 
     public async findAll(): Promise<Award[]> {
         const allAwards = await this._neo4jService.read(`MATCH (a:Award) RETURN a`, {});
-        let records = allAwards.records;
+        const records = allAwards.records;
         if (records.length === 0) return [];
         return records.map(record => new Award(record.get("a").properties));
     }
@@ -66,7 +65,7 @@ export class PostAwardRepository implements IPostAwardRepository {
         );
     }
 
-    public async deleteAward(awardId: String): Promise<void> {
+    public async deleteAward(awardId: string): Promise<void> {
         await this._neo4jService.tryWriteAsync(
             `
             MATCH (a:Award { awardId: $awardId })

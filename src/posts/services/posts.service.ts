@@ -42,13 +42,13 @@ export class PostsService implements IPostsService {
     }
 
     public async authorNewPost(postPayload: PostCreationPayloadDto): Promise<Post> {
-        let user = this.getUserFromRequest();
+        const user = this.getUserFromRequest();
         // validate the post payload
         const postType = await this._dbContext.PostTypes.findPostTypeById(postPayload.postTypeId);
         if (postType === undefined) throw new HttpException("Post type not found", 404);
 
         const postTags = new Array<PostTag>(postPayload.postTagIds.length);
-        for (let i in postPayload.postTagIds) {
+        for (const i in postPayload.postTagIds) {
             const postTagId = postPayload.postTagIds[i];
             const foundPostTag = await this._dbContext.PostTags.findPostTagByTagId(postTagId);
             if (foundPostTag === undefined)
@@ -58,8 +58,8 @@ export class PostsService implements IPostsService {
         }
 
         // auto-moderation
-        let autoModerationApiKey = this._configService.get<string>("MODERATE_HATESPEECH_API_KEY");
-        let autoModerationApiUrl = this._configService.get<string>("MODERATE_HATESPEECH_API_URL");
+        const autoModerationApiKey = this._configService.get<string>("MODERATE_HATESPEECH_API_KEY");
+        const autoModerationApiUrl = this._configService.get<string>("MODERATE_HATESPEECH_API_URL");
 
         const hateSpeechResponseDto = await lastValueFrom(
             this._httpService
@@ -100,7 +100,7 @@ export class PostsService implements IPostsService {
         const userAuthoredPosts = await user.getAuthoredPosts();
 
         // lazy-query the restriction state of the posts.
-        for (let i in userAuthoredPosts) {
+        for (const i in userAuthoredPosts) {
             await userAuthoredPosts[i].getRestricted();
         }
 
@@ -131,7 +131,7 @@ export class PostsService implements IPostsService {
     }
 
     public async getQueeryOfTheDay(): Promise<Post> {
-        let allPosts = await this._dbContext.Posts.findAll();
+        const allPosts = await this._dbContext.Posts.findAll();
         if (allPosts.length === 0)
             throw new HttpException(
                 "No posts found in the database. Please checkout this application's usage tutorials.",
@@ -139,7 +139,7 @@ export class PostsService implements IPostsService {
             );
 
         const queeryPosts: Post[] = [];
-        for (let i in allPosts) {
+        for (const i in allPosts) {
             if (!allPosts[i].pending) continue;
 
             await allPosts[i].getDeletedProps();
@@ -156,12 +156,12 @@ export class PostsService implements IPostsService {
 
         if (queeryPosts.length === 0) throw new HttpException("No Queery posts found", 404);
 
-        let queeryOfTheDayIndex = Math.floor(Math.random() * queeryPosts.length);
+        const queeryOfTheDayIndex = Math.floor(Math.random() * queeryPosts.length);
         return queeryPosts[queeryOfTheDayIndex];
     }
 
     public async findPostById(postId: string): Promise<Post> {
-        let foundPost = await this._dbContext.Posts.findPostById(postId);
+        const foundPost = await this._dbContext.Posts.findPostById(postId);
         if (foundPost === null) throw new HttpException("Post not found", 404);
 
         if (foundPost.pending)
@@ -177,7 +177,7 @@ export class PostsService implements IPostsService {
     }
 
     public async markAsDeleted(postId: string): Promise<void> {
-        let post = await this._dbContext.Posts.findPostById(postId);
+        const post = await this._dbContext.Posts.findPostById(postId);
         if (post === undefined) throw new Error("Post not found");
 
         await post.getDeletedProps();
@@ -194,12 +194,12 @@ export class PostsService implements IPostsService {
     }
 
     public async votePost(votePostPayload: VotePostPayloadDto): Promise<void> {
-        let user = this.getUserFromRequest();
+        const user = this.getUserFromRequest();
 
-        let post = await this._dbContext.Posts.findPostById(votePostPayload.postId);
+        const post = await this._dbContext.Posts.findPostById(votePostPayload.postId);
         if (post === undefined) throw new HttpException("Post not found", 404);
 
-        let queryResult = await this._dbContext.neo4jService.tryReadAsync(
+        const queryResult = await this._dbContext.neo4jService.tryReadAsync(
             `
             MATCH (u:User { userId: $userId })-[r:${UserToPostRelTypes.UPVOTES}|${UserToPostRelTypes.DOWN_VOTES}]->(p:Post { postId: $postId })
             `,
@@ -210,7 +210,7 @@ export class PostsService implements IPostsService {
         );
 
         if (queryResult.records.length > 0) {
-            let relType = queryResult.records[0].get("r").type;
+            const relType = queryResult.records[0].get("r").type;
             if (
                 relType === UserToPostRelTypes.UPVOTES &&
                 votePostPayload.voteType === VoteType.UPVOTES
@@ -248,7 +248,7 @@ export class PostsService implements IPostsService {
     }
 
     private getUserFromRequest(): User {
-        let user = this._request.user as User;
+        const user = this._request.user as User;
         if (user === undefined) throw new Error("User not found");
         return user;
     }

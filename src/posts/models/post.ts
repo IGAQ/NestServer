@@ -96,7 +96,7 @@ export class Post extends Model {
                 postId: this.postId,
             }
         );
-        let upVotes = queryResult.records[0].get("totalVotes");
+        const upVotes = queryResult.records[0].get("totalVotes");
         const queryResult2 = await this.neo4jService.tryReadAsync(
             `
             MATCH (u:User)-[n:${UserToPostRelTypes.DOWN_VOTES}]->(p:Post { postId: $postId })
@@ -106,7 +106,7 @@ export class Post extends Model {
                 postId: this.postId,
             }
         );
-        let downVotes = queryResult2.records[0].get("totalVotes");
+        const downVotes = queryResult2.records[0].get("totalVotes");
         this.totalVotes = upVotes - downVotes;
         return this.totalVotes;
     }

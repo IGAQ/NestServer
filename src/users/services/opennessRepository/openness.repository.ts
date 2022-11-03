@@ -9,7 +9,7 @@ export class OpennessRepository implements IOpennessRepository {
 
     public async findAll(): Promise<Openness[]> {
         const allOpenness = await this._neo4jService.read(`MATCH (o:Openness) RETURN o`, {});
-        let records = allOpenness.records;
+        const records = allOpenness.records;
         if (records.length === 0) return [];
         return records.map(record => new Openness(record.get("o").properties));
     }

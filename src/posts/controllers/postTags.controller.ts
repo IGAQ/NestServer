@@ -38,9 +38,7 @@ export class PostTagsController {
     }
 
     @Get("/name/:tagName")
-    public async getPostTagByTagName(
-        @Param("tagName") tagName: string
-    ) {
+    public async getPostTagByTagName(@Param("tagName") tagName: string) {
         const postTag = await this._postTagsRepository.findPostTagByName(tagName);
         if (postTag === undefined) throw new HttpException("PostTag not found", 404);
         return postTag;

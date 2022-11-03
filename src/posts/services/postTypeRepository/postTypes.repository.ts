@@ -2,7 +2,6 @@ import { IPostTypesRepository } from "./postTypes.repository.interface";
 import { PostType } from "../../models";
 import { Inject, Injectable } from "@nestjs/common";
 import { Neo4jService } from "../../../neo4j/services/neo4j.service";
-import { _$ } from "../../../_domain/injectableTokens";
 
 @Injectable()
 export class PostTypesRepository implements IPostTypesRepository {
@@ -10,7 +9,7 @@ export class PostTypesRepository implements IPostTypesRepository {
 
     public async findAll(): Promise<PostType[]> {
         const allPostTypes = await this._neo4jService.read(`MATCH (t:PostType) RETURN t`, {});
-        let records = allPostTypes.records;
+        const records = allPostTypes.records;
         if (records.length === 0) return [];
         return records.map(record => new PostType(record.get("t").properties));
     }

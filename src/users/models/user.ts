@@ -9,7 +9,6 @@ import {
     Model,
     RelatedEntityRecord,
     RelatedEntityRecordItem,
-    RelationshipProps,
     RichRelatedEntities,
 } from "../../neo4j/neo4j.helper.types";
 import { AuthoredProps, FavoritesProps, UserToPostRelTypes } from "./toPost";
@@ -153,8 +152,8 @@ export class User extends Model {
             }
         );
         return queryResult.records.map(record => {
-            let postProps = record.get("p").properties;
-            let authoredProps = new AuthoredProps(record.get("r").properties);
+            const postProps = record.get("p").properties;
+            const authoredProps = new AuthoredProps(record.get("r").properties);
             return new Post(
                 {
                     authorUser: this,
@@ -198,8 +197,8 @@ export class User extends Model {
         if (this.posts === undefined) this.posts = {} as any;
         this.posts[UserToPostRelTypes.FAVORITES] = {
             records: queryResult.records.map(record => {
-                let postProps = record.get("p").properties;
-                let favoritedProps = new FavoritesProps(record.get("r").properties);
+                const postProps = record.get("p").properties;
+                const favoritedProps = new FavoritesProps(record.get("r").properties);
                 return new RelatedEntityRecordItem<Post, FavoritesProps>({
                     entity: new Post(
                         {

@@ -5,7 +5,7 @@ export interface IPostTagsRepository {
 
     findPostTagByTagId(tagId: string): Promise<PostTag | undefined>;
 
-    findPostTagByName(tagName: string): Promise<PostTag | undefined>
+    findPostTagByName(tagName: string): Promise<PostTag | undefined>;
 
     addPostTag(postTag: PostTag): Promise<PostTag>;
 

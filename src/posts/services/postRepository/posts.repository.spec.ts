@@ -107,7 +107,7 @@ describe("PostsRepository", () => {
 
     describe(".addPost() and .deletePost()", () => {
         beforeAll(async () => {
-            let postToAdd = new Post({
+            const postToAdd = new Post({
                 postId: "64f5ef93-31ac-4c61-b98a-79268d282fc7",
                 postTitle: "Test Post Title",
                 postContent: "This is a test post. will be removed",
@@ -136,21 +136,21 @@ describe("PostsRepository", () => {
         });
 
         it("should add a post", async () => {
-            let post = await postsRepository.findPostById("64f5ef93-31ac-4c61-b98a-79268d282fc7");
+            const post = await postsRepository.findPostById("64f5ef93-31ac-4c61-b98a-79268d282fc7");
             expect(post).toBeDefined();
         });
 
         afterAll(async () => {
             await postsRepository.deletePost("64f5ef93-31ac-4c61-b98a-79268d282fc7");
 
-            let post = await postsRepository.findPostById("64f5ef93-31ac-4c61-b98a-79268d282fc7");
+            const post = await postsRepository.findPostById("64f5ef93-31ac-4c61-b98a-79268d282fc7");
             expect(post).toBeUndefined();
         });
     });
 
     describe(".restrictPost() and .unrestrictPost()", () => {
         let post: Post;
-        let postId = "b73edbf4-ba84-4b11-a91c-e1d8b1366974";
+        const postId = "b73edbf4-ba84-4b11-a91c-e1d8b1366974";
 
         beforeAll(async () => {
             await postsRepository.restrictPost(
@@ -165,7 +165,7 @@ describe("PostsRepository", () => {
         });
 
         it("should restrict a post", async () => {
-            let restrictedProps = await post.getRestricted();
+            const restrictedProps = await post.getRestricted();
             expect(restrictedProps).toBeDefined();
             expect(restrictedProps).not.toBeNull();
         });
@@ -173,7 +173,7 @@ describe("PostsRepository", () => {
         afterAll(async () => {
             await postsRepository.unrestrictPost(postId);
             post = await postsRepository.findPostById(postId);
-            let restrictedProps = await post.getRestricted();
+            const restrictedProps = await post.getRestricted();
             expect(restrictedProps).toBeNull();
         });
     });
