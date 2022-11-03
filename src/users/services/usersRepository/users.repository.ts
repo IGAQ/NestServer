@@ -25,7 +25,7 @@ export class UsersRepository implements IUsersRepository {
             { normalizedUsername: username.toUpperCase() }
         );
         if (queryResult.records.length === 0) return undefined;
-        let props = queryResult.records[0].get("u").properties;
+        const props = queryResult.records[0].get("u").properties;
         props.roles = props.roles.map(r => r?.low ?? r) as Role[];
         return new User(props, this._neo4jService);
     }
@@ -36,7 +36,7 @@ export class UsersRepository implements IUsersRepository {
             { email: email }
         );
         if (queryResult.records.length === 0) return undefined;
-        let props = queryResult.records[0].get("u").properties;
+        const props = queryResult.records[0].get("u").properties;
         props.roles = props.roles.map(r => r?.low ?? r) as Role[];
         return new User(props, this._neo4jService);
     }
@@ -49,7 +49,7 @@ export class UsersRepository implements IUsersRepository {
             }
         );
         if (queryResult.records.length === 0) return undefined;
-        let props = queryResult.records[0].get("u").properties;
+        const props = queryResult.records[0].get("u").properties;
         return new User(
             {
                 roles: props.roles.map(r => r.low) as Role[],

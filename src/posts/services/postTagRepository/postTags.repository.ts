@@ -3,7 +3,6 @@ import { PostTag } from "../../models";
 import { Inject, Injectable } from "@nestjs/common";
 import { Neo4jService } from "../../../neo4j/services/neo4j.service";
 import { v4 as uuidv4 } from "uuid";
-import { _$ } from "../../../_domain/injectableTokens";
 
 @Injectable()
 export class PostTagsRepository implements IPostTagsRepository {
@@ -11,7 +10,7 @@ export class PostTagsRepository implements IPostTagsRepository {
 
     public async findAll(): Promise<PostTag[]> {
         const allPostTags = await this._neo4jService.read(`MATCH (t:PostTag) RETURN t`, {});
-        let records = allPostTags.records;
+        const records = allPostTags.records;
         if (records.length === 0) return [];
         return records.map(record => new PostTag(record.get("t").properties));
     }

@@ -8,7 +8,8 @@ import {
     Inject,
     Param,
     ParseUUIDPipe,
-    UseGuards, UseInterceptors,
+    UseGuards,
+    UseInterceptors,
 } from "@nestjs/common";
 import { Post as PostModel } from "../models";
 import { _$ } from "../../_domain/injectableTokens";
@@ -36,7 +37,7 @@ export class PostsController {
 
     @Get()
     public async index(): Promise<PostModel[] | Error> {
-        let posts = await this._dbContext.Posts.findAll();
+        const posts = await this._dbContext.Posts.findAll();
         for (let i = 0; i < posts.length; i++) {
             posts[i] = await posts[i].toJSON();
         }
@@ -55,7 +56,7 @@ export class PostsController {
     @Post("create")
     @UseGuards(AuthGuard("jwt"))
     public async createPost(
-        @Body() postPayload: PostCreationPayloadDto,
+        @Body() postPayload: PostCreationPayloadDto
     ): Promise<PostModel | Error> {
         const post = await this._postsService.authorNewPost(postPayload);
         return await post.toJSON();

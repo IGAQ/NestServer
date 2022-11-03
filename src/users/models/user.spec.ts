@@ -56,13 +56,13 @@ describe("Post Model Unit Test", () => {
             });
 
             it("should return an array", async () => {
-                let posts = await user.getAuthoredPosts();
+                const posts = await user.getAuthoredPosts();
                 expect(Array.isArray(posts)).toBe(true);
                 expect(posts.length).toBeGreaterThanOrEqual(0);
             });
 
             it("should return an array of posts", async () => {
-                let posts = await user.getAuthoredPosts();
+                const posts = await user.getAuthoredPosts();
                 posts.map(post => {
                     expect(post.postId).toBeDefined();
                     expect(post.postContent).toBeDefined();
@@ -76,15 +76,15 @@ describe("Post Model Unit Test", () => {
             });
 
             it("should return an array of proper objects", async () => {
-                let favoritedPosts = await user.getFavoritePosts();
+                const favoritedPosts = await user.getFavoritePosts();
                 expect(favoritedPosts).toBeDefined();
                 expect(Array.isArray(favoritedPosts.records)).toBe(true);
                 favoritedPosts.records.map(entityItem => {
-                    let post = entityItem.entity;
+                    const post = entityItem.entity;
                     expect(post.postId).toBeDefined();
                     expect(post.postContent).toBeDefined();
 
-                    let relProps = entityItem.relProps;
+                    const relProps = entityItem.relProps;
                     expect(relProps).toBeDefined();
                     expect(relProps.favoritedAt).toBeDefined();
                     expect(typeof relProps.favoritedAt).toBe("number");
@@ -98,7 +98,7 @@ describe("Post Model Unit Test", () => {
             });
 
             it("should return an object with proper props", async () => {
-                let sexuality = await user.getSexuality();
+                const sexuality = await user.getSexuality();
                 expect(sexuality).toBeDefined();
                 expect(sexuality).toHaveProperty("sexualityId");
                 expect(sexuality).toHaveProperty("sexualityName");
@@ -112,7 +112,7 @@ describe("Post Model Unit Test", () => {
             });
 
             it("should return an object with proper props", async () => {
-                let gender = await user.getGender();
+                const gender = await user.getGender();
                 expect(gender).toBeDefined();
                 expect(gender).toHaveProperty("genderId");
                 expect(gender).toHaveProperty("genderName");
@@ -127,7 +127,7 @@ describe("Post Model Unit Test", () => {
             });
 
             it("should return an object with proper props", async () => {
-                let openness = await user.getOpenness();
+                const openness = await user.getOpenness();
                 expect(openness).toBeDefined();
                 expect(openness).toHaveProperty("opennessId");
                 expect(openness).toHaveProperty("opennessLevel");

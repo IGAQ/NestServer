@@ -17,7 +17,7 @@ import { Neo4jService } from "./neo4j.service";
 
 @Injectable()
 export class Neo4jSeedService {
-    constructor(@Inject(Neo4jService) private _neo4jService: Neo4jService) { }
+    constructor(@Inject(Neo4jService) private _neo4jService: Neo4jService) {}
 
     private postTypeLabel = Reflect.get(PostType, LABELS_DECORATOR_KEY)[0];
     private postTagLabel = Reflect.get(PostTag, LABELS_DECORATOR_KEY)[0];
@@ -255,8 +255,9 @@ export class Neo4jSeedService {
                 UNWIND postTagIDsToBeConnected as postTagIdToBeConnected
                     MATCH (p1:${this.postLabel}) WHERE p1.postId = $postId
                     MATCH (postType:${this.postTypeLabel}) WHERE postType.postTypeId = $postTypeId
-                    MATCH (postTag:${this.postTagLabel
-                }) WHERE postTag.tagId = postTagIdToBeConnected
+                    MATCH (postTag:${
+                        this.postTagLabel
+                    }) WHERE postTag.tagId = postTagIdToBeConnected
                         MERGE (p1)-[:${PostToPostTypeRelTypes.HAS_POST_TYPE}]->(postType)
                         MERGE (p1)-[:${PostToPostTagRelTypes.HAS_POST_TAG}]->(postTag)
                 WITH [${postEntity.awards[PostToAwardRelTypes.HAS_AWARD].records
@@ -265,10 +266,11 @@ export class Neo4jSeedService {
                 UNWIND awardIDsToBeConnected as awardIdToBeConnected
                     MATCH (p1:${this.postLabel}) WHERE p1.postId = $postId
                     MATCH (award:${this.awardLabel}) WHERE award.awardId = awardIdToBeConnected
-                        MERGE (p1)-[:${PostToAwardRelTypes.HAS_AWARD} { awardedBy: "${(
-                    postEntity.awards[PostToAwardRelTypes.HAS_AWARD].records[0]
-                        .relProps as HasAwardProps
-                ).awardedBy
+                        MERGE (p1)-[:${PostToAwardRelTypes.HAS_AWARD} { awardedBy: "${
+                    (
+                        postEntity.awards[PostToAwardRelTypes.HAS_AWARD].records[0]
+                            .relProps as HasAwardProps
+                    ).awardedBy
                 }" } ]->(award)
                 WITH [${votesUserIds
                     .map(voterUserId => `"${voterUserId}"`)
@@ -699,7 +701,7 @@ export class Neo4jSeedService {
                 tagId: "2a598b96-b878-4575-9601-180b3ac135e9",
                 tagName: "Casual",
                 tagColor: "#FF758C",
-            }),
+            })
         );
     }
 

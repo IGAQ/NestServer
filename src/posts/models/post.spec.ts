@@ -56,12 +56,12 @@ describe("Post Model Unit Test", () => {
             });
 
             it("should return an array", async () => {
-                let awards = await post.getAwards();
+                const awards = await post.getAwards();
                 expect(Array.isArray(awards)).toBe(true);
             });
 
             it("should return an array of length 2", async () => {
-                let awards = await post.getAwards();
+                const awards = await post.getAwards();
                 expect(awards.length).toBe(2);
             });
         });
@@ -75,7 +75,7 @@ describe("Post Model Unit Test", () => {
                 });
 
                 it("should return null", async () => {
-                    let restrictedProps = await post.getRestricted();
+                    const restrictedProps = await post.getRestricted();
                     expect(restrictedProps).toBeNull();
                 });
             });
@@ -88,7 +88,7 @@ describe("Post Model Unit Test", () => {
                 });
 
                 it("should return an object consisting the proper props", async () => {
-                    let restrictedProps = await post.getRestricted();
+                    const restrictedProps = await post.getRestricted();
                     expect(typeof restrictedProps).toBe("object");
                     expect(restrictedProps).toHaveProperty("restrictedAt");
                     expect(restrictedProps).toHaveProperty("moderatorId");
@@ -103,7 +103,7 @@ describe("Post Model Unit Test", () => {
             });
 
             it("should return an object consisting the proper props", async () => {
-                let authorUser = await post.getAuthorUser();
+                const authorUser = await post.getAuthorUser();
                 expect(typeof authorUser).toBe("object");
                 expect(authorUser).toHaveProperty("userId");
                 expect(authorUser).toHaveProperty("createdAt");
@@ -124,7 +124,7 @@ describe("Post Model Unit Test", () => {
             });
 
             it("should return a number that represents timestamp", async () => {
-                let createdAt = await post.getCreatedAt();
+                const createdAt = await post.getCreatedAt();
                 expect(typeof createdAt).toBe("number");
             });
         });
@@ -135,7 +135,7 @@ describe("Post Model Unit Test", () => {
             });
 
             it("should return an object with proper properties", async () => {
-                let postType = await post.getPostType();
+                const postType = await post.getPostType();
                 expect(typeof postType).toBe("object");
                 expect(postType).toHaveProperty("postTypeId");
                 expect(postType).toHaveProperty("postType");
@@ -148,7 +148,7 @@ describe("Post Model Unit Test", () => {
             });
 
             it("should return an array that consists valid objects with proper props", async () => {
-                let postTags = await post.getPostTags();
+                const postTags = await post.getPostTags();
                 expect(Array.isArray(postTags)).toBe(true);
                 postTags.forEach(postTag => {
                     expect(typeof postTag).toBe("object");

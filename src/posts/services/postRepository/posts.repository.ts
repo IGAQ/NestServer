@@ -14,7 +14,7 @@ export class PostsRepository implements IPostsRepository {
 
     public async findAll(): Promise<Post[]> {
         const allPosts = await this._neo4jService.read(`MATCH (p:Post) RETURN p`, {});
-        let records = allPosts.records;
+        const records = allPosts.records;
         if (records.length === 0) return [];
         return records.map(record => new Post(record.get("p").properties, this._neo4jService));
     }
