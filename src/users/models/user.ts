@@ -14,6 +14,7 @@ import { Gender } from "./gender";
 import { Openness } from "./openness";
 import { Role } from "./role";
 import { Sexuality } from "./sexuality";
+import { AuthoredProps as UserToCommentAuthoredProps, UserToCommentRelTypes } from "./toComment";
 import { UserToGenderRelTypes } from "./toGender";
 import { UserToOpennessRelTypes } from "./toOpenness";
 import { AuthoredProps, FavoritesProps, UserToPostRelTypes } from "./toPost";
@@ -163,6 +164,30 @@ export class User extends Model {
                     authorUser: this,
                     createdAt: authoredProps.authoredAt,
                     ...postProps,
+                },
+                this.neo4jService
+            );
+        });
+    }
+
+    public async getAuthoredComments(): Promise<Comment[]> {
+        const queryResult = await this.neo4jService.tryReadAsync(
+            `
+            MATCH (u:User { userId: $userId})-[r:${UserToCommentRelTypes.AUTHORED}]-(c:Comment)
+            RETURN c, r
+            `,
+            {
+                userId: this.userId,
+            }
+        );
+        return queryResult.records.map(record => {
+            const commentProps = record.get("c").properties;
+            const authoredProps = new UserToCommentAuthoredProps(record.get("r").properties);
+            return new Comment(
+                {
+                    authorUser: this,
+                    createdAt: authoredProps.authoredAt,
+                    ...commentProps,
                 },
                 this.neo4jService
             );
