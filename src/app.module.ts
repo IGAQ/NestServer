@@ -1,4 +1,4 @@
-import { CacheModule, Logger, MiddlewareConsumer, Module } from "@nestjs/common";
+import { CacheInterceptor, CacheModule, Logger, MiddlewareConsumer, Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { AuthModule } from "./auth/auth.module";
 import { CommentsModule } from "./comments/comments.module";
@@ -9,6 +9,7 @@ import { Neo4jSeedService } from "./neo4j/services/neo4j.seed.service";
 import { PostsModule } from "./posts/posts.module";
 import { UsersModule } from "./users/users.module";
 import { AppLoggerMiddleware } from "./_domain/middlewares/appLogger.middleware";
+import { APP_INTERCEPTOR } from "@nestjs/core";
 
 @Module({
     imports: [
@@ -27,12 +28,20 @@ import { AppLoggerMiddleware } from "./_domain/middlewares/appLogger.middleware"
         ConfigModule.forRoot({
             isGlobal: true,
         }),
-        CacheModule.register(),
+        CacheModule.register({
+            isGlobal: true,
+        }),
         AuthModule,
         UsersModule,
         PostsModule,
         CommentsModule,
         DatabaseAccessLayerModule,
+    ],
+    providers: [
+        {
+            provide: APP_INTERCEPTOR,
+            useClass: CacheInterceptor,
+        },
     ],
 })
 export class AppModule {
