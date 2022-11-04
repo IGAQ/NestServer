@@ -25,6 +25,8 @@ import { DatabaseContext } from "../../database-access-layer/databaseContext";
 @Controller("posts")
 @ApiBearerAuth()
 @UseInterceptors(ClassSerializerInterceptor)
+@CacheTTL(10)
+@UseInterceptors(CacheInterceptor)
 export class PostsController {
     private readonly _dbContext: DatabaseContext;
     private readonly _postsService: IPostsService;
@@ -38,8 +40,6 @@ export class PostsController {
     }
 
     @Get()
-    @CacheTTL(10)
-    @UseInterceptors(CacheInterceptor)
     public async index(): Promise<PostModel[] | Error> {
         const posts = await this._dbContext.Posts.findAll();
         for (let i = 0; i < posts.length; i++) {
