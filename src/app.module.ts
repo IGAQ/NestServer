@@ -37,12 +37,6 @@ import { APP_INTERCEPTOR } from "@nestjs/core";
         CommentsModule,
         DatabaseAccessLayerModule,
     ],
-    providers: [
-        {
-            provide: APP_INTERCEPTOR,
-            useClass: CacheInterceptor,
-        },
-    ],
 })
 export class AppModule {
     private readonly _logger = new Logger(AppModule.name);
