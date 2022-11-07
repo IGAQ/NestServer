@@ -137,8 +137,7 @@ describe("Post Model Unit Test", () => {
             it("should return an object with proper properties", async () => {
                 const postType = await post.getPostType();
                 expect(typeof postType).toBe("object");
-                expect(postType).toHaveProperty("postTypeId");
-                expect(postType).toHaveProperty("postType");
+                expect(postType).toHaveProperty("postTypeName");
             });
         });
 

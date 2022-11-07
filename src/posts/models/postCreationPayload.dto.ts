@@ -12,10 +12,10 @@ export class PostCreationPayloadDto {
     @IsNotEmpty()
     postContent: string;
 
-    @ApiProperty({ type: String, format: "uuid" })
+    @ApiProperty({ type: String })
     @IsString()
     @IsNotEmpty()
-    postTypeId: string;
+    postTypeName: string;
 
     @ApiProperty({ type: String, format: "uuid", isArray: true })
     @IsArray()
