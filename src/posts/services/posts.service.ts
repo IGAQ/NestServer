@@ -49,12 +49,12 @@ export class PostsService implements IPostsService {
         );
         if (postType === undefined) throw new HttpException("Post type not found", 404);
 
-        const postTags = new Array<PostTag>(postPayload.postTagIds.length);
-        for (const i in postPayload.postTagIds) {
-            const postTagId = postPayload.postTagIds[i];
-            const foundPostTag = await this._dbContext.PostTags.findPostTagByTagId(postTagId);
+        const postTags = new Array<PostTag>(postPayload.postTagNames.length);
+        for (const i in postPayload.postTagNames) {
+            const postTagName = postPayload.postTagNames[i];
+            const foundPostTag = await this._dbContext.PostTags.findPostTagByName(postTagName);
             if (foundPostTag === undefined)
-                throw new HttpException("Post tag not found: " + postTagId, 404);
+                throw new HttpException("Post tag not found: " + postTagName, 404);
 
             postTags[i] = foundPostTag;
         }

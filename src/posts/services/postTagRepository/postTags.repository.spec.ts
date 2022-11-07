@@ -77,29 +77,29 @@ describe("PostTagsRepository", () => {
         });
     });
 
-    describe(".getPostTagByTagId()", () => {
-        let postTag: PostTag;
-
-        beforeAll(async () => {
-            postTag = await postTagsRepository.findPostTagByTagId(
-                "59c4221f-f2bb-4a0c-afb4-cc239228ff22"
-            );
-        });
-
-        it("should return a PostTag object", () => {
-            expect(postTag).toBeInstanceOf(PostTag);
-        });
-
-        it("should return the gay tag", () => {
-            expect(postTag.tagName).toEqual("Gay");
-        });
-
-        it("should return a PostTag object with the correct properties", () => {
-            const restrictedProps = new RestrictedProps();
-            const postTypeProps = Object.keys(postTag);
-            const restrictedPropsKeys = Object.keys(restrictedProps);
-
-            expect(postTypeProps).toEqual(expect.arrayContaining(restrictedPropsKeys));
-        });
-    });
+    // describe(".getPostTagByTagId()", () => {
+    //     let postTag: PostTag;
+    //
+    //     beforeAll(async () => {
+    //         postTag = await postTagsRepository.findPostTagByTagId(
+    //             "59c4221f-f2bb-4a0c-afb4-cc239228ff22"
+    //         );
+    //     });
+    //
+    //     it("should return a PostTag object", () => {
+    //         expect(postTag).toBeInstanceOf(PostTag);
+    //     });
+    //
+    //     it("should return the gay tag", () => {
+    //         expect(postTag.tagName).toEqual("Gay");
+    //     });
+    //
+    //     it("should return a PostTag object with the correct properties", () => {
+    //         const restrictedProps = new RestrictedProps();
+    //         const postTypeProps = Object.keys(postTag);
+    //         const restrictedPropsKeys = Object.keys(restrictedProps);
+    //
+    //         expect(postTypeProps).toEqual(expect.arrayContaining(restrictedPropsKeys));
+    //     });
+    // });
 });

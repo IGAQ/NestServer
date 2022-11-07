@@ -151,7 +151,6 @@ describe("Post Model Unit Test", () => {
                 expect(Array.isArray(postTags)).toBe(true);
                 postTags.forEach(postTag => {
                     expect(typeof postTag).toBe("object");
-                    expect(postTag).toHaveProperty("tagId");
                     expect(postTag).toHaveProperty("tagName");
                 });
             });

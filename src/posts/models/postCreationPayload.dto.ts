@@ -17,9 +17,9 @@ export class PostCreationPayloadDto {
     @IsNotEmpty()
     postTypeName: string;
 
-    @ApiProperty({ type: String, format: "uuid", isArray: true })
+    @ApiProperty({ type: String, isArray: true })
     @IsArray()
-    postTagIds: string[];
+    postTagNames: string[];
 
     @ApiProperty({ type: Boolean })
     @IsBoolean()
