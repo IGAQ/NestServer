@@ -44,7 +44,9 @@ export class PostsService implements IPostsService {
     public async authorNewPost(postPayload: PostCreationPayloadDto): Promise<Post> {
         const user = this.getUserFromRequest();
         // validate the post payload
-        const postType = await this._dbContext.PostTypes.findPostTypeById(postPayload.postTypeId);
+        const postType = await this._dbContext.PostTypes.findPostTypeByName(
+            postPayload.postTypeName
+        );
         if (postType === undefined) throw new HttpException("Post type not found", 404);
 
         const postTags = new Array<PostTag>(postPayload.postTagIds.length);
@@ -149,7 +151,7 @@ export class PostsService implements IPostsService {
             if (allPosts[i].restrictedProps !== null) continue;
 
             await allPosts[i].getPostType();
-            if (allPosts[i].postType.postType === "Queery") {
+            if (allPosts[i].postType.postTypeName === "Queery") {
                 queeryPosts.push(allPosts[i]);
             }
         }
