@@ -11,6 +11,7 @@ import { PostsService } from "./services/posts.service";
 import { PostTagsRepository } from "./services/postTagRepository/postTags.repository";
 import { PostTypesRepository } from "./services/postTypeRepository/postTypes.repository";
 import { PostAwardRepository } from "./services/postAwardRepository/postAward.repository";
+import { PostTypesController } from "./controllers/postTypes.controller";
 
 @Module({
     imports: [forwardRef(() => DatabaseAccessLayerModule), HttpModule],
@@ -74,6 +75,6 @@ import { PostAwardRepository } from "./services/postAwardRepository/postAward.re
             useClass: PostAwardRepository,
         },
     ],
-    controllers: [PostsController, PostTagsController],
+    controllers: [PostsController, PostTagsController, PostTypesController],
 })
 export class PostsModule {}
