@@ -3,6 +3,7 @@ import {
     ClassSerializerInterceptor,
     Controller,
     Get,
+    HttpException,
     Inject,
     Param,
     UseInterceptors,
@@ -28,6 +29,8 @@ export class PostTypesController {
 
     @Get(":postTypeName")
     public async getPostTypeByName(@Param("postTypeName") postTypeName: string) {
-        this._dbContext.PostTypes;
+        const postType = await this._dbContext.PostTypes.findPostTypeByName(postTypeName);
+        if (postType === undefined) throw new HttpException("PostType not found", 404);
+        return postType;
     }
 }
