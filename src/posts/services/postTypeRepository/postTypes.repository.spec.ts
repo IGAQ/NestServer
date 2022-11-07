@@ -81,14 +81,12 @@ describe("PostTypesRepository", () => {
         let postType: PostType | undefined;
 
         beforeAll(async () => {
-            postType = await postTypesRepository.findPostTypeById(
-                "2677fd94-976b-4c81-8165-55edd038c581"
-            );
+            postType = await postTypesRepository.findPostTypeByName("story");
         });
 
         it("should return the story post type", () => {
             expect(postType).toBeInstanceOf(PostType);
-            expect(postType?.postType).toBe("Story");
+            expect(postType?.postTypeName).toBe("story");
         });
 
         it("should return a PostType object", () => {
@@ -96,11 +94,12 @@ describe("PostTypesRepository", () => {
         });
 
         it("should return a PostType object with the correct properties", () => {
-            const restrictedProps = new RestrictedProps();
             const postTypeProps = Object.keys(postType);
-            const restrictedPropsKeys = Object.keys(restrictedProps);
+            const correctProps = ["postTypeName"];
 
-            expect(postTypeProps).toEqual(expect.arrayContaining(restrictedPropsKeys));
+            correctProps.forEach(prop => {
+                expect(postTypeProps).toContain(prop);
+            });
         });
     });
 });

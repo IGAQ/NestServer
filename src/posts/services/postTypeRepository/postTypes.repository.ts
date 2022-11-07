@@ -22,4 +22,16 @@ export class PostTypesRepository implements IPostTypesRepository {
         if (postType.records.length === 0) return undefined;
         return new PostType(postType.records[0].get("t").properties);
     }
+
+    public async findPostTypeByName(postTypeName: string): Promise<PostType | undefined> {
+        const postType = await this._neo4jService.tryReadAsync(
+            `MATCH (pt:PostType) WHERE pt.postTypeName = $postTypeName RETURN pt`,
+            {
+                postTypeName: postTypeName.trim().toLowerCase(),
+            }
+        );
+
+        if (postType.records.length === 0) return undefined;
+        return new PostType(postType.records[0].get("pt").properties);
+    }
 }
