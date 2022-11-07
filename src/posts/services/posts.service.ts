@@ -44,15 +44,17 @@ export class PostsService implements IPostsService {
     public async authorNewPost(postPayload: PostCreationPayloadDto): Promise<Post> {
         const user = this.getUserFromRequest();
         // validate the post payload
-        const postType = await this._dbContext.PostTypes.findPostTypeById(postPayload.postTypeId);
+        const postType = await this._dbContext.PostTypes.findPostTypeByName(
+            postPayload.postTypeName
+        );
         if (postType === undefined) throw new HttpException("Post type not found", 404);
 
-        const postTags = new Array<PostTag>(postPayload.postTagIds.length);
-        for (const i in postPayload.postTagIds) {
-            const postTagId = postPayload.postTagIds[i];
-            const foundPostTag = await this._dbContext.PostTags.findPostTagByTagId(postTagId);
+        const postTags = new Array<PostTag>(postPayload.postTagNames.length);
+        for (const i in postPayload.postTagNames) {
+            const postTagName = postPayload.postTagNames[i];
+            const foundPostTag = await this._dbContext.PostTags.findPostTagByName(postTagName);
             if (foundPostTag === undefined)
-                throw new HttpException("Post tag not found: " + postTagId, 404);
+                throw new HttpException("Post tag not found: " + postTagName, 404);
 
             postTags[i] = foundPostTag;
         }
@@ -149,7 +151,7 @@ export class PostsService implements IPostsService {
             if (allPosts[i].restrictedProps !== null) continue;
 
             await allPosts[i].getPostType();
-            if (allPosts[i].postType.postType === "Queery") {
+            if (allPosts[i].postType.postTypeName === "Queery") {
                 queeryPosts.push(allPosts[i]);
             }
         }

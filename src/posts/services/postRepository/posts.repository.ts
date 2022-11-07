@@ -65,12 +65,12 @@ export class PostsRepository implements IPostsRepository {
                     anonymously: $authoredProps_anonymously
                  }]-(u)
                 WITH [${post.postTags
-                    .map(pt => `"${pt.tagId}"`)
-                    .join(",")}] AS postTagIDsToBeConnected
-                UNWIND postTagIDsToBeConnected as postTagIdToBeConnected
+                    .map(pt => `"${pt.tagName}"`)
+                    .join(",")}] AS postTagNamesToBeConnected
+                UNWIND postTagNamesToBeConnected as postTagNameToBeConnected
                     MATCH (p1:Post) WHERE p1.postId = $postId
-                    MATCH (postType:PostType) WHERE postType.postTypeId = $postTypeId
-                    MATCH (postTag:PostTag) WHERE postTag.tagId = postTagIdToBeConnected
+                    MATCH (postType:PostType) WHERE postType.postTypeName = $postTypeName
+                    MATCH (postTag:PostTag) WHERE postTag.tagName = postTagNameToBeConnected
                         MERGE (p1)-[:${PostToPostTypeRelTypes.HAS_POST_TYPE}]->(postType)
                         MERGE (p1)-[:${PostToPostTagRelTypes.HAS_POST_TAG}]->(postTag)
             `,
@@ -86,7 +86,7 @@ export class PostsRepository implements IPostsRepository {
                 pending: post.pending,
 
                 // PostType
-                postTypeId: post.postType.postTypeId,
+                postTypeName: post.postType.postTypeName,
 
                 // AuthoredProps
                 authoredProps_authoredAt: authoredProps.authoredAt ?? new Date().getTime(),

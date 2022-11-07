@@ -12,8 +12,6 @@ import {
     UseInterceptors,
     CacheInterceptor,
     CacheTTL,
-    CacheKey,
-    CACHE_MANAGER,
 } from "@nestjs/common";
 import { Post as PostModel } from "../models";
 import { _$ } from "../../_domain/injectableTokens";
@@ -22,7 +20,6 @@ import { PostCreationPayloadDto } from "../models/postCreationPayload.dto";
 import { AuthGuard } from "@nestjs/passport";
 import { IPostsService } from "../services/posts.service.interface";
 import { DatabaseContext } from "../../database-access-layer/databaseContext";
-import { Cache } from "cache-manager";
 
 @ApiTags("posts")
 @Controller("posts")
@@ -34,15 +31,13 @@ export class PostsController {
 
     constructor(
         @Inject(_$.IDatabaseContext) dbContext: DatabaseContext,
-        @Inject(_$.IPostsService) postsService: IPostsService,
-        @Inject(CACHE_MANAGER) private cacheManager: Cache
+        @Inject(_$.IPostsService) postsService: IPostsService
     ) {
         this._dbContext = dbContext;
         this._postsService = postsService;
     }
 
     @Get()
-    @CacheKey("allPosts")
     @CacheTTL(10)
     @UseInterceptors(CacheInterceptor)
     public async index(): Promise<PostModel[] | Error> {

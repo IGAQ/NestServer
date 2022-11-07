@@ -137,8 +137,7 @@ describe("Post Model Unit Test", () => {
             it("should return an object with proper properties", async () => {
                 const postType = await post.getPostType();
                 expect(typeof postType).toBe("object");
-                expect(postType).toHaveProperty("postTypeId");
-                expect(postType).toHaveProperty("postType");
+                expect(postType).toHaveProperty("postTypeName");
             });
         });
 
@@ -152,7 +151,6 @@ describe("Post Model Unit Test", () => {
                 expect(Array.isArray(postTags)).toBe(true);
                 postTags.forEach(postTag => {
                     expect(typeof postTag).toBe("object");
-                    expect(postTag).toHaveProperty("tagId");
                     expect(postTag).toHaveProperty("tagName");
                 });
             });

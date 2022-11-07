@@ -47,14 +47,14 @@ export class Neo4jSeedService {
             `CREATE CONSTRAINT openness_opennessId_UNIQUE FOR (openness:${this.opennessLabel}) REQUIRE openness.opennessId IS UNIQUE`,
             {}
         );
-        // PostType - PostType.postTypeId IS UNIQUE
+        // PostType - PostType.postTypeName IS UNIQUE
         await this._neo4jService.tryWriteAsync(
-            `CREATE CONSTRAINT postType_postTypeId_UNIQUE FOR (postType:${this.postTypeLabel}) REQUIRE postType.postTypeId IS UNIQUE`,
+            `CREATE CONSTRAINT postType_postTypeName_UNIQUE FOR (postType:${this.postTypeLabel}) REQUIRE postType.postTypeName IS UNIQUE`,
             {}
         );
-        // PostTag - PostTag.tagId IS UNIQUE
+        // PostTag - PostTag.tagName IS UNIQUE
         await this._neo4jService.tryWriteAsync(
-            `CREATE CONSTRAINT postTag_tagId_UNIQUE FOR (postTag:${this.postTagLabel}) REQUIRE postTag.tagId IS UNIQUE`,
+            `CREATE CONSTRAINT postTag_tagName_UNIQUE FOR (postTag:${this.postTagLabel}) REQUIRE postTag.tagName IS UNIQUE`,
             {}
         );
         // Award - Award.awardId IS UNIQUE
@@ -95,7 +95,6 @@ export class Neo4jSeedService {
         for (const postTagEntity of postTags) {
             await this._neo4jService.tryWriteAsync(
                 `CREATE (n:${this.postTagLabel} { 
-                tagId: $tagId,
                 tagName: $tagName,
                 tagColor: $tagColor
              })`,
@@ -250,14 +249,16 @@ export class Neo4jSeedService {
                     anonymously: $authoredProps_anonymously
                  }]-(u)
                 WITH [${postEntity.postTags
-                    .map(pt => `"${pt.tagId}"`)
-                    .join(",")}] AS postTagIDsToBeConnected
-                UNWIND postTagIDsToBeConnected as postTagIdToBeConnected
+                    .map(pt => `"${pt.tagName}"`)
+                    .join(",")}] AS postTagNamesToBeConnected
+                UNWIND postTagNamesToBeConnected as postTagNameToBeConnected
                     MATCH (p1:${this.postLabel}) WHERE p1.postId = $postId
-                    MATCH (postType:${this.postTypeLabel}) WHERE postType.postTypeId = $postTypeId
+                    MATCH (postType:${
+                        this.postTypeLabel
+                    }) WHERE postType.postTypeName = $postTypeName
                     MATCH (postTag:${
                         this.postTagLabel
-                    }) WHERE postTag.tagId = postTagIdToBeConnected
+                    }) WHERE postTag.tagName = postTagNameToBeConnected
                         MERGE (p1)-[:${PostToPostTypeRelTypes.HAS_POST_TYPE}]->(postType)
                         MERGE (p1)-[:${PostToPostTagRelTypes.HAS_POST_TAG}]->(postTag)
                 WITH [${postEntity.awards[PostToAwardRelTypes.HAS_AWARD].records
@@ -292,7 +293,7 @@ export class Neo4jSeedService {
                     pending: postEntity.pending,
 
                     // PostType
-                    postTypeId: postEntity.postType.postTypeId,
+                    postTypeName: postEntity.postType.postTypeName.trim().toLowerCase(),
 
                     // AuthoredProps
                     authoredProps_authoredAt: authoredProps.authoredAt,
@@ -660,12 +661,10 @@ export class Neo4jSeedService {
     public async getPostTypes(): Promise<PostType[]> {
         return new Array<PostType>(
             new PostType({
-                postTypeId: "95aaf886-064e-44b3-906f-3a7798945b7b",
-                postType: "Queery",
+                postTypeName: "queery",
             }),
             new PostType({
-                postTypeId: "2677fd94-976b-4c81-8165-55edd038c581",
-                postType: "Story",
+                postTypeName: "story",
             })
         );
     }
@@ -673,32 +672,26 @@ export class Neo4jSeedService {
     public async getPostTags(): Promise<PostTag[]> {
         return new Array<PostTag>(
             new PostTag({
-                tagId: "79d8aca0-b08d-4910-9629-487567f9ab1c",
                 tagName: "Serious",
                 tagColor: "#FF758C",
             }),
             new PostTag({
-                tagId: "e0e6a19f-b535-4e0e-a14b-28d4e4c9972f",
                 tagName: "Advice",
                 tagColor: "#FF758C",
             }),
             new PostTag({
-                tagId: "86dc09bb-f659-4210-b0e8-d66c7e34fe06",
                 tagName: "Discussion",
                 tagColor: "#FF758C",
             }),
             new PostTag({
-                tagId: "0bdd1de7-33dd-4464-b28b-d299720925d2",
                 tagName: "Trigger",
                 tagColor: "#FF758C",
             }),
             new PostTag({
-                tagId: "22d97b3b-f853-4afa-8274-5c78085c806b",
                 tagName: "General",
                 tagColor: "#FF758C",
             }),
             new PostTag({
-                tagId: "2a598b96-b878-4575-9601-180b3ac135e9",
                 tagName: "Casual",
                 tagColor: "#FF758C",
             })

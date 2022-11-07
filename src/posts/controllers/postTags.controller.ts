@@ -28,15 +28,6 @@ export class PostTagsController {
         return await this._postTagsRepository.findAll();
     }
 
-    @Get(":tagId")
-    public async getPostTagByTagId(
-        @Param("tagId", new ParseUUIDPipe()) tagId: string
-    ): Promise<PostTag | Error> {
-        const postTag = await this._postTagsRepository.findPostTagByTagId(tagId);
-        if (postTag === undefined) throw new HttpException("PostTag not found", 404);
-        return postTag;
-    }
-
     @Get("/name/:tagName")
     public async getPostTagByTagName(@Param("tagName") tagName: string) {
         const postTag = await this._postTagsRepository.findPostTagByName(tagName);
@@ -51,16 +42,16 @@ export class PostTagsController {
     //     return createdPostTag;
     // }
 
-    // @Put(":tagId")
+    // @Put(":tagName")
     // @UseGuards(AuthGuard("jwt"))
     // public async updatePostTag(@Body() postTag: PostTag): Promise<void | Error> {
     //     await this._postTagsRepository.updatePostTag(postTag);
     // }
 
-    // @Delete(":tagId")
+    // @Delete(":tagName")
     // public async deletePostTag(
-    //     @Param("tagId", new ParseUUIDPipe()) tagId: string
+    //     @Param("tagName") tagName: string
     // ): Promise<void | Error> {
-    //     await this._postTagsRepository.deletePostTag(tagId);
+    //     await this._postTagsRepository.deletePostTag(tagName);
     // }
 }
