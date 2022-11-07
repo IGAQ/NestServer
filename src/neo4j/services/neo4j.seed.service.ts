@@ -47,9 +47,9 @@ export class Neo4jSeedService {
             `CREATE CONSTRAINT openness_opennessId_UNIQUE FOR (openness:${this.opennessLabel}) REQUIRE openness.opennessId IS UNIQUE`,
             {}
         );
-        // PostType - PostType.postTypeId IS UNIQUE
+        // PostType - PostType.postTypeName IS UNIQUE
         await this._neo4jService.tryWriteAsync(
-            `CREATE CONSTRAINT postType_postTypeId_UNIQUE FOR (postType:${this.postTypeLabel}) REQUIRE postType.postTypeId IS UNIQUE`,
+            `CREATE CONSTRAINT postType_postTypeName_UNIQUE FOR (postType:${this.postTypeLabel}) REQUIRE postType.postTypeName IS UNIQUE`,
             {}
         );
         // PostTag - PostTag.tagId IS UNIQUE
@@ -254,7 +254,9 @@ export class Neo4jSeedService {
                     .join(",")}] AS postTagIDsToBeConnected
                 UNWIND postTagIDsToBeConnected as postTagIdToBeConnected
                     MATCH (p1:${this.postLabel}) WHERE p1.postId = $postId
-                    MATCH (postType:${this.postTypeLabel}) WHERE postType.postTypeId = $postTypeId
+                    MATCH (postType:${
+                        this.postTypeLabel
+                    }) WHERE postType.postTypeName = $postTypeName
                     MATCH (postTag:${
                         this.postTagLabel
                     }) WHERE postTag.tagId = postTagIdToBeConnected
@@ -292,7 +294,7 @@ export class Neo4jSeedService {
                     pending: postEntity.pending,
 
                     // PostType
-                    postTypeId: postEntity.postType.postTypeId,
+                    postTypeName: postEntity.postType.postTypeName.trim().toLowerCase(),
 
                     // AuthoredProps
                     authoredProps_authoredAt: authoredProps.authoredAt,
@@ -660,12 +662,10 @@ export class Neo4jSeedService {
     public async getPostTypes(): Promise<PostType[]> {
         return new Array<PostType>(
             new PostType({
-                postTypeId: "95aaf886-064e-44b3-906f-3a7798945b7b",
-                postType: "Queery",
+                postTypeName: "queery",
             }),
             new PostType({
-                postTypeId: "2677fd94-976b-4c81-8165-55edd038c581",
-                postType: "Story",
+                postTypeName: "story",
             })
         );
     }
