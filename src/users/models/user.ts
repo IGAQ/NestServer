@@ -1,23 +1,25 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Exclude } from "class-transformer";
-import { Role } from "./role";
-import { Sexuality } from "./sexuality";
-import { Gender } from "./gender";
-import { Openness } from "./openness";
-import { Post } from "../../posts/models";
+import { Comment } from "../../comments/models";
+import { Labels, NodeProperty } from "../../neo4j/neo4j.decorators";
 import {
     Model,
     RelatedEntityRecord,
     RelatedEntityRecordItem,
-    RichRelatedEntities,
+    RichRelatedEntities
 } from "../../neo4j/neo4j.helper.types";
-import { AuthoredProps, FavoritesProps, UserToPostRelTypes } from "./toPost";
-import { Labels, NodeProperty } from "../../neo4j/neo4j.decorators";
 import { Neo4jService } from "../../neo4j/services/neo4j.service";
-import { UserToSexualityRelTypes } from "./toSexuality";
+import { Post } from "../../posts/models";
+import { Gender } from "./gender";
+import { Openness } from "./openness";
+import { Role } from "./role";
+import { Sexuality } from "./sexuality";
+import { AuthoredProps as UserToCommentAuthoredProps, UserToCommentRelTypes } from "./toComment";
 import { UserToGenderRelTypes } from "./toGender";
 import { UserToOpennessRelTypes } from "./toOpenness";
+import { AuthoredProps, FavoritesProps, UserToPostRelTypes } from "./toPost";
 import { UserToSelfRelTypes, WasOffendingProps } from "./toSelf";
+import { UserToSexualityRelTypes } from "./toSexuality";
 
 export type AvatarUrl = string;
 export type AvatarAscii = string;
@@ -74,6 +76,9 @@ export class User extends Model {
 
     @ApiProperty({ type: Post, isArray: true })
     posts: RichRelatedEntities<Post, UserToPostRelTypes>;
+
+    @ApiProperty({ type: Comment, isArray: true })
+    comments: RichRelatedEntities<Comment, UserToPostRelTypes>;
 
     @ApiProperty({ type: Sexuality })
     sexuality: Nullable<Sexuality>;
@@ -159,6 +164,30 @@ export class User extends Model {
                     authorUser: this,
                     createdAt: authoredProps.authoredAt,
                     ...postProps,
+                },
+                this.neo4jService
+            );
+        });
+    }
+
+    public async getAuthoredComments(): Promise<Comment[]> {
+        const queryResult = await this.neo4jService.tryReadAsync(
+            `
+            MATCH (u:User { userId: $userId})-[r:${UserToCommentRelTypes.AUTHORED}]-(c:Comment)
+            RETURN c, r
+            `,
+            {
+                userId: this.userId,
+            }
+        );
+        return queryResult.records.map(record => {
+            const commentProps = record.get("c").properties;
+            const authoredProps = new UserToCommentAuthoredProps(record.get("r").properties);
+            return new Comment(
+                {
+                    authorUser: this,
+                    createdAt: authoredProps.authoredAt,
+                    ...commentProps,
                 },
                 this.neo4jService
             );
