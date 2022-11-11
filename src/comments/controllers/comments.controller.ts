@@ -37,10 +37,8 @@ export class CommentsController {
     @UseInterceptors(CacheInterceptor)
     public async index(): Promise<CommentModel[] | Error> {
         const comments = await this._dbContext.Comments.findAll();
-        for (let i = 0; i < comments.length; i++) {
-            comments[i] = await comments[i].toJSON();
-        }
-        return comments;
+        const decoratedComments = comments.map(comment => comment.toJSON());
+        return await Promise.all(decoratedComments);
     }
 
     @Get(":commentId")
