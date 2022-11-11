@@ -1,25 +1,20 @@
 import {
-    Body,
-    ClassSerializerInterceptor,
+    Body, CacheInterceptor,
+    CacheTTL, ClassSerializerInterceptor,
     Controller,
-    Get,
-    Post,
-    HttpException,
+    Get, HttpException,
     Inject,
     Param,
-    ParseUUIDPipe,
-    UseGuards,
-    UseInterceptors,
-    CacheInterceptor,
-    CacheTTL,
+    ParseUUIDPipe, Post, UseGuards,
+    UseInterceptors
 } from "@nestjs/common";
-import { Post as PostModel } from "../models";
-import { _$ } from "../../_domain/injectableTokens";
-import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
-import { PostCreationPayloadDto } from "../models/postCreationPayload.dto";
 import { AuthGuard } from "@nestjs/passport";
-import { IPostsService } from "../services/posts.service.interface";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { DatabaseContext } from "../../database-access-layer/databaseContext";
+import { _$ } from "../../_domain/injectableTokens";
+import { Post as PostModel } from "../models";
+import { PostCreationPayloadDto } from "../models/postCreationPayload.dto";
+import { IPostsService } from "../services/posts.service.interface";
 
 @ApiTags("posts")
 @Controller("posts")
@@ -42,7 +37,7 @@ export class PostsController {
     @UseInterceptors(CacheInterceptor)
     public async index(): Promise<PostModel[] | Error> {
         const posts = await this._dbContext.Posts.findAll();
-        const decoratedPosts = posts.map(async post => post.toJSON());
+        const decoratedPosts = posts.map(post => post.toJSON());
         return await Promise.all(decoratedPosts);
     }
 

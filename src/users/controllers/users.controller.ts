@@ -7,28 +7,30 @@ import {
     Param,
     ParseUUIDPipe,
     UseGuards,
-    UseInterceptors,
+    UseInterceptors
 } from "@nestjs/common";
+import { AuthGuard } from "@nestjs/passport";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
-import { Role, User } from "../models";
 import { Roles } from "../../auth/decorators/roles.decorator";
 import { RolesGuard } from "../../auth/guards/roles.guard";
-import { IUsersRepository } from "../services/usersRepository/users.repository.interface";
-import { AuthGuard } from "@nestjs/passport";
 import { _$ } from "../../_domain/injectableTokens";
+import { Role, User } from "../models";
+import { IUsersRepository } from "../services/usersRepository/users.repository.interface";
 
 @UseInterceptors(ClassSerializerInterceptor)
 @ApiTags("users")
 @ApiBearerAuth()
 @Controller("users")
 export class UsersController {
-    constructor(@Inject(_$.IUsersRepository) private _usersRepository: IUsersRepository) {}
+    constructor(@Inject(_$.IUsersRepository) private _usersRepository: IUsersRepository) { }
 
     @Get()
     @Roles(Role.ADMIN)
     @UseGuards(AuthGuard("jwt"), RolesGuard)
     public async index(): Promise<User[] | Error> {
-        return await this._usersRepository.findAll();
+        const users = await this._usersRepository.findAll();
+        const decoratedUsers = users.map(user => user.toJSON());
+        return await Promise.all(decoratedUsers);
     }
 
     @Get(":userId")
