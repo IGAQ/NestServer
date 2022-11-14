@@ -9,7 +9,6 @@ export function Labels(...labels: string[]) {
 
 // This decorator is used to mark a property as a node property
 export function NodeProperty() {
-    return function (target: any, propertyKey: string) {
-        console.debug(`NodeProperty: ${propertyKey}`);
-    };
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    return function (target: any, propertyKey: string) {};
 }
