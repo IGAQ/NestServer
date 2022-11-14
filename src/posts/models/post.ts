@@ -15,6 +15,7 @@ import { PostToPostTagRelTypes } from "./toTags";
 import { AuthoredProps, UserToPostRelTypes } from "../../users/models/toPost";
 import { DeletedProps, PostToSelfRelTypes } from "./toSelf";
 import { Exclude } from "class-transformer";
+import { PublicUserDto } from "../../users/dtos";
 
 @Labels("Post")
 export class Post extends Model {
@@ -46,7 +47,7 @@ export class Post extends Model {
     postContent: string;
 
     @ApiProperty({ type: User })
-    authorUser: User;
+    authorUser: User | any;
 
     @ApiProperty({ type: Boolean })
     @NodeProperty()
@@ -81,7 +82,7 @@ export class Post extends Model {
             ]);
         }
 
-        await this.authorUser?.toJSON();
+        this.authorUser = PublicUserDto.fromUser(this.authorUser);
         this.neo4jService = undefined;
         return { ...this };
     }
