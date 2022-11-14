@@ -7,7 +7,7 @@ import {
     Param,
     ParseUUIDPipe,
     UseGuards,
-    UseInterceptors
+    UseInterceptors,
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
@@ -15,14 +15,14 @@ import { Roles } from "../../auth/decorators/roles.decorator";
 import { RolesGuard } from "../../auth/guards/roles.guard";
 import { _$ } from "../../_domain/injectableTokens";
 import { Role, User } from "../models";
-import { IUsersRepository } from "../services/usersRepository/users.repository.interface";
+import { IUsersRepository } from "../repositories/users/users.repository.interface";
 
 @UseInterceptors(ClassSerializerInterceptor)
 @ApiTags("users")
 @ApiBearerAuth()
 @Controller("users")
 export class UsersController {
-    constructor(@Inject(_$.IUsersRepository) private _usersRepository: IUsersRepository) { }
+    constructor(@Inject(_$.IUsersRepository) private _usersRepository: IUsersRepository) {}
 
     @Get()
     @Roles(Role.ADMIN)

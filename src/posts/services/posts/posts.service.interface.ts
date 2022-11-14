@@ -1,5 +1,5 @@
-import { PostCreationPayloadDto } from "../models/postCreationPayload.dto";
-import { Post } from "../models";
+import { PostCreationPayloadDto } from "../../models/postCreationPayload.dto";
+import { Post } from "../../models";
 
 export interface IPostsService {
     authorNewPost(postPayload: PostCreationPayloadDto): Promise<Post>;

@@ -2,7 +2,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { UsersController } from "./users.controller";
 import { INestApplication, ValidationPipe } from "@nestjs/common";
 import * as request from "supertest";
-import { UsersRepository } from "../services/usersRepository/users.repository";
+import { UsersRepository } from "../repositories/users/users.repository";
 import { _$ } from "../../_domain/injectableTokens";
 
 describe("UsersController", () => {
@@ -58,7 +58,6 @@ describe("UsersController", () => {
                     password: "secret",
                 });
                 jwtToken = result.body.access_token;
-                console.log(jwtToken);
             });
 
             it("should return a user by id", async () => {

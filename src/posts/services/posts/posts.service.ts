@@ -1,6 +1,6 @@
 import { HttpException, Inject, Injectable, Logger, Scope } from "@nestjs/common";
-import { PostCreationPayloadDto } from "../models/postCreationPayload.dto";
-import { User } from "../../users/models";
+import { PostCreationPayloadDto } from "../../models/postCreationPayload.dto";
+import { User } from "../../../users/models";
 import {
     HateSpeechRequestPayloadDto,
     HateSpeechResponseDto,
@@ -8,18 +8,18 @@ import {
     PostTag,
     VotePostPayloadDto,
     VoteType,
-} from "../models";
+} from "../../models";
 import { IPostsService } from "./posts.service.interface";
-import { _$ } from "../../_domain/injectableTokens";
-import { DatabaseContext } from "../../database-access-layer/databaseContext";
+import { _$ } from "../../../_domain/injectableTokens";
+import { DatabaseContext } from "../../../database-access-layer/databaseContext";
 import { HttpService } from "@nestjs/axios";
 import { ConfigService } from "@nestjs/config";
 import { catchError, lastValueFrom, map, throwError } from "rxjs";
-import { WasOffendingProps } from "../../users/models/toSelf";
-import { DeletedProps } from "../models/toSelf";
+import { WasOffendingProps } from "../../../users/models/toSelf";
+import { DeletedProps } from "../../models/toSelf";
 import { REQUEST } from "@nestjs/core";
 import { Request } from "express";
-import { UserToPostRelTypes } from "../../users/models/toPost";
+import { UserToPostRelTypes } from "../../../users/models/toPost";
 
 @Injectable({ scope: Scope.REQUEST })
 export class PostsService implements IPostsService {

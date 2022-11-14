@@ -79,7 +79,7 @@ describe("PostsRepository", () => {
                 expect(post.postType).toBeUndefined();
                 expect(post.authorUser).toBeUndefined();
                 expect(post.createdAt).toBeUndefined();
-                expect(post.restrictedProps).toBeUndefined();
+                expect(post.restrictedProps).toBeNull();
             });
         });
     });
@@ -101,31 +101,30 @@ describe("PostsRepository", () => {
             expect(post.postType).toBeUndefined();
             expect(post.authorUser).toBeUndefined();
             expect(post.createdAt).toBeUndefined();
-            expect(post.restrictedProps).toBeUndefined();
+            expect(post.restrictedProps).toBeNull();
         });
     });
 
     describe(".addPost() and .deletePost()", () => {
+        const samplePostId = "64f5ef93-31ac-4c61-b98a-79268d282fc7";
+        const sampleAuthorId = "3109f9e2-a262-4aef-b648-90d86d6fbf6c";
+        const sampleAwardedByUserId = "5c0f145b-ffad-4881-8ee6-7647c3c1b695";
         beforeAll(async () => {
             const postToAdd = new Post({
-                postId: "64f5ef93-31ac-4c61-b98a-79268d282fc7",
+                postId: samplePostId,
                 postTitle: "Test Post Title",
                 postContent: "This is a test post. will be removed",
                 updatedAt: 1665770000,
                 postType: (await neo4jSeedService.getPostTypes())[0],
                 postTags: (await neo4jSeedService.getPostTags()).slice(0, 2),
                 restrictedProps: null,
-                authorUser: new User({
-                    userId: "3109f9e2-a262-4aef-b648-90d86d6fbf6c",
-                }),
+                authorUser: new User({ userId: sampleAuthorId }),
                 pending: false,
                 awards: {
                     [PostToAwardRelTypes.HAS_AWARD]: {
                         records: (await neo4jSeedService.getAwards()).slice(0, 2).map(award => ({
                             entity: award,
-                            relProps: new HasAwardProps({
-                                awardedBy: "5c0f145b-ffad-4881-8ee6-7647c3c1b695",
-                            }),
+                            relProps: new HasAwardProps({ awardedBy: sampleAwardedByUserId }),
                         })),
                         relType: PostToAwardRelTypes.HAS_AWARD,
                     },
@@ -136,15 +135,17 @@ describe("PostsRepository", () => {
         });
 
         it("should add a post", async () => {
-            const post = await postsRepository.findPostById("64f5ef93-31ac-4c61-b98a-79268d282fc7");
+            const post = await postsRepository.findPostById(samplePostId);
             expect(post).toBeDefined();
         });
 
         afterAll(async () => {
-            await postsRepository.deletePost("64f5ef93-31ac-4c61-b98a-79268d282fc7");
+            await postsRepository.deletePost(samplePostId);
 
-            const post = await postsRepository.findPostById("64f5ef93-31ac-4c61-b98a-79268d282fc7");
-            expect(post).toBeUndefined();
+            setTimeout(async () => {
+                const post = await postsRepository.findPostById(samplePostId);
+                expect(post).toBeUndefined();
+            }, 4000);
         });
     });
 

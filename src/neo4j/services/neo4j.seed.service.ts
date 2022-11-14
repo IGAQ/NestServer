@@ -83,10 +83,11 @@ export class Neo4jSeedService {
         for (const postTypeEntity of postTypes) {
             await this._neo4jService.tryWriteAsync(
                 `CREATE (n:${this.postTypeLabel} { 
-                postTypeId: $postTypeId,
-                postType: $postType
+                postTypeName: $postTypeName
              })`,
-                postTypeEntity
+                {
+                    postTypeName: postTypeEntity.postTypeName,
+                }
             );
         }
 

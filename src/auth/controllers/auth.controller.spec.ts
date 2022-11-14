@@ -6,7 +6,7 @@ import { AuthService } from "../services/auth.service";
 import { SignInPayloadDto, SignTokenDto, SignUpPayloadDto } from "../models";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
-import { UsersRepository } from "../../users/services/usersRepository/users.repository";
+import { UsersRepository } from "../../users/repositories/users/users.repository";
 import { _$ } from "../../_domain/injectableTokens";
 
 describe("AuthController", () => {
@@ -40,6 +40,12 @@ describe("AuthController", () => {
         await app.init();
 
         authController = moduleRef.get<AuthController>(AuthController);
+    });
+
+    describe("authController", () => {
+        it("should be defined", () => {
+            expect(authController).toBeDefined();
+        });
     });
 
     // describe("signIn", () => {

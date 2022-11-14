@@ -1,5 +1,5 @@
 import { forwardRef, Module } from "@nestjs/common";
-import { UsersRepository } from "./services/usersRepository/users.repository";
+import { UsersRepository } from "./repositories/users/users.repository";
 import { UsersController } from "./controllers/users.controller";
 import { _$ } from "../_domain/injectableTokens";
 import { DatabaseAccessLayerModule } from "../database-access-layer/database-access-layer.module";

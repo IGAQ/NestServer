@@ -14,15 +14,6 @@ export class PostTypesRepository implements IPostTypesRepository {
         return records.map(record => new PostType(record.get("t").properties));
     }
 
-    public async findPostTypeById(postTypeId: string): Promise<PostType | undefined> {
-        const postType = await this._neo4jService.read(
-            `MATCH (t:PostType) WHERE t.postTypeId = $postTypeId RETURN t`,
-            { postTypeId: postTypeId }
-        );
-        if (postType.records.length === 0) return undefined;
-        return new PostType(postType.records[0].get("t").properties);
-    }
-
     public async findPostTypeByName(postTypeName: string): Promise<PostType | undefined> {
         const postType = await this._neo4jService.tryReadAsync(
             `MATCH (pt:PostType) WHERE pt.postTypeName = $postTypeName RETURN pt`,

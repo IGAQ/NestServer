@@ -9,7 +9,7 @@ import { Neo4jSeedService } from "./neo4j/services/neo4j.seed.service";
 import { PostsModule } from "./posts/posts.module";
 import { UsersModule } from "./users/users.module";
 import { AppLoggerMiddleware } from "./_domain/middlewares/appLogger.middleware";
-import { APP_INTERCEPTOR } from "@nestjs/core";
+import { neo4jCredentials } from "./_domain/constants";
 
 @Module({
     imports: [
@@ -17,12 +17,12 @@ import { APP_INTERCEPTOR } from "@nestjs/core";
             imports: [ConfigModule],
             inject: [ConfigService],
             useFactory: (configService: ConfigService): Neo4jConfig => ({
-                scheme: configService.get("NEO4J_SCHEME"),
-                host: configService.get("NEO4J_HOST"),
-                port: configService.get("NEO4J_PORT"),
-                username: configService.get("NEO4J_USERNAME"),
-                password: configService.get("NEO4J_PASSWORD"),
-                database: configService.get("NEO4J_DATABASE"),
+                scheme: configService.get("NEO4J_SCHEME") ?? neo4jCredentials.scheme,
+                host: configService.get("NEO4J_HOST") ?? neo4jCredentials.host,
+                port: configService.get("NEO4J_PORT") ?? neo4jCredentials.port,
+                username: configService.get("NEO4J_USERNAME") ?? neo4jCredentials.username,
+                password: configService.get("NEO4J_PASSWORD") ?? neo4jCredentials.password,
+                database: configService.get("NEO4J_DATABASE") ?? neo4jCredentials.database,
             }),
         }),
         ConfigModule.forRoot({
@@ -48,9 +48,9 @@ export class AppModule {
     }
 
     onModuleInit() {
-        // this._neo4jSeedService
-        //     .seed()
-        //     .then(() => this._logger.log("Neo4j database seeded ✅"))
-        //     .catch(error => this._logger.error(error));
+        this._neo4jSeedService
+            .seed()
+            .then(() => this._logger.log("Neo4j database seeded ✅"))
+            .catch(error => this._logger.error(error));
     }
 }

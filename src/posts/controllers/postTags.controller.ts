@@ -11,7 +11,7 @@ import {
 import { ApiTags } from "@nestjs/swagger";
 import { _$ } from "../../_domain/injectableTokens";
 import { PostTag } from "../models";
-import { IPostTagsRepository } from "../services/postTagRepository/postTags.repository.interface";
+import { IPostTagsRepository } from "../repositories/postTag/postTags.repository.interface";
 
 @ApiTags("postTags")
 @Controller("postTags")
