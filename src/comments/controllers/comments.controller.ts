@@ -1,23 +1,28 @@
 import {
-    Body, CacheInterceptor,
-    CacheTTL, ClassSerializerInterceptor,
+    Body,
+    CacheInterceptor,
+    CacheTTL,
+    ClassSerializerInterceptor,
     Controller,
-    Get, HttpException,
+    Get,
+    HttpException,
     Inject,
     Param,
-    ParseUUIDPipe, Post, UseGuards,
-    UseInterceptors
+    ParseUUIDPipe,
+    Post,
+    UseGuards,
+    UseInterceptors,
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { DatabaseContext } from "../../database-access-layer/databaseContext";
 import { _$ } from "../../_domain/injectableTokens";
 import { Comment as CommentModel } from "../models";
-import { CommentCreationPayloadDto } from "../models/commentCreationPayload.dto";
-import { ICommentsService } from "../services/comments.service.interface";
+import { CommentCreationPayloadDto } from "../dtos";
+import { ICommentsService } from "../services/comments/comments.service.interface";
 
 @ApiTags("comments")
-@Controller('comments')
+@Controller("comments")
 @ApiBearerAuth()
 @UseInterceptors(ClassSerializerInterceptor)
 export class CommentsController {

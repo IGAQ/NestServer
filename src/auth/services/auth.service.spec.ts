@@ -2,8 +2,8 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { AuthService } from "./auth.service";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
-import { SignInPayloadDto, SignTokenDto } from "../models";
-import { UsersRepository } from "../../users/services/usersRepository/users.repository";
+import { SignInPayloadDto, SignTokenDto, SignUpPayloadDto } from "../dtos";
+import { UsersRepository } from "../../users/repositories/users/users.repository";
 import { NEO4J_DRIVER, NEO4J_OPTIONS } from "../../neo4j/neo4j.constants";
 import { Neo4jConfig } from "../../neo4j/neo4jConfig.interface";
 import { neo4jCredentials } from "../../_domain/constants";
@@ -11,10 +11,8 @@ import { createDriver } from "../../neo4j/neo4j.utils";
 import { Neo4jService } from "../../neo4j/services/neo4j.service";
 import { Neo4jSeedService } from "../../neo4j/services/neo4j.seed.service";
 import { _$ } from "../../_domain/injectableTokens";
-import { IUsersRepository } from "../../users/services/usersRepository/users.repository.interface";
-import exp from "constants";
-import { RegisterUserPayloadDto, User } from "../../users/models";
-import { type } from "os";
+import { IUsersRepository } from "../../users/repositories/users/users.repository.interface";
+import { User } from "../../users/models";
 
 describe("AuthService", () => {
     let usersRepository: IUsersRepository;
@@ -74,7 +72,7 @@ describe("AuthService", () => {
         let signTokenDto: SignTokenDto;
 
         beforeAll(async () => {
-            let userToCreate = new RegisterUserPayloadDto({
+            const userToCreate = new SignUpPayloadDto({
                 username: "test",
                 password: "test",
                 email: "a@test.com",
@@ -100,12 +98,12 @@ describe("AuthService", () => {
         });
 
         it("should let the reason login.", async () => {
-            let signInPayloadDto = new SignInPayloadDto({
+            const signInPayloadDto = new SignInPayloadDto({
                 username: "test",
                 password: "test",
             });
 
-            let signTokenDto = await authService.signIn(signInPayloadDto);
+            const signTokenDto = await authService.signIn(signInPayloadDto);
 
             expect(signTokenDto).toBeDefined();
             expect(signTokenDto.access_token).toBeDefined();

@@ -1,12 +1,12 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { ICommentsRepository } from "../comments/services/commentRepository/comments.repository.interface";
+import { ICommentsRepository } from "../comments/repositories/comment/comments.repository.interface";
 import { Neo4jService } from "../neo4j/services/neo4j.service";
-import { IPostsRepository } from "../posts/services/postRepository/posts.repository.interface";
-import { IPostTagsRepository } from "../posts/services/postTagRepository/postTags.repository.interface";
-import { IPostTypesRepository } from "../posts/services/postTypeRepository/postTypes.repository.interface";
-import { IGenderRepository } from "../users/services/genderRepository/gender.repository.interface";
-import { ISexualityRepository } from "../users/services/sexualityRepository/sexuality.repository.interface";
-import { IUsersRepository } from "../users/services/usersRepository/users.repository.interface";
+import { IPostsRepository } from "../posts/repositories/post/posts.repository.interface";
+import { IPostTagsRepository } from "../posts/repositories/postTag/postTags.repository.interface";
+import { IPostTypesRepository } from "../posts/repositories/postType/postTypes.repository.interface";
+import { IGenderRepository } from "../users/repositories/gender/gender.repository.interface";
+import { ISexualityRepository } from "../users/repositories/sexuality/sexuality.repository.interface";
+import { IUsersRepository } from "../users/repositories/users/users.repository.interface";
 import { _$ } from "../_domain/injectableTokens";
 
 @Injectable()

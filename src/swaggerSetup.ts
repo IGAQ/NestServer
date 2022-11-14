@@ -14,7 +14,7 @@ async function swaggerSetup(app: any) {
 
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup("/", app, document, {
-        customCss: `${styles}`
+        customCss: `${styles}`,
     });
 }
 export default swaggerSetup;

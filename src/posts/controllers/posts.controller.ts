@@ -1,20 +1,25 @@
 import {
-    Body, CacheInterceptor,
-    CacheTTL, ClassSerializerInterceptor,
+    Body,
+    CacheInterceptor,
+    CacheTTL,
+    ClassSerializerInterceptor,
     Controller,
-    Get, HttpException,
+    Get,
+    HttpException,
     Inject,
     Param,
-    ParseUUIDPipe, Post, UseGuards,
-    UseInterceptors
+    ParseUUIDPipe,
+    Post,
+    UseGuards,
+    UseInterceptors,
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { DatabaseContext } from "../../database-access-layer/databaseContext";
 import { _$ } from "../../_domain/injectableTokens";
 import { Post as PostModel } from "../models";
-import { PostCreationPayloadDto } from "../models/postCreationPayload.dto";
-import { IPostsService } from "../services/posts.service.interface";
+import { PostCreationPayloadDto } from "../dtos";
+import { IPostsService } from "../services/posts/posts.service.interface";
 
 @ApiTags("posts")
 @Controller("posts")

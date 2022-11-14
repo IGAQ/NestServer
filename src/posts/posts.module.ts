@@ -1,16 +1,16 @@
 import { HttpModule } from "@nestjs/axios";
 import { forwardRef, Module } from "@nestjs/common";
 import { DatabaseAccessLayerModule } from "../database-access-layer/database-access-layer.module";
-import { GenderRepository } from "../users/services/genderRepository/gender.repository";
-import { SexualityRepository } from "../users/services/sexualityRepository/sexuality.repository";
+import { GenderRepository } from "../users/repositories/gender/gender.repository";
+import { SexualityRepository } from "../users/repositories/sexuality/sexuality.repository";
 import { _$ } from "../_domain/injectableTokens";
 import { PostsController } from "./controllers/posts.controller";
 import { PostTagsController } from "./controllers/postTags.controller";
-import { PostsRepository } from "./services/postRepository/posts.repository";
-import { PostsService } from "./services/posts.service";
-import { PostTagsRepository } from "./services/postTagRepository/postTags.repository";
-import { PostTypesRepository } from "./services/postTypeRepository/postTypes.repository";
-import { PostAwardRepository } from "./services/postAwardRepository/postAward.repository";
+import { PostsRepository } from "./repositories/post/posts.repository";
+import { PostsService } from "./services/posts/posts.service";
+import { PostTagsRepository } from "./repositories/postTag/postTags.repository";
+import { PostTypesRepository } from "./repositories/postType/postTypes.repository";
+import { PostAwardRepository } from "./repositories/postAward/postAward.repository";
 import { PostTypesController } from "./controllers/postTypes.controller";
 
 @Module({

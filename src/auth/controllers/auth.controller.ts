@@ -1,6 +1,6 @@
 import { Body, Controller, Inject, Post, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
-import { SignInPayloadDto, SignUpPayloadDto } from "../models";
+import { SignInPayloadDto, SignUpPayloadDto } from "../dtos";
 import { IAuthService } from "../services/auth.service.interface";
 import { AuthGuard } from "@nestjs/passport";
 import { _$ } from "../../_domain/injectableTokens";
