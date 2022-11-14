@@ -51,18 +51,16 @@ describe("Post Model Unit Test", () => {
         });
 
         describe("given post.getAwards() called", () => {
-            beforeEach(async () => {
-                post = await postsRepository.findPostById("b73edbf4-ba84-4b11-a91c-e1d8b1366974");
+            beforeAll(async () => {
+                await post.getAwards();
             });
 
             it("should return an array", async () => {
-                const awards = await post.getAwards();
-                expect(Array.isArray(awards)).toBe(true);
+                expect(Array.isArray(post.awards.HAS_AWARD.records)).toBe(true);
             });
 
             it("should return an array of length 2", async () => {
-                const awards = await post.getAwards();
-                expect(awards.length).toBe(2);
+                expect(post.awards.HAS_AWARD.records.length).toBe(2);
             });
         });
 
@@ -108,7 +106,6 @@ describe("Post Model Unit Test", () => {
                 expect(authorUser).toHaveProperty("userId");
                 expect(authorUser).toHaveProperty("createdAt");
                 expect(authorUser).toHaveProperty("updatedAt");
-                expect(authorUser).toHaveProperty("avatar");
                 expect(authorUser).toHaveProperty("email");
                 expect(authorUser).toHaveProperty("emailVerified");
                 expect(authorUser).toHaveProperty("username");

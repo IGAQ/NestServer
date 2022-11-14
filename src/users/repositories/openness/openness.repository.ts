@@ -1,6 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { Neo4jService } from "src/neo4j/services/neo4j.service";
-import { Openness } from "src/users/models";
+import { Neo4jService } from "../../../neo4j/services/neo4j.service";
+import { Openness } from "../../models";
 import { IOpennessRepository } from "./openness.repository.interface";
 
 @Injectable()
