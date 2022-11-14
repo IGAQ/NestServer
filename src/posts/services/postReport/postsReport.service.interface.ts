@@ -1,4 +1,4 @@
-import { ReportPostPayloadDto } from "../../models";
+import { ReportPostPayloadDto } from "../../dtos";
 import { ReportedProps } from "../../../users/models/toPost";
 
 export interface IPostsReportService {

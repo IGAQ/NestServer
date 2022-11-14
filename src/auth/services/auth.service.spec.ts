@@ -2,7 +2,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { AuthService } from "./auth.service";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
-import { SignInPayloadDto, SignTokenDto } from "../models";
+import { SignInPayloadDto, SignTokenDto, SignUpPayloadDto } from "../dtos";
 import { UsersRepository } from "../../users/repositories/users/users.repository";
 import { NEO4J_DRIVER, NEO4J_OPTIONS } from "../../neo4j/neo4j.constants";
 import { Neo4jConfig } from "../../neo4j/neo4jConfig.interface";
@@ -12,7 +12,7 @@ import { Neo4jService } from "../../neo4j/services/neo4j.service";
 import { Neo4jSeedService } from "../../neo4j/services/neo4j.seed.service";
 import { _$ } from "../../_domain/injectableTokens";
 import { IUsersRepository } from "../../users/repositories/users/users.repository.interface";
-import { RegisterUserPayloadDto, User } from "../../users/models";
+import { User } from "../../users/models";
 
 describe("AuthService", () => {
     let usersRepository: IUsersRepository;
@@ -72,7 +72,7 @@ describe("AuthService", () => {
         let signTokenDto: SignTokenDto;
 
         beforeAll(async () => {
-            const userToCreate = new RegisterUserPayloadDto({
+            const userToCreate = new SignUpPayloadDto({
                 username: "test",
                 password: "test",
                 email: "a@test.com",

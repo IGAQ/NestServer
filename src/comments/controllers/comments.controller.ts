@@ -18,7 +18,7 @@ import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { DatabaseContext } from "../../database-access-layer/databaseContext";
 import { _$ } from "../../_domain/injectableTokens";
 import { Comment as CommentModel } from "../models";
-import { CommentCreationPayloadDto } from "../models";
+import { CommentCreationPayloadDto } from "../dtos";
 import { ICommentsService } from "../services/comments/comments.service.interface";
 
 @ApiTags("comments")

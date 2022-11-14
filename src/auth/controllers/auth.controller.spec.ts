@@ -3,7 +3,7 @@ import * as request from "supertest";
 import { AuthController } from "./auth.controller";
 import { INestApplication, ValidationPipe } from "@nestjs/common";
 import { AuthService } from "../services/auth.service";
-import { SignInPayloadDto, SignTokenDto, SignUpPayloadDto } from "../models";
+import { SignInPayloadDto, SignTokenDto, SignUpPayloadDto } from "../dtos";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import { UsersRepository } from "../../users/repositories/users/users.repository";

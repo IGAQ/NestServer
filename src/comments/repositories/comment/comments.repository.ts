@@ -8,7 +8,7 @@ import { ICommentsRepository } from "./comments.repository.interface";
 
 @Injectable()
 export class CommentsRepository implements ICommentsRepository {
-    constructor(@Inject(Neo4jService) private _neo4jService: Neo4jService) { }
+    constructor(@Inject(Neo4jService) private _neo4jService: Neo4jService) {}
 
     public async findAll(): Promise<Comment[]> {
         const allComments = await this._neo4jService.read(`MATCH (c:Comment) RETURN c`, {});
@@ -96,7 +96,10 @@ export class CommentsRepository implements ICommentsRepository {
         );
     }
 
-    public async restrictComment(commentId: string, restrictedProps: RestrictedProps): Promise<void> {
+    public async restrictComment(
+        commentId: string,
+        restrictedProps: RestrictedProps
+    ): Promise<void> {
         await this._neo4jService.tryWriteAsync(
             `MATCH (c:Comment { commentId: $commentId }) 
              CREATE (c)-[:${_ToSelfRelTypes.RESTRICTED} {
@@ -120,5 +123,3 @@ export class CommentsRepository implements ICommentsRepository {
         );
     }
 }
-
-

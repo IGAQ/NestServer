@@ -1,14 +1,13 @@
 import { HttpException, Inject, Injectable, Logger, Scope } from "@nestjs/common";
-import { PostCreationPayloadDto } from "../../models/postCreationPayload.dto";
-import { User } from "../../../users/models";
 import {
+    PostCreationPayloadDto,
     HateSpeechRequestPayloadDto,
     HateSpeechResponseDto,
-    Post,
-    PostTag,
     VotePostPayloadDto,
     VoteType,
-} from "../../models";
+} from "../../dtos";
+import { User } from "../../../users/models";
+import { Post, PostTag } from "../../models";
 import { IPostsService } from "./posts.service.interface";
 import { _$ } from "../../../_domain/injectableTokens";
 import { DatabaseContext } from "../../../database-access-layer/databaseContext";

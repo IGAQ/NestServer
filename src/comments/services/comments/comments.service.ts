@@ -9,14 +9,14 @@ import { User } from "../../../users/models";
 import { UserToCommentRelTypes } from "../../../users/models/toComment";
 import { WasOffendingProps } from "../../../users/models/toSelf";
 import { _$ } from "../../../_domain/injectableTokens";
+import { Comment } from "../../models";
 import {
-    Comment,
     CommentCreationPayloadDto,
     HateSpeechRequestPayloadDto,
     HateSpeechResponseDto,
     VoteCommentPayloadDto,
     VoteType,
-} from "../../models";
+} from "../../dtos";
 import { DeletedProps } from "../../models/toSelf";
 import { ICommentsService } from "./comments.service.interface";
 

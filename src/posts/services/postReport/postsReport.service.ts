@@ -1,4 +1,4 @@
-import { ReportPostPayloadDto } from "../../models";
+import { ReportPostPayloadDto } from "../../dtos";
 import { User } from "../../../users/models";
 import { HttpException, Inject, Injectable, Logger, Scope } from "@nestjs/common";
 import { DatabaseContext } from "../../../database-access-layer/databaseContext";

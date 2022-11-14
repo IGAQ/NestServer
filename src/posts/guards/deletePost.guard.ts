@@ -1,5 +1,5 @@
 import { CanActivate, ExecutionContext, Inject, Injectable } from "@nestjs/common";
-import { DeletePostPayloadDto } from "../models";
+import { DeletePostPayloadDto } from "../dtos";
 import { DatabaseContext } from "../../database-access-layer/databaseContext";
 import { _$ } from "../../_domain/injectableTokens";
 

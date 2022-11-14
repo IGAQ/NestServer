@@ -3,7 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
 import { IUsersRepository } from "../../users/repositories/users/users.repository.interface";
-import { SignInPayloadDto, SignTokenDto, SignUpPayloadDto } from "../models";
+import { SignInPayloadDto, SignTokenDto, SignUpPayloadDto } from "../dtos";
 import { IAuthService } from "./auth.service.interface";
 import { User } from "../../users/models";
 import { _$ } from "../../_domain/injectableTokens";

@@ -1,4 +1,4 @@
-import { PostCreationPayloadDto } from "../../models/postCreationPayload.dto";
+import { PostCreationPayloadDto } from "../../dtos";
 import { Post } from "../../models";
 
 export interface IPostsService {

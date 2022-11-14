@@ -18,7 +18,7 @@ import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { DatabaseContext } from "../../database-access-layer/databaseContext";
 import { _$ } from "../../_domain/injectableTokens";
 import { Post as PostModel } from "../models";
-import { PostCreationPayloadDto } from "../models/postCreationPayload.dto";
+import { PostCreationPayloadDto } from "../dtos";
 import { IPostsService } from "../services/posts/posts.service.interface";
 
 @ApiTags("posts")
