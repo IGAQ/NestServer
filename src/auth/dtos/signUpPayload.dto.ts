@@ -6,32 +6,19 @@ export class SignUpPayloadDto {
     @IsNotEmpty()
     @MinLength(3)
     @MaxLength(12)
-    @ApiProperty({
-        type: String,
-        minLength: 3,
-        maxLength: 12,
-        description: "The username of the user.",
-    })
+    @ApiProperty({ type: String })
     username: string;
 
     @IsString()
     @IsNotEmpty()
     @MinLength(4)
     @MaxLength(20)
-    @ApiProperty({
-        type: String,
-        minLength: 4,
-        maxLength: 20,
-        description: "The password of the user.",
-    })
+    @ApiProperty({ type: String })
     password: string;
 
     @IsEmail()
     @IsNotEmpty()
-    @ApiProperty({
-        type: String,
-        description: "The email of the user.",
-    })
+    @ApiProperty({ type: String })
     email: string;
 
     constructor(partial?: Partial<SignUpPayloadDto>) {
