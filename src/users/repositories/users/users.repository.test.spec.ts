@@ -174,7 +174,6 @@ describe("UsersRepository", () => {
         });
 
         it("should have the updated properties", async () => {
-            console.log(user);
             expect(user.emailVerified).toBe(true);
             expect(user.phoneNumber).toBe("123456789");
         });
