@@ -7,6 +7,7 @@ import { User } from "../../users/models";
 import { AuthoredProps, UserToCommentRelTypes } from "../../users/models/toComment";
 import { RestrictedProps, _ToSelfRelTypes } from "../../_domain/models/toSelf";
 import { CommentToSelfRelTypes, DeletedProps } from "./toSelf";
+import { PublicUserDto } from "../../users/dtos";
 
 @Labels("Comment")
 export class Comment extends Model {
@@ -37,7 +38,7 @@ export class Comment extends Model {
     updatedAt: number;
 
     @ApiProperty({ type: User })
-    authorUser: User;
+    authorUser: User | any;
 
     @ApiProperty({ type: Boolean })
     @NodeProperty()
@@ -72,7 +73,8 @@ export class Comment extends Model {
             ]);
         }
 
-        await this.authorUser?.toJSON();
+        this.authorUser = PublicUserDto.fromUser(this.authorUser);
+
         this.neo4jService = undefined;
         return { ...this };
     }
