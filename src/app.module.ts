@@ -1,4 +1,4 @@
-import { CacheInterceptor, CacheModule, Logger, MiddlewareConsumer, Module } from "@nestjs/common";
+import { CacheModule, Logger, MiddlewareConsumer, Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { AuthModule } from "./auth/auth.module";
 import { CommentsModule } from "./comments/comments.module";

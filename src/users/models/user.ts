@@ -6,7 +6,7 @@ import {
     Model,
     RelatedEntityRecord,
     RelatedEntityRecordItem,
-    RichRelatedEntities
+    RichRelatedEntities,
 } from "../../neo4j/neo4j.helper.types";
 import { Neo4jService } from "../../neo4j/services/neo4j.service";
 import { Post } from "../../posts/models";

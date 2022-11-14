@@ -2,7 +2,6 @@ import { IPostTagsRepository } from "./postTags.repository.interface";
 import { PostTag } from "../../models";
 import { Inject, Injectable } from "@nestjs/common";
 import { Neo4jService } from "../../../neo4j/services/neo4j.service";
-import { v4 as uuidv4 } from "uuid";
 
 @Injectable()
 export class PostTagsRepository implements IPostTagsRepository {

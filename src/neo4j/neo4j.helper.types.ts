@@ -1,7 +1,7 @@
 import { Neo4jService } from "./services/neo4j.service";
 import { Exclude } from "class-transformer";
 
-export interface RelationshipProps {}
+export class RelationshipProps {}
 
 export class RelatedEntityRecordItem<EntityType, RelType> {
     entity: EntityType;

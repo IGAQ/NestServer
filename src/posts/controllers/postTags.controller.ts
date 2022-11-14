@@ -5,7 +5,6 @@ import {
     HttpException,
     Inject,
     Param,
-    ParseUUIDPipe,
     UseInterceptors,
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
