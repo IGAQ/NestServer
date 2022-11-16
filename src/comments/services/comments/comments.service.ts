@@ -184,6 +184,8 @@ export class CommentsService implements ICommentsService {
         const comment = await this._dbContext.Comments.findCommentById(commentId);
         if (!comment) throw new HttpException("Comment not found", 404);
 
+        const user = this.getUserFromRequest();
+
         await this._dbContext.neo4jService.tryWriteAsync(
             `
             MATCH (c:Comment { commentId: $commentId })
@@ -221,4 +223,5 @@ export class CommentsService implements ICommentsService {
         if (user === undefined) throw new Error("User not found");
         return user;
     }
+
 }
