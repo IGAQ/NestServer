@@ -7,6 +7,9 @@ export class CommentCreationPayloadDto {
     @IsNotEmpty()
     commentContent: string;
 
+    @ApiProperty({ type: String, format: "uuid" })
+    parentId: string;
+
     constructor(partial?: Partial<CommentCreationPayloadDto>) {
         Object.assign(this, partial);
     }

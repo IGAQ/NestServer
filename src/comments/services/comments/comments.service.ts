@@ -103,14 +103,28 @@ export class CommentsService implements ICommentsService {
             (2 + userOffendingRecords.length);
         honourLevel = honourLevel > 1 ? 1 : honourLevel;
 
-        // if moderation passed, create comment and return it.
-        return await this._dbContext.Comments.addComment(
+        await this.findParentComment(commentPayload.parentId);
+
+        if (this.findParentComment) {
+            return await this._dbContext.Comments.addCommentToComment(
+                new Comment({
+                    commentContent: commentPayload.commentContent,
+                    authorUser: user,
+                    pending: honourLevel < 0.4, // the comment will not be in the pending state only if user's honour level is higher than 0.4
+                }),
+                commentPayload.parentId
+            );
+        }
+
+        return await this._dbContext.Comments.addCommentToPost(
             new Comment({
                 commentContent: commentPayload.commentContent,
                 authorUser: user,
                 pending: honourLevel < 0.4, // the comment will not be in the pending state only if user's honour level is higher than 0.4
-            })
+            }),
+            commentPayload.parentId
         );
+        // if moderation passed, create comment and return it.
     }
 
     public async findCommentById(commentId: string): Promise<Comment> {
@@ -227,24 +241,41 @@ export class CommentsService implements ICommentsService {
 
     // gets the parent post of any nested comment of the post
     private async findParentPost(commentId: string): Promise<Post> {
-        const parentCommentId = await this.findParentCommentRoot(commentId);
-
         const parentPost = await this._dbContext.neo4jService.tryReadAsync(
             `
             MATCH (p:Post)-[:${PostToCommentRelTypes.HAS_COMMENT}]->(c:Comment { commentId: $commentId })
             RETURN p
             `,
             {
-                parentCommentId,
+                commentId,
             }
         );
+
+        if (parentPost.records.length === 0) {
+            throw new HttpException("Post not found", 404);
+        }
         return parentPost.records[0].get("p");
     }
 
-    private async findParentCommentRoot(commentId: string): Promise<Comment> {
+    // gets the parent comment of any nested comment of the post
+    private async findParentComment(commentId: string): Promise<Comment> {
+        const queryResult = await this._dbContext.neo4jService.tryReadAsync(
+            `
+            MATCH (c:Comment { commentId: $commentId })-[:${CommentToSelfRelTypes.REPLIED}]->(c:Comment)
+            RETURN c
+            `,
+            {
+                commentId,
+            }
+        );
+        return queryResult.records[0].get("c");
+    }
+
+    // gets the root comment of any nested comment
+    private async findParentCommentRoot(commentId: string): Promise<Post> {
         const queryResult = await this._dbContext.neo4jService.tryReadAsync(
             ` 
-                MATCH (c:Comment { commentId: $commentId })-[:${CommentToSelfRelTypes.REPLIED}]->(c:Comment))
+                MATCH (c:Comment { commentId: $commentId })-[:${CommentToSelfRelTypes.REPLIED}]->(c:Comment)
                  RETURN c
                  `,
             {
@@ -256,7 +287,8 @@ export class CommentsService implements ICommentsService {
                 queryResult.records[0].get("c").properties.commentId
             );
         } else {
-            return await this._dbContext.Comments.findCommentById(commentId);
+            const rootComment = await this._dbContext.Comments.findCommentById(commentId);
+            return await this.findParentPost(rootComment.commentId);
         }
     }
 
