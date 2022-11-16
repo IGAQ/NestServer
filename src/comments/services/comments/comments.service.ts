@@ -108,20 +108,22 @@ export class CommentsService implements ICommentsService {
             return await this._dbContext.Comments.addCommentToPost(
                 new Comment({
                     commentContent: commentPayload.commentContent,
-                    authorUser: User,
+                    authorUser: user,
                     pending: honourLevel < 0.4,
-                }),
-                commentPayload.parentId
+                    updatedAt: new Date().getTime(),
+                    parentId: commentPayload.parentId,
+                })
             );
         }
 
         return await this._dbContext.Comments.addCommentToComment(
             new Comment({
                 commentContent: commentPayload.commentContent,
-                authorUser: User,
+                authorUser: user,
                 pending: honourLevel < 0.4,
-            }),
-            commentPayload.parentId
+                updatedAt: new Date().getTime(),
+                parentId: commentPayload.parentId,
+            })
         );
     }
 

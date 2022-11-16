@@ -37,10 +37,11 @@ export class CommentsRepository implements ICommentsRepository {
         return records.map(record => new Comment(record.get("c").properties, this._neo4jService));
     }
 
-    public async addCommentToComment(comment: Comment, parentId: string): Promise<Comment> {
+    public async addCommentToComment(comment: Comment): Promise<Comment> {
         if (comment.commentId === undefined) {
             comment.commentId = this._neo4jService.generateId();
         }
+        console.log(comment);
         let restrictedQueryString = "";
         let restrictedQueryParams = {};
         if (comment.restrictedProps !== null) {
@@ -80,8 +81,9 @@ export class CommentsRepository implements ICommentsRepository {
                 authoredAt: authoredProps.authoredAt,
 
                 // Parent
-                parentId: parentId,
+                parentId: comment.parentId,
 
+                pending: comment.pending,
                 // User properties
                 userId: comment.authorUser.userId,
 
@@ -95,7 +97,7 @@ export class CommentsRepository implements ICommentsRepository {
         return await this.findCommentById(comment.commentId);
     }
 
-    public async addCommentToPost(comment: Comment, parentId: string): Promise<Comment> {
+    public async addCommentToPost(comment: Comment): Promise<Comment> {
         if (comment.commentId === undefined) {
             comment.commentId = this._neo4jService.generateId();
         }
@@ -137,8 +139,10 @@ export class CommentsRepository implements ICommentsRepository {
                 commentContent: comment.commentContent,
                 authoredAt: authoredProps.authoredAt,
 
+                pending: comment.pending,
+
                 // Parent
-                parentId: parentId,
+                parentId: comment.parentId,
 
                 // User properties
                 userId: comment.authorUser.userId,

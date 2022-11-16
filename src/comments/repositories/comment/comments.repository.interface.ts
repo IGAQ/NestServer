@@ -8,9 +8,9 @@ export interface ICommentsRepository {
 
     findChildrenComments(parentId: string): Promise<Comment[]>;
 
-    addCommentToComment(comment: Comment, parentId: string): Promise<Comment>;
+    addCommentToComment(comment: Comment): Promise<Comment>;
 
-    addCommentToPost(comment: Comment, parentId: string): Promise<Comment>;
+    addCommentToPost(comment: Comment): Promise<Comment>;
 
     deleteComment(commentId: string): Promise<void>;
 
