@@ -50,7 +50,9 @@ export class PostsController {
     @CacheTTL(10)
     @UseInterceptors(CacheInterceptor)
     public async getAllQueeries(): Promise<PostModel[] | Error> {
-        const queeries = await this._postsService.findAllQueeries();
+        const queeries = await this._postsService.findAllQueeries(
+            (postA, postB) => postB.createdAt - postA.createdAt
+        );
         const decoratedQueeries = queeries.map(queery => queery.toJSON());
         return await Promise.all(decoratedQueeries);
     }
@@ -59,7 +61,9 @@ export class PostsController {
     @CacheTTL(10)
     @UseInterceptors(CacheInterceptor)
     public async getAllStories(): Promise<PostModel[] | Error> {
-        const stories = await this._postsService.findAllStories();
+        const stories = await this._postsService.findAllStories(
+            (postA, postB) => postB.createdAt - postA.createdAt
+        );
         const decoratedStories = stories.map(story => story.toJSON());
         return await Promise.all(decoratedStories);
     }

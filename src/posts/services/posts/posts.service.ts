@@ -8,7 +8,7 @@ import {
 } from "../../dtos";
 import { User } from "../../../users/models";
 import { Post, PostTag } from "../../models";
-import { IPostsService } from "./posts.service.interface";
+import { IPostsService, postSortCallback } from "./posts.service.interface";
 import { _$ } from "../../../_domain/injectableTokens";
 import { DatabaseContext } from "../../../database-access-layer/databaseContext";
 import { HttpService } from "@nestjs/axios";
@@ -161,12 +161,20 @@ export class PostsService implements IPostsService {
         return queeryPosts[queeryOfTheDayIndex];
     }
 
-    public async findAllQueeries(): Promise<Post[]> {
-        return await this._dbContext.Posts.findPostByPostType("queery");
+    public async findAllQueeries(sorted: null | postSortCallback): Promise<Post[]> {
+        const queeries = await this._dbContext.Posts.findPostByPostType("queery");
+        if (sorted !== null) {
+            queeries.sort(sorted);
+        }
+        return queeries;
     }
 
-    public async findAllStories(): Promise<Post[]> {
-        return await this._dbContext.Posts.findPostByPostType("story");
+    public async findAllStories(sorted: null | postSortCallback): Promise<Post[]> {
+        const stories = await this._dbContext.Posts.findPostByPostType("story");
+        if (sorted !== null) {
+            stories.sort(sorted);
+        }
+        return stories;
     }
 
     public async findPostById(postId: string): Promise<Post> {
