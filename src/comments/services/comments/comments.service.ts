@@ -252,7 +252,9 @@ export class CommentsService implements ICommentsService {
             }
         );
         if (queryResult.records.length > 0) {
-            this.findParentCommentRoot(queryResult.records[0].get("c").properties.commentId);
+            return await this.findParentCommentRoot(
+                queryResult.records[0].get("c").properties.commentId
+            );
         } else {
             return await this._dbContext.Comments.findCommentById(commentId);
         }
