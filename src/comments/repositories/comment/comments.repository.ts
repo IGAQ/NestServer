@@ -5,7 +5,7 @@ import { RestrictedProps, _ToSelfRelTypes } from "../../../_domain/models/toSelf
 import { Comment } from "../../models";
 import { CommentToSelfRelTypes, RepliedProps } from "../../models/toSelf";
 import { ICommentsRepository } from "./comments.repository.interface";
-import { PostToCommentRelTypes } from "src/posts/models/toComment";
+import { PostToCommentRelTypes } from "../../../posts/models/toComment";
 
 @Injectable()
 export class CommentsRepository implements ICommentsRepository {
