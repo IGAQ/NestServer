@@ -40,11 +40,25 @@ export class CommentsService implements ICommentsService {
         );
 
         // if moderation passed, create comment and return it.
-        return await this._dbContext.Comments.addComment(
+        if (commentPayload.isPost) {
+            return await this._dbContext.Comments.addCommentToPost(
+                new Comment({
+                    commentContent: commentPayload.commentContent,
+                    authorUser: user,
+                    pending: honourLevel < 0.4,
+                    updatedAt: new Date().getTime(),
+                    parentId: commentPayload.parentId,
+                })
+            );
+        }
+
+        return await this._dbContext.Comments.addCommentToComment(
             new Comment({
                 commentContent: commentPayload.commentContent,
                 authorUser: user,
                 pending: wasOffending,
+                updatedAt: new Date().getTime(),
+                parentId: commentPayload.parentId,
             })
         );
     }
@@ -123,7 +137,7 @@ export class CommentsService implements ICommentsService {
 
         const user = this.getUserFromRequest();
 
-        const parentPost = await this.findParentPost(commentId);
+        const [parentPost] = await this.findParentCommentRoot(commentId);
 
         if (parentPost.authorUser.userId !== user.userId) {
             throw new HttpException("User is not the author of the post", 403);
@@ -163,24 +177,44 @@ export class CommentsService implements ICommentsService {
 
     // gets the parent post of any nested comment of the post
     private async findParentPost(commentId: string): Promise<Post> {
-        const parentCommentId = await this.findParentCommentRoot(commentId);
-
         const parentPost = await this._dbContext.neo4jService.tryReadAsync(
             `
             MATCH (p:Post)-[:${PostToCommentRelTypes.HAS_COMMENT}]->(c:Comment { commentId: $commentId })
             RETURN p
             `,
             {
-                parentCommentId,
+                commentId,
             }
         );
+
+        if (parentPost.records.length === 0) {
+            throw new HttpException("Post not found", 404);
+        }
         return parentPost.records[0].get("p");
     }
 
-    private async findParentCommentRoot(commentId: string): Promise<Comment> {
+    // gets the parent comment of any nested comment of the post
+    private async findComment(commentId: string): Promise<Boolean> {
+        const queryResult = await this._dbContext.neo4jService.tryReadAsync(
+            `
+            MATCH (c:Comment { commentId: $commentId })-[:${CommentToSelfRelTypes.REPLIED}]->(commentParent:Comment)
+            RETURN commentParent
+            `,
+            {
+                commentId,
+            }
+        );
+        return queryResult.records[0].get("commentParent");
+    }
+
+    // gets the root comment of any nested comment
+    private async findParentCommentRoot(
+        commentId: string,
+        isNestedComment: boolean = false
+    ): Promise<[Post, boolean]> {
         const queryResult = await this._dbContext.neo4jService.tryReadAsync(
             ` 
-                MATCH (c:Comment { commentId: $commentId })-[:${CommentToSelfRelTypes.REPLIED}]->(c:Comment))
+                MATCH (c:Comment { commentId: $commentId })-[:${CommentToSelfRelTypes.REPLIED}]->(c:Comment)
                  RETURN c
                  `,
             {
@@ -189,10 +223,12 @@ export class CommentsService implements ICommentsService {
         );
         if (queryResult.records.length > 0) {
             return await this.findParentCommentRoot(
-                queryResult.records[0].get("c").properties.commentId
+                queryResult.records[0].get("c").properties.commentId,
+                true
             );
         } else {
-            return await this._dbContext.Comments.findCommentById(commentId);
+            const rootComment = await this._dbContext.Comments.findCommentById(commentId);
+            return [await this.findParentPost(rootComment.commentId), isNestedComment];
         }
     }
 
