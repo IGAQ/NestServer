@@ -10,6 +10,9 @@ export class CommentCreationPayloadDto {
     @ApiProperty({ type: String, format: "uuid" })
     parentId: string;
 
+    @ApiProperty({ type: Boolean })
+    isPost: boolean;
+
     constructor(partial?: Partial<CommentCreationPayloadDto>) {
         Object.assign(this, partial);
     }

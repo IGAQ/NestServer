@@ -103,28 +103,26 @@ export class CommentsService implements ICommentsService {
             (2 + userOffendingRecords.length);
         honourLevel = honourLevel > 1 ? 1 : honourLevel;
 
-        await this.findParentComment(commentPayload.parentId);
-
-        if (this.findParentComment) {
-            return await this._dbContext.Comments.addCommentToComment(
+        // if moderation passed, create comment and return it.
+        if (commentPayload.isPost) {
+            return await this._dbContext.Comments.addCommentToPost(
                 new Comment({
                     commentContent: commentPayload.commentContent,
-                    authorUser: user,
-                    pending: honourLevel < 0.4, // the comment will not be in the pending state only if user's honour level is higher than 0.4
+                    authorUser: User,
+                    pending: honourLevel < 0.4,
                 }),
                 commentPayload.parentId
             );
         }
 
-        return await this._dbContext.Comments.addCommentToPost(
+        return await this._dbContext.Comments.addCommentToComment(
             new Comment({
                 commentContent: commentPayload.commentContent,
-                authorUser: user,
-                pending: honourLevel < 0.4, // the comment will not be in the pending state only if user's honour level is higher than 0.4
+                authorUser: User,
+                pending: honourLevel < 0.4,
             }),
             commentPayload.parentId
         );
-        // if moderation passed, create comment and return it.
     }
 
     public async findCommentById(commentId: string): Promise<Comment> {
@@ -201,7 +199,7 @@ export class CommentsService implements ICommentsService {
 
         const user = this.getUserFromRequest();
 
-        const parentPost = await this.findParentPost(commentId);
+        const [parentPost] = await this.findParentCommentRoot(commentId);
 
         if (parentPost.authorUser.userId !== user.userId) {
             throw new HttpException("User is not the author of the post", 403);
@@ -258,21 +256,24 @@ export class CommentsService implements ICommentsService {
     }
 
     // gets the parent comment of any nested comment of the post
-    private async findParentComment(commentId: string): Promise<Comment> {
+    private async findComment(commentId: string): Promise<Boolean> {
         const queryResult = await this._dbContext.neo4jService.tryReadAsync(
             `
-            MATCH (c:Comment { commentId: $commentId })-[:${CommentToSelfRelTypes.REPLIED}]->(c:Comment)
-            RETURN c
+            MATCH (c:Comment { commentId: $commentId })-[:${CommentToSelfRelTypes.REPLIED}]->(commentParent:Comment)
+            RETURN commentParent
             `,
             {
                 commentId,
             }
         );
-        return queryResult.records[0].get("c");
+        return queryResult.records[0].get("commentParent");
     }
 
     // gets the root comment of any nested comment
-    private async findParentCommentRoot(commentId: string): Promise<Post> {
+    private async findParentCommentRoot(
+        commentId: string,
+        isNestedComment: boolean = false
+    ): Promise<[Post, boolean]> {
         const queryResult = await this._dbContext.neo4jService.tryReadAsync(
             ` 
                 MATCH (c:Comment { commentId: $commentId })-[:${CommentToSelfRelTypes.REPLIED}]->(c:Comment)
@@ -284,11 +285,12 @@ export class CommentsService implements ICommentsService {
         );
         if (queryResult.records.length > 0) {
             return await this.findParentCommentRoot(
-                queryResult.records[0].get("c").properties.commentId
+                queryResult.records[0].get("c").properties.commentId,
+                true
             );
         } else {
             const rootComment = await this._dbContext.Comments.findCommentById(commentId);
-            return await this.findParentPost(rootComment.commentId);
+            return [await this.findParentPost(rootComment.commentId), isNestedComment];
         }
     }
 
