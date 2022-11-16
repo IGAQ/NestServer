@@ -19,6 +19,18 @@ export class PostsRepository implements IPostsRepository {
         return records.map(record => new Post(record.get("p").properties, this._neo4jService));
     }
 
+    public async findPostByPostType(postTypeName: string): Promise<Post[]> {
+        const posts = await this._neo4jService.tryReadAsync(
+            `MATCH (p:Post)-[r:${PostToPostTypeRelTypes.HAS_POST_TYPE}]->(pt:PostType) WHERE pt.postTypeName = $postTypeName RETURN p`,
+            {
+                postTypeName: postTypeName,
+            }
+        );
+        const records = posts.records;
+        if (records.length === 0) return [];
+        return records.map(record => new Post(record.get("p").properties, this._neo4jService));
+    }
+
     public async findPostById(postId: string): Promise<Post | undefined> {
         const post = await this._neo4jService.read(
             `MATCH (p:Post) WHERE p.postId = $postId RETURN p`,

@@ -6,6 +6,10 @@ export interface IPostsService {
 
     getQueeryOfTheDay(): Promise<Post>;
 
+    findAllQueeries(): Promise<Post[]>;
+
+    findAllStories(): Promise<Post[]>;
+
     findPostById(postId: string): Promise<Post>;
 
     markAsDeleted(postId: string): Promise<void>;

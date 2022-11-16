@@ -4,6 +4,8 @@ import { RestrictedProps } from "../../../_domain/models/toSelf";
 export interface IPostsRepository {
     findAll(): Promise<Post[]>;
 
+    findPostByPostType(postTypeName: string): Promise<Post[]>;
+
     findPostById(postId: string): Promise<Post | undefined>;
 
     addPost(post: Post, anonymous: boolean): Promise<Post>;

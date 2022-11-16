@@ -161,6 +161,14 @@ export class PostsService implements IPostsService {
         return queeryPosts[queeryOfTheDayIndex];
     }
 
+    public async findAllQueeries(): Promise<Post[]> {
+        return await this._dbContext.Posts.findPostByPostType("queery");
+    }
+
+    public async findAllStories(): Promise<Post[]> {
+        return await this._dbContext.Posts.findPostByPostType("story");
+    }
+
     public async findPostById(postId: string): Promise<Post> {
         const foundPost = await this._dbContext.Posts.findPostById(postId);
         if (foundPost === null) throw new HttpException("Post not found", 404);
