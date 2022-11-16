@@ -9,14 +9,14 @@ import { User } from "../../../users/models";
 import { UserToCommentRelTypes } from "../../../users/models/toComment";
 import { WasOffendingProps } from "../../../users/models/toSelf";
 import { _$ } from "../../../_domain/injectableTokens";
-import { Comment } from "../../models";
 import {
     CommentCreationPayloadDto,
     HateSpeechRequestPayloadDto,
     HateSpeechResponseDto,
     VoteCommentPayloadDto,
-    VoteType,
+    VoteType
 } from "../../dtos";
+import { Comment } from "../../models";
 import { DeletedProps } from "../../models/toSelf";
 import { ICommentsService } from "./comments.service.interface";
 
@@ -111,6 +111,7 @@ export class CommentsService implements ICommentsService {
             })
         );
     }
+
     public async findCommentById(commentId: string): Promise<Comment> {
         const foundComment = await this._dbContext.Comments.findCommentById(commentId);
         if (!foundComment) {
@@ -133,6 +134,7 @@ export class CommentsService implements ICommentsService {
 
         return await foundComment.toJSON();
     }
+
     public async voteComment(voteCommentPayload: VoteCommentPayloadDto): Promise<void> {
         const user = this.getUserFromRequest();
 
@@ -177,9 +179,22 @@ export class CommentsService implements ICommentsService {
             }
         }
     }
+
     public async markAsPinned(commentId: string): Promise<void> {
-        throw new Error("Method not implemented.");
+        const comment = await this._dbContext.Comments.findCommentById(commentId);
+        if (!comment) throw new HttpException("Comment not found", 404);
+
+        await this._dbContext.neo4jService.tryWriteAsync(
+            `
+            MATCH (c:Comment { commentId: $commentId })
+            SET c.pinned = true
+            `,
+            {
+                commentId,
+            }
+        );
     }
+
     public async markAsDeleted(commentId: string): Promise<void> {
         const comment = await this._dbContext.Comments.findCommentById(commentId);
         if (!comment) {
