@@ -5,6 +5,8 @@ import { REQUEST } from "@nestjs/core";
 import { Request } from "express";
 import { catchError, lastValueFrom, map, throwError } from "rxjs";
 import { DatabaseContext } from "../../../database-access-layer/databaseContext";
+import { Post } from "../../../posts/models";
+import { PostToCommentRelTypes } from "../../../posts/models/toComment";
 import { User } from "../../../users/models";
 import { UserToCommentRelTypes } from "../../../users/models/toComment";
 import { WasOffendingProps } from "../../../users/models/toSelf";
@@ -17,9 +19,8 @@ import {
     VoteType
 } from "../../dtos";
 import { Comment } from "../../models";
-import { DeletedProps } from "../../models/toSelf";
+import { CommentToSelfRelTypes, DeletedProps, RepliedProps } from "../../models/toSelf";
 import { ICommentsService } from "./comments.service.interface";
-
 @Injectable({ scope: Scope.REQUEST })
 export class CommentsService implements ICommentsService {
     private readonly _logger = new Logger(CommentsService.name);
@@ -186,6 +187,12 @@ export class CommentsService implements ICommentsService {
 
         const user = this.getUserFromRequest();
 
+        const parentPost = await this.findParentPost(commentId);
+
+        if (parentPost.authorUser.userId !== user.userId) {
+            throw new HttpException("User is not the author of the post", 403);
+        }
+
         await this._dbContext.neo4jService.tryWriteAsync(
             `
             MATCH (c:Comment { commentId: $commentId })
@@ -216,6 +223,40 @@ export class CommentsService implements ICommentsService {
                 deletedByUserId: comment.authorUser.userId,
             })
         );
+    }
+
+
+    // gets the parent post of any nested comment of the post
+    private async findParentPost(commentId: string): Promise<Post> {
+        async function findParentComment(commentId: string): Promise<Comment> {
+            const queryResult = await this._dbContext.neo4jService.tryReadAsync(
+                ` 
+                MATCH (c:Comment { commentId: $commentId })-[:${CommentToSelfRelTypes.REPLIED}]->(c:Comment))
+                 RETURN c
+                 `,
+                {
+                    commentId,
+                }
+            );
+            if (queryResult.records.length > 0) {
+                return findParentComment(queryResult.records[0].get("c").properties.commentId);
+            } else {
+                return await this._dbContext.Comments.findCommentById(commentId);
+            }
+        }
+
+        const parentCommentId = await findParentComment(commentId);
+
+        const parentPost = await this._dbContext.neo4jService.tryReadAsync(
+            `
+            MATCH (p:Post)-[:${PostToCommentRelTypes.HAS_COMMENT}]->(c:Comment { commentId: $commentId })
+            RETURN p
+            `,
+            {
+                parentCommentId,
+            }
+        );
+        return parentPost.records[0].get("p")
     }
 
     private getUserFromRequest(): User {
