@@ -24,7 +24,7 @@ export class CommentsService implements ICommentsService {
         @Inject(REQUEST) request: Request,
         @Inject(_$.IDatabaseContext) databaseContext: DatabaseContext,
         httpService: HttpService,
-        autoModerationService: IAutoModerationService
+        @Inject(_$.IAutoModerationService) autoModerationService: IAutoModerationService
     ) {
         this._request = request;
         this._dbContext = databaseContext;
