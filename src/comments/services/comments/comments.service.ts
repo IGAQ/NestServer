@@ -5,11 +5,12 @@ import { REQUEST } from "@nestjs/core";
 import { Request } from "express";
 import { catchError, lastValueFrom, map, throwError } from "rxjs";
 import { DatabaseContext } from "../../../database-access-layer/databaseContext";
+import { Post } from "../../../posts/models";
+import { PostToCommentRelTypes } from "../../../posts/models/toComment";
 import { User } from "../../../users/models";
 import { UserToCommentRelTypes } from "../../../users/models/toComment";
 import { WasOffendingProps } from "../../../users/models/toSelf";
 import { _$ } from "../../../_domain/injectableTokens";
-import { Comment } from "../../models";
 import {
     CommentCreationPayloadDto,
     HateSpeechRequestPayloadDto,
@@ -17,9 +18,9 @@ import {
     VoteCommentPayloadDto,
     VoteType,
 } from "../../dtos";
-import { DeletedProps } from "../../models/toSelf";
+import { Comment } from "../../models";
+import { CommentToSelfRelTypes, DeletedProps, RepliedProps } from "../../models/toSelf";
 import { ICommentsService } from "./comments.service.interface";
-
 @Injectable({ scope: Scope.REQUEST })
 export class CommentsService implements ICommentsService {
     private readonly _logger = new Logger(CommentsService.name);
@@ -111,6 +112,7 @@ export class CommentsService implements ICommentsService {
             })
         );
     }
+
     public async findCommentById(commentId: string): Promise<Comment> {
         const foundComment = await this._dbContext.Comments.findCommentById(commentId);
         if (!foundComment) {
@@ -133,6 +135,7 @@ export class CommentsService implements ICommentsService {
 
         return await foundComment.toJSON();
     }
+
     public async voteComment(voteCommentPayload: VoteCommentPayloadDto): Promise<void> {
         const user = this.getUserFromRequest();
 
@@ -177,9 +180,30 @@ export class CommentsService implements ICommentsService {
             }
         }
     }
+
     public async markAsPinned(commentId: string): Promise<void> {
-        throw new Error("Method not implemented.");
+        const comment = await this._dbContext.Comments.findCommentById(commentId);
+        if (!comment) throw new HttpException("Comment not found", 404);
+
+        const user = this.getUserFromRequest();
+
+        const parentPost = await this.findParentPost(commentId);
+
+        if (parentPost.authorUser.userId !== user.userId) {
+            throw new HttpException("User is not the author of the post", 403);
+        }
+
+        await this._dbContext.neo4jService.tryWriteAsync(
+            `
+            MATCH (c:Comment { commentId: $commentId })
+            SET c.pinned = true
+            `,
+            {
+                commentId,
+            }
+        );
     }
+
     public async markAsDeleted(commentId: string): Promise<void> {
         const comment = await this._dbContext.Comments.findCommentById(commentId);
         if (!comment) {
@@ -199,6 +223,41 @@ export class CommentsService implements ICommentsService {
                 deletedByUserId: comment.authorUser.userId,
             })
         );
+    }
+
+    // gets the parent post of any nested comment of the post
+    private async findParentPost(commentId: string): Promise<Post> {
+        const parentCommentId = await this.findParentCommentRoot(commentId);
+
+        const parentPost = await this._dbContext.neo4jService.tryReadAsync(
+            `
+            MATCH (p:Post)-[:${PostToCommentRelTypes.HAS_COMMENT}]->(c:Comment { commentId: $commentId })
+            RETURN p
+            `,
+            {
+                parentCommentId,
+            }
+        );
+        return parentPost.records[0].get("p");
+    }
+
+    private async findParentCommentRoot(commentId: string): Promise<Comment> {
+        const queryResult = await this._dbContext.neo4jService.tryReadAsync(
+            ` 
+                MATCH (c:Comment { commentId: $commentId })-[:${CommentToSelfRelTypes.REPLIED}]->(c:Comment))
+                 RETURN c
+                 `,
+            {
+                commentId,
+            }
+        );
+        if (queryResult.records.length > 0) {
+            return await this.findParentCommentRoot(
+                queryResult.records[0].get("c").properties.commentId
+            );
+        } else {
+            return await this._dbContext.Comments.findCommentById(commentId);
+        }
     }
 
     private getUserFromRequest(): User {
