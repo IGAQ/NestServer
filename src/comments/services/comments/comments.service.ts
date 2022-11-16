@@ -16,7 +16,7 @@ import {
     HateSpeechRequestPayloadDto,
     HateSpeechResponseDto,
     VoteCommentPayloadDto,
-    VoteType
+    VoteType,
 } from "../../dtos";
 import { Comment } from "../../models";
 import { CommentToSelfRelTypes, DeletedProps, RepliedProps } from "../../models/toSelf";
@@ -225,27 +225,9 @@ export class CommentsService implements ICommentsService {
         );
     }
 
-
     // gets the parent post of any nested comment of the post
     private async findParentPost(commentId: string): Promise<Post> {
-        async function findParentComment(commentId: string): Promise<Comment> {
-            const queryResult = await this._dbContext.neo4jService.tryReadAsync(
-                ` 
-                MATCH (c:Comment { commentId: $commentId })-[:${CommentToSelfRelTypes.REPLIED}]->(c:Comment))
-                 RETURN c
-                 `,
-                {
-                    commentId,
-                }
-            );
-            if (queryResult.records.length > 0) {
-                findParentComment(queryResult.records[0].get("c").properties.commentId);
-            } else {
-                return await this._dbContext.Comments.findCommentById(commentId);
-            }
-        }
-
-        const parentCommentId = await findParentComment(commentId);
+        const parentCommentId = await this.findParentCommentRoot(commentId);
 
         const parentPost = await this._dbContext.neo4jService.tryReadAsync(
             `
@@ -256,7 +238,24 @@ export class CommentsService implements ICommentsService {
                 parentCommentId,
             }
         );
-        return parentPost.records[0].get("p")
+        return await parentPost.records[0].get("p");
+    }
+
+    private async findParentCommentRoot(commentId: string): Promise<Comment> {
+        const queryResult = await this._dbContext.neo4jService.tryReadAsync(
+            ` 
+                MATCH (c:Comment { commentId: $commentId })-[:${CommentToSelfRelTypes.REPLIED}]->(c:Comment))
+                 RETURN c
+                 `,
+            {
+                commentId,
+            }
+        );
+        if (queryResult.records.length > 0) {
+            this.findParentCommentRoot(queryResult.records[0].get("c").properties.commentId);
+        } else {
+            return await this._dbContext.Comments.findCommentById(commentId);
+        }
     }
 
     private getUserFromRequest(): User {
@@ -264,5 +263,4 @@ export class CommentsService implements ICommentsService {
         if (user === undefined) throw new Error("User not found");
         return user;
     }
-
 }
