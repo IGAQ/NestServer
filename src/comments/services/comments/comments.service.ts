@@ -238,7 +238,7 @@ export class CommentsService implements ICommentsService {
                 parentCommentId,
             }
         );
-        return await parentPost.records[0].get("p");
+        return parentPost.records[0].get("p");
     }
 
     private async findParentCommentRoot(commentId: string): Promise<Comment> {
