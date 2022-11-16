@@ -46,6 +46,24 @@ export class PostsController {
         return await Promise.all(decoratedPosts);
     }
 
+    @Get("/queery")
+    @CacheTTL(10)
+    @UseInterceptors(CacheInterceptor)
+    public async getAllQueeries(): Promise<PostModel[] | Error> {
+        const queeries = await this._postsService.findAllQueeries();
+        const decoratedQueeries = queeries.map(queery => queery.toJSON());
+        return await Promise.all(decoratedQueeries);
+    }
+
+    @Get("/story")
+    @CacheTTL(10)
+    @UseInterceptors(CacheInterceptor)
+    public async getAllStories(): Promise<PostModel[] | Error> {
+        const stories = await this._postsService.findAllStories();
+        const decoratedStories = stories.map(story => story.toJSON());
+        return await Promise.all(decoratedStories);
+    }
+
     @Get(":postId")
     public async getPostById(
         @Param("postId", new ParseUUIDPipe()) postId: string
