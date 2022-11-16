@@ -1,114 +1,50 @@
 import { HttpService } from "@nestjs/axios";
-import { HttpException, Inject, Injectable, Logger, Scope } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
+import { HttpException, Inject, Injectable, Scope } from "@nestjs/common";
 import { REQUEST } from "@nestjs/core";
 import { Request } from "express";
-import { catchError, lastValueFrom, map, throwError } from "rxjs";
 import { DatabaseContext } from "../../../database-access-layer/databaseContext";
 import { Post } from "../../../posts/models";
 import { PostToCommentRelTypes } from "../../../posts/models/toComment";
 import { User } from "../../../users/models";
 import { UserToCommentRelTypes } from "../../../users/models/toComment";
-import { WasOffendingProps } from "../../../users/models/toSelf";
 import { _$ } from "../../../_domain/injectableTokens";
-import {
-    CommentCreationPayloadDto,
-    HateSpeechRequestPayloadDto,
-    HateSpeechResponseDto,
-    VoteCommentPayloadDto,
-    VoteType,
-} from "../../dtos";
+import { CommentCreationPayloadDto, VoteCommentPayloadDto, VoteType } from "../../dtos";
 import { Comment } from "../../models";
 import { CommentToSelfRelTypes, DeletedProps, RepliedProps } from "../../models/toSelf";
 import { ICommentsService } from "./comments.service.interface";
+import { IAutoModerationService } from "../../../moderation/services/autoModeration/autoModeration.service.interface";
+
 @Injectable({ scope: Scope.REQUEST })
 export class CommentsService implements ICommentsService {
-    private readonly _logger = new Logger(CommentsService.name);
     private readonly _request: Request;
     private readonly _dbContext: DatabaseContext;
-    private readonly _httpService: HttpService;
-    private readonly _configService: ConfigService;
+    private readonly _autoModerationService: IAutoModerationService;
 
     constructor(
         @Inject(REQUEST) request: Request,
         @Inject(_$.IDatabaseContext) databaseContext: DatabaseContext,
         httpService: HttpService,
-        configService: ConfigService
+        autoModerationService: IAutoModerationService
     ) {
         this._request = request;
         this._dbContext = databaseContext;
-        this._httpService = httpService;
-        this._configService = configService;
+        this._autoModerationService = autoModerationService;
     }
 
     public async authorNewComment(commentPayload: CommentCreationPayloadDto): Promise<Comment> {
         const user = this.getUserFromRequest();
 
         // auto-moderation
-        const autoModerationApiKey = this._configService.get<string>("MODERATE_HATESPEECH_API_KEY");
-        const autoModerationApiUrl = this._configService.get<string>("MODERATE_HATESPEECH_API_URL");
-
-        const hateSpeechResponseDto = await lastValueFrom(
-            this._httpService
-                .post<HateSpeechResponseDto>(
-                    autoModerationApiUrl,
-                    new HateSpeechRequestPayloadDto({
-                        token: autoModerationApiKey,
-                        text: commentPayload.commentContent,
-                    })
-                )
-                .pipe(
-                    map(response => response.data),
-                    catchError(err => {
-                        this._logger.error(err);
-                        return throwError(() => err);
-                    })
-                )
+        const wasOffending = await this._autoModerationService.checkForHateSpeech(
+            commentPayload.commentContent
         );
-
-        // if moderation failed, throw error
-        if (hateSpeechResponseDto.class === "flag") {
-            if (hateSpeechResponseDto.confidence >= 0.8) {
-                // TODO: create a ticket for the admin to review
-
-                await user.addWasOffendingRecord(
-                    new WasOffendingProps({
-                        timestamp: new Date().getTime(),
-                        userContent: commentPayload.commentContent,
-                        autoModConfidenceLevel: hateSpeechResponseDto.confidence,
-                    })
-                );
-                throw new HttpException("Hate speech detected", 400);
-            }
-        }
-
-        // get all records of them offending. And, get all comments that this user authored.
-        const userOffendingRecords = await user.getWasOffendingRecords();
-        const userAuthoredComments = await user.getAuthoredComments();
-
-        // lazy-query the restriction state of the comments.
-        for (const i in userAuthoredComments) {
-            await userAuthoredComments[i].getRestricted();
-        }
-
-        // calculate the honour level of the user. (0 < honourLevel < 1)
-        const numberOfCleanComments = userAuthoredComments.map(
-            c => !c.pending && c.restrictedProps === null
-        ).length;
-
-        const honourGainHardshipCoefficient = 0.1; // 0.1 means: for the user to achieve the full level of honour, they need at least 10 clean comments while not having any offending records.
-
-        let honourLevel =
-            (1 + numberOfCleanComments * honourGainHardshipCoefficient) /
-            (2 + userOffendingRecords.length);
-        honourLevel = honourLevel > 1 ? 1 : honourLevel;
 
         // if moderation passed, create comment and return it.
         return await this._dbContext.Comments.addComment(
             new Comment({
                 commentContent: commentPayload.commentContent,
                 authorUser: user,
-                pending: honourLevel < 0.4, // the comment will not be in the pending state only if user's honour level is higher than 0.4
+                pending: wasOffending,
             })
         );
     }

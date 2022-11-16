@@ -12,9 +12,10 @@ import { PostTagsRepository } from "./repositories/postTag/postTags.repository";
 import { PostTypesRepository } from "./repositories/postType/postTypes.repository";
 import { PostAwardRepository } from "./repositories/postAward/postAward.repository";
 import { PostTypesController } from "./controllers/postTypes.controller";
+import { ModerationModule } from "../moderation/moderation.module";
 
 @Module({
-    imports: [forwardRef(() => DatabaseAccessLayerModule), HttpModule],
+    imports: [forwardRef(() => DatabaseAccessLayerModule), HttpModule, ModerationModule],
     providers: [
         {
             provide: _$.IPostsRepository,

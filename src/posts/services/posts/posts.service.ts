@@ -1,43 +1,30 @@
-import { HttpException, Inject, Injectable, Logger, Scope } from "@nestjs/common";
-import {
-    PostCreationPayloadDto,
-    HateSpeechRequestPayloadDto,
-    HateSpeechResponseDto,
-    VotePostPayloadDto,
-    VoteType,
-} from "../../dtos";
+import { HttpException, Inject, Injectable, Scope } from "@nestjs/common";
+import { PostCreationPayloadDto, VotePostPayloadDto, VoteType } from "../../dtos";
 import { User } from "../../../users/models";
 import { Post, PostTag } from "../../models";
 import { IPostsService, postSortCallback } from "./posts.service.interface";
 import { _$ } from "../../../_domain/injectableTokens";
 import { DatabaseContext } from "../../../database-access-layer/databaseContext";
-import { HttpService } from "@nestjs/axios";
-import { ConfigService } from "@nestjs/config";
-import { catchError, lastValueFrom, map, throwError } from "rxjs";
-import { WasOffendingProps } from "../../../users/models/toSelf";
 import { DeletedProps } from "../../models/toSelf";
 import { REQUEST } from "@nestjs/core";
 import { Request } from "express";
 import { UserToPostRelTypes } from "../../../users/models/toPost";
+import { IAutoModerationService } from "../../../moderation/services/autoModeration/autoModeration.service.interface";
 
 @Injectable({ scope: Scope.REQUEST })
 export class PostsService implements IPostsService {
-    private readonly _logger = new Logger(PostsService.name);
     private readonly _request: Request;
     private readonly _dbContext: DatabaseContext;
-    private readonly _httpService: HttpService;
-    private readonly _configService: ConfigService;
+    private readonly _autoModerationService: IAutoModerationService;
 
     constructor(
         @Inject(REQUEST) request: Request,
         @Inject(_$.IDatabaseContext) databaseContext: DatabaseContext,
-        httpService: HttpService,
-        configService: ConfigService
+        @Inject(_$.IAutoModerationService) autoModerationService: IAutoModerationService
     ) {
         this._request = request;
         this._dbContext = databaseContext;
-        this._httpService = httpService;
-        this._configService = configService;
+        this._autoModerationService = autoModerationService;
     }
 
     public async authorNewPost(postPayload: PostCreationPayloadDto): Promise<Post> {
@@ -59,63 +46,9 @@ export class PostsService implements IPostsService {
         }
 
         // auto-moderation
-        const autoModerationApiKey = this._configService.get<string>("MODERATE_HATESPEECH_API_KEY");
-        const autoModerationApiUrl = this._configService.get<string>("MODERATE_HATESPEECH_API_URL");
-
-        const hateSpeechResponseDto = await lastValueFrom(
-            this._httpService
-                .post<HateSpeechResponseDto>(
-                    autoModerationApiUrl,
-                    new HateSpeechRequestPayloadDto({
-                        token: autoModerationApiKey,
-                        text: postPayload.postTitle + postPayload.postContent,
-                    })
-                )
-                .pipe(
-                    map(response => response.data),
-                    catchError(err => {
-                        this._logger.error(err);
-                        return throwError(() => err);
-                    })
-                )
+        const wasOffending = await this._autoModerationService.checkForHateSpeech(
+            postPayload.postTitle + postPayload.postContent
         );
-
-        // if moderation failed, throw error
-        if (hateSpeechResponseDto.class === "flag") {
-            if (hateSpeechResponseDto.confidence >= 0.8) {
-                // TODO: create a ticket for the admin to review
-
-                await user.addWasOffendingRecord(
-                    new WasOffendingProps({
-                        timestamp: new Date().getTime(),
-                        userContent: postPayload.postTitle + postPayload.postContent,
-                        autoModConfidenceLevel: hateSpeechResponseDto.confidence,
-                    })
-                );
-                throw new HttpException("Hate speech detected", 400);
-            }
-        }
-
-        // get all records of them offending. And, get all posts that this user authored.
-        const userOffendingRecords = await user.getWasOffendingRecords();
-        const userAuthoredPosts = await user.getAuthoredPosts();
-
-        // lazy-query the restriction state of the posts.
-        for (const i in userAuthoredPosts) {
-            await userAuthoredPosts[i].getRestricted();
-        }
-
-        // calculate the honour level of the user. (0 < honourLevel < 1)
-        const numberOfCleanPosts = userAuthoredPosts.map(
-            p => !p.pending && p.restrictedProps === null
-        ).length;
-
-        const honourGainHardshipCoefficient = 0.1; // 0.1 means: for the user to achieve the full level of honour, they need at least 10 clean posts while not having any offending records.
-
-        let honourLevel =
-            (1 + numberOfCleanPosts * honourGainHardshipCoefficient) /
-            (2 + userOffendingRecords.length);
-        honourLevel = honourLevel > 1 ? 1 : honourLevel;
 
         // if moderation passed, create post and return it.
         return await this._dbContext.Posts.addPost(
@@ -125,7 +58,7 @@ export class PostsService implements IPostsService {
                 postTitle: postPayload.postTitle,
                 postContent: postPayload.postContent,
                 authorUser: user,
-                pending: honourLevel < 0.4, // the post will not be in the pending state only if user's honour level is higher than 0.4
+                pending: wasOffending,
             }),
             postPayload.anonymous
         );
