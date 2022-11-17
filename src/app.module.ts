@@ -10,6 +10,7 @@ import { PostsModule } from "./posts/posts.module";
 import { UsersModule } from "./users/users.module";
 import { AppLoggerMiddleware } from "./_domain/middlewares/appLogger.middleware";
 import { neo4jCredentials } from "./_domain/constants";
+import { ModerationModule } from './moderation/moderation.module';
 
 @Module({
     imports: [
@@ -36,6 +37,7 @@ import { neo4jCredentials } from "./_domain/constants";
         PostsModule,
         CommentsModule,
         DatabaseAccessLayerModule,
+        ModerationModule,
     ],
 })
 export class AppModule {

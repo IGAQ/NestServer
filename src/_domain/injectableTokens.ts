@@ -24,5 +24,8 @@ const injectableTokens = {
 
     // Neo4j Module
     INeo4jService: Symbol("INeo4jService"),
+
+    // Moderation Module
+    IAutoModerationService: Symbol("IAutoModerationService"),
 };
 export { injectableTokens as _$ };

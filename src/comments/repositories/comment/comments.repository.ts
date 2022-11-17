@@ -5,6 +5,7 @@ import { RestrictedProps, _ToSelfRelTypes } from "../../../_domain/models/toSelf
 import { Comment } from "../../models";
 import { CommentToSelfRelTypes, RepliedProps } from "../../models/toSelf";
 import { ICommentsRepository } from "./comments.repository.interface";
+import { PostToCommentRelTypes } from "../../../posts/models/toComment";
 
 @Injectable()
 export class CommentsRepository implements ICommentsRepository {
@@ -36,7 +37,67 @@ export class CommentsRepository implements ICommentsRepository {
         return records.map(record => new Comment(record.get("c").properties, this._neo4jService));
     }
 
-    public async addComment(comment: Comment): Promise<Comment> {
+    public async addCommentToComment(comment: Comment): Promise<Comment> {
+        if (comment.commentId === undefined) {
+            comment.commentId = this._neo4jService.generateId();
+        }
+        console.log(comment);
+        let restrictedQueryString = "";
+        let restrictedQueryParams = {};
+        if (comment.restrictedProps !== null) {
+            restrictedQueryString = `-[:${_ToSelfRelTypes.RESTRICTED} { 
+                    restrictedAt: $restrictedAt, 
+                    moderatorId: $moderatorId,
+                    reason: $reason
+                 }]->(c)`;
+            restrictedQueryParams = {
+                restrictedAt: comment.restrictedProps.restrictedAt,
+                moderatorId: comment.restrictedProps.moderatorId,
+                reason: comment.restrictedProps.reason,
+            } as RestrictedProps;
+        }
+        const authoredProps = new AuthoredProps({
+            authoredAt: new Date().getTime(),
+        });
+        await this._neo4jService.tryWriteAsync(
+            `
+                MATCH (u:User { userId: $userId })
+                MATCH (commentParent:Comment { commentId: $parentId })
+                CREATE (c:Comment {
+                    commentId: $commentId,
+                    updatedAt: $updatedAt,
+                    commentContent: $commentContent,
+                    pending: $pending
+                })${restrictedQueryString}<-[:${UserToCommentRelTypes.AUTHORED} {
+                    authoredAt: $authoredAt
+                }]-(u),
+                (c)-[:${CommentToSelfRelTypes.REPLIED}]->(commentParent) 
+            `,
+            {
+                // Comment properties
+                commentId: comment.commentId,
+                updatedAt: comment.updatedAt,
+                commentContent: comment.commentContent,
+                authoredAt: authoredProps.authoredAt,
+
+                // Parent
+                parentId: comment.parentId,
+
+                pending: comment.pending,
+                // User properties
+                userId: comment.authorUser.userId,
+
+                // Authored properties
+                authoredProps_authoredAt: authoredProps.authoredAt ?? new Date().getTime(),
+
+                // RestrictedProps (if applicable)
+                ...restrictedQueryParams,
+            }
+        );
+        return await this.findCommentById(comment.commentId);
+    }
+
+    public async addCommentToPost(comment: Comment): Promise<Comment> {
         if (comment.commentId === undefined) {
             comment.commentId = this._neo4jService.generateId();
         }
@@ -60,6 +121,7 @@ export class CommentsRepository implements ICommentsRepository {
         await this._neo4jService.tryWriteAsync(
             `
                 MATCH (u:User { userId: $userId })
+                MATCH (commentParent:Post { postId: $parentId })
                 CREATE (c:Comment {
                     commentId: $commentId,
                     updatedAt: $updatedAt,
@@ -67,7 +129,8 @@ export class CommentsRepository implements ICommentsRepository {
                     pending: $pending
                 })${restrictedQueryString}<-[:${UserToCommentRelTypes.AUTHORED} {
                     authoredAt: $authoredAt
-                }]-(u)
+                }]-(u),
+                (c)<-[:${PostToCommentRelTypes.HAS_COMMENT}]-(commentParent)
             `,
             {
                 // Comment properties
@@ -75,6 +138,11 @@ export class CommentsRepository implements ICommentsRepository {
                 updatedAt: comment.updatedAt,
                 commentContent: comment.commentContent,
                 authoredAt: authoredProps.authoredAt,
+
+                pending: comment.pending,
+
+                // Parent
+                parentId: comment.parentId,
 
                 // User properties
                 userId: comment.authorUser.userId,
