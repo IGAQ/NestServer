@@ -19,8 +19,9 @@ import {
     VoteType,
 } from "../../dtos";
 import { Comment } from "../../models";
-import { CommentToSelfRelTypes, DeletedProps, RepliedProps } from "../../models/toSelf";
+import { CommentToSelfRelTypes, DeletedProps } from "../../models/toSelf";
 import { ICommentsService } from "./comments.service.interface";
+
 @Injectable({ scope: Scope.REQUEST })
 export class CommentsService implements ICommentsService {
     private readonly _logger = new Logger(CommentsService.name);
