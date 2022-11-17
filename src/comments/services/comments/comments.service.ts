@@ -10,7 +10,7 @@ import { UserToCommentRelTypes } from "../../../users/models/toComment";
 import { _$ } from "../../../_domain/injectableTokens";
 import { CommentCreationPayloadDto, VoteCommentPayloadDto, VoteType } from "../../dtos";
 import { Comment } from "../../models";
-import { CommentToSelfRelTypes, DeletedProps, RepliedProps } from "../../models/toSelf";
+import { CommentToSelfRelTypes, DeletedProps } from "../../models/toSelf";
 import { ICommentsService } from "./comments.service.interface";
 import { IAutoModerationService } from "../../../moderation/services/autoModeration/autoModeration.service.interface";
 
@@ -45,7 +45,7 @@ export class CommentsService implements ICommentsService {
                 new Comment({
                     commentContent: commentPayload.commentContent,
                     authorUser: user,
-                    pending: honourLevel < 0.4,
+                    pending: wasOffending,
                     updatedAt: new Date().getTime(),
                     parentId: commentPayload.parentId,
                 })
@@ -194,7 +194,7 @@ export class CommentsService implements ICommentsService {
     }
 
     // gets the parent comment of any nested comment of the post
-    private async findComment(commentId: string): Promise<Boolean> {
+    private async findComment(commentId: string): Promise<boolean> {
         const queryResult = await this._dbContext.neo4jService.tryReadAsync(
             `
             MATCH (c:Comment { commentId: $commentId })-[:${CommentToSelfRelTypes.REPLIED}]->(commentParent:Comment)
@@ -210,7 +210,7 @@ export class CommentsService implements ICommentsService {
     // gets the root comment of any nested comment
     private async findParentCommentRoot(
         commentId: string,
-        isNestedComment: boolean = false
+        isNestedComment = false
     ): Promise<[Post, boolean]> {
         const queryResult = await this._dbContext.neo4jService.tryReadAsync(
             ` 
