@@ -1,0 +1,17 @@
+import { ApiProperty } from "@nestjs/swagger";
+import { Labels, NodeProperty } from "../../neo4j/neo4j.decorators";
+
+@Labels("PostTag")
+export class PostTag {
+    @ApiProperty({ type: String })
+    @NodeProperty()
+    tagName: string;
+
+    @ApiProperty({ type: String })
+    @NodeProperty()
+    tagColor: string;
+
+    constructor(partial?: Partial<PostTag>) {
+        Object.assign(this, partial);
+    }
+}

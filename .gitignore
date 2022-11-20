@@ -10,6 +10,7 @@ pnpm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
+bun.lockb
 
 # OS
 .DS_Store
@@ -20,6 +21,7 @@ lerna-debug.log*
 
 # IDEs and editors
 /.idea
+/.fleet
 .project
 .classpath
 .c9/
@@ -33,3 +35,5 @@ lerna-debug.log*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+.env
