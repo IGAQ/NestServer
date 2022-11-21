@@ -51,7 +51,7 @@ export class AutoModerationService implements IAutoModerationService {
 
         // if moderation failed, throw error
         if (hateSpeechResponseDto.class === "flag") {
-            if (hateSpeechResponseDto.confidence >= 0.9) {
+            if (hateSpeechResponseDto.confidence >= 0.99) {
                 // TODO: create a ticket for the admin to review
 
                 await user.addWasOffendingRecord(
