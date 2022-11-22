@@ -12,7 +12,7 @@ export class VotePostPayloadDto {
     @IsUUID()
     postId: string;
 
-    @ApiProperty({ type: VoteType })
+    @ApiProperty({ enum: VoteType })
     @IsNotEmpty()
     @IsEnum(VoteType)
     voteType: VoteType;

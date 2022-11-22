@@ -10,10 +10,15 @@ import { PostsModule } from "./posts/posts.module";
 import { UsersModule } from "./users/users.module";
 import { AppLoggerMiddleware } from "./_domain/middlewares/appLogger.middleware";
 import { neo4jCredentials } from "./_domain/constants";
-import { ModerationModule } from './moderation/moderation.module';
+import { ModerationModule } from "./moderation/moderation.module";
+import { ThrottlerModule } from "@nestjs/throttler";
 
 @Module({
     imports: [
+        ThrottlerModule.forRoot({
+            ttl: 60,
+            limit: 10,
+        }),
         Neo4jModule.forRootAsync({
             imports: [ConfigModule],
             inject: [ConfigService],
