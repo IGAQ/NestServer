@@ -17,10 +17,12 @@ export interface IPostsService {
 
     findNestedCommentsByPostId(
         postId: string,
-        limit: number,
+        topLevelLimit: number,
         nestedLimit: number,
         nestedLevel: number
     ): Promise<Comment[]>;
+
+    getNestedComments(comments, nestedLevel, nestedLimit): Promise<void>;
 
     markAsDeleted(postId: string): Promise<void>;
 

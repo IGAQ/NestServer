@@ -145,7 +145,7 @@ export class PostsService implements IPostsService {
         return comments;
     }
 
-    private async getNestedComments(comments, nestedLevel, nestedLimit) {
+    public async getNestedComments(comments, nestedLevel, nestedLimit): Promise<void> {
         if (nestedLevel === 0) return;
         for (const i in comments) {
             const comment: Comment = comments[i];
