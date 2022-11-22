@@ -6,8 +6,6 @@ export interface ICommentsRepository {
 
     findCommentById(commentId: string): Promise<Comment | undefined>;
 
-    findChildrenComments(parentId: string): Promise<Comment[]>;
-
     addCommentToComment(comment: Comment): Promise<Comment>;
 
     addCommentToPost(comment: Comment): Promise<Comment>;

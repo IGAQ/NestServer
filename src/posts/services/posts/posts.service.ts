@@ -10,6 +10,7 @@ import { REQUEST } from "@nestjs/core";
 import { Request } from "express";
 import { UserToPostRelTypes, VoteProps } from "../../../users/models/toPost";
 import { IAutoModerationService } from "../../../moderation/services/autoModeration/autoModeration.service.interface";
+import { Comment } from "../../../comments/models";
 
 @Injectable({ scope: Scope.REQUEST })
 export class PostsService implements IPostsService {
@@ -124,6 +125,33 @@ export class PostsService implements IPostsService {
         if (foundPost.restrictedProps !== null) throw new HttpException("Post is restricted", 404);
 
         return await foundPost.toJSON();
+    }
+
+    public async findNestedCommentsByPostId(
+        postId: string,
+        topLevelLimit: number,
+        nestedLimit: number,
+        nestedLevel: number
+    ): Promise<Comment[]> {
+        const foundPost = await this._dbContext.Posts.findPostById(postId);
+        if (foundPost === null) throw new HttpException("Post not found", 404);
+
+        // level 0 means no nesting
+        const comments = await foundPost.getComments(topLevelLimit);
+        if (nestedLevel === 0) return comments;
+
+        await this.getNestedComments(comments, nestedLevel, nestedLimit);
+
+        return comments;
+    }
+
+    private async getNestedComments(comments, nestedLevel, nestedLimit) {
+        if (nestedLevel === 0) return;
+        for (const i in comments) {
+            const comment: Comment = comments[i];
+            await comment.getChildrenComments(nestedLimit);
+            await this.getNestedComments(comment.childComments, nestedLevel - 1, nestedLimit);
+        }
     }
 
     public async markAsDeleted(postId: string): Promise<void> {

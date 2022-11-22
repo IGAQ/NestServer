@@ -27,16 +27,6 @@ export class CommentsRepository implements ICommentsRepository {
         return new Comment(comment.records[0].get("c").properties, this._neo4jService);
     }
 
-    public async findChildrenComments(parentId: string): Promise<Comment[]> {
-        const comments = await this._neo4jService.read(
-            `MATCH (c:Comment)-[:${CommentToSelfRelTypes.REPLIED}]->(p:Comment) WHERE p.commentId = $parentId RETURN c`,
-            { parentId: parentId }
-        );
-        const records = comments.records;
-        if (records.length === 0) return [];
-        return records.map(record => new Comment(record.get("c").properties, this._neo4jService));
-    }
-
     public async addCommentToComment(comment: Comment): Promise<Comment> {
         if (comment.commentId === undefined) {
             comment.commentId = this._neo4jService.generateId();

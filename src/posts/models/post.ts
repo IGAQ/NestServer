@@ -16,6 +16,9 @@ import { AuthoredProps, UserToPostRelTypes } from "../../users/models/toPost";
 import { DeletedProps, PostToSelfRelTypes } from "./toSelf";
 import { Exclude } from "class-transformer";
 import { PublicUserDto } from "../../users/dtos";
+import { PostToCommentRelTypes } from "./toComment";
+import { Comment } from "../../comments/models";
+import neo4j from "neo4j-driver";
 
 @Labels("Post")
 export class Post extends Model {
@@ -59,6 +62,9 @@ export class Post extends Model {
     @ApiProperty({ type: Number })
     totalVotes: number;
 
+    @ApiProperty({ type: Comment, isArray: true })
+    comments: Comment[];
+
     @ApiProperty({ type: Boolean })
     @NodeProperty()
     @Exclude()
@@ -85,6 +91,28 @@ export class Post extends Model {
         this.authorUser = PublicUserDto.fromUser(this.authorUser);
         this.neo4jService = undefined;
         return { ...this };
+    }
+
+    public async getComments(limit = 0): Promise<Comment[]> {
+        const queryResult = await this.neo4jService.tryReadAsync(
+            `
+            MATCH (p:Post {postId: $postId})-[:${PostToCommentRelTypes.HAS_COMMENT}]->(c:Comment)
+                RETURN c
+                ${limit != 0 ? `LIMIT $limit` : ""}
+            `,
+            {
+                postId: this.postId,
+                ...(limit != 0 ? { limit: neo4j.int(limit) } : {}),
+            }
+        );
+        const records = queryResult.records;
+        if (records.length === 0) {
+            this.comments = [];
+            return this.comments;
+        }
+        const comments = records.map(r => new Comment(r.get("c").properties, this.neo4jService));
+        this.comments = comments;
+        return comments;
     }
 
     public async getTotalVotes(): Promise<number> {
