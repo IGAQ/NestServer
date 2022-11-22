@@ -13,16 +13,10 @@ import { PostTypesRepository } from "./repositories/postType/postTypes.repositor
 import { PostAwardRepository } from "./repositories/postAward/postAward.repository";
 import { PostTypesController } from "./controllers/postTypes.controller";
 import { ModerationModule } from "../moderation/moderation.module";
-import { ThrottlerGuard } from "@nestjs/throttler";
-import { APP_GUARD } from "@nestjs/core";
 
 @Module({
     imports: [forwardRef(() => DatabaseAccessLayerModule), HttpModule, ModerationModule],
     providers: [
-        {
-            provide: APP_GUARD,
-            useClass: ThrottlerGuard,
-        },
         {
             provide: _$.IPostsRepository,
             useClass: PostsRepository,
