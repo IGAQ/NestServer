@@ -10,10 +10,16 @@ import { PostsModule } from "./posts/posts.module";
 import { UsersModule } from "./users/users.module";
 import { AppLoggerMiddleware } from "./_domain/middlewares/appLogger.middleware";
 import { neo4jCredentials } from "./_domain/constants";
-import { ModerationModule } from './moderation/moderation.module';
+import { ModerationModule } from "./moderation/moderation.module";
+import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
+import { APP_GUARD } from "@nestjs/core";
 
 @Module({
     imports: [
+        ThrottlerModule.forRoot({
+            ttl: 60,
+            limit: 10,
+        }),
         Neo4jModule.forRootAsync({
             imports: [ConfigModule],
             inject: [ConfigService],
@@ -38,6 +44,12 @@ import { ModerationModule } from './moderation/moderation.module';
         CommentsModule,
         DatabaseAccessLayerModule,
         ModerationModule,
+    ],
+    providers: [
+        {
+            provide: APP_GUARD,
+            useClass: ThrottlerGuard,
+        },
     ],
 })
 export class AppModule {

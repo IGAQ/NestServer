@@ -46,6 +46,20 @@ export class CommentsController {
         return await Promise.all(decoratedComments);
     }
 
+    @Get(":commentId/nestedComments")
+    public async getNestedComments(
+        @Param("commentId", new ParseUUIDPipe()) commentId: string
+    ): Promise<CommentModel[] | Error> {
+        const comments = await this._commentsService.findNestedCommentsByCommentId(
+            commentId,
+            10,
+            2,
+            3
+        );
+        const decoratedComments = comments.map(comment => comment.toJSONNested());
+        return await Promise.all(decoratedComments);
+    }
+
     @Get(":commentId")
     public async getCommentById(
         @Param("commentId", new ParseUUIDPipe()) commentId: string

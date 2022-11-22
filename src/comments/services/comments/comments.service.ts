@@ -13,22 +13,26 @@ import { Comment } from "../../models";
 import { CommentToSelfRelTypes, DeletedProps } from "../../models/toSelf";
 import { ICommentsService } from "./comments.service.interface";
 import { IAutoModerationService } from "../../../moderation/services/autoModeration/autoModeration.service.interface";
+import { IPostsService } from "../../../posts/services/posts/posts.service.interface";
 
 @Injectable({ scope: Scope.REQUEST })
 export class CommentsService implements ICommentsService {
     private readonly _request: Request;
     private readonly _dbContext: DatabaseContext;
     private readonly _autoModerationService: IAutoModerationService;
+    private readonly _postService: IPostsService;
 
     constructor(
         @Inject(REQUEST) request: Request,
         @Inject(_$.IDatabaseContext) databaseContext: DatabaseContext,
         httpService: HttpService,
-        @Inject(_$.IAutoModerationService) autoModerationService: IAutoModerationService
+        @Inject(_$.IAutoModerationService) autoModerationService: IAutoModerationService,
+        @Inject(_$.IPostsService) postsService: IPostsService
     ) {
         this._request = request;
         this._dbContext = databaseContext;
         this._autoModerationService = autoModerationService;
+        this._postService = postsService;
     }
 
     public async authorNewComment(commentPayload: CommentCreationPayloadDto): Promise<Comment> {
@@ -84,6 +88,24 @@ export class CommentsService implements ICommentsService {
         }
 
         return await foundComment.toJSON();
+    }
+
+    public async findNestedCommentsByCommentId(
+        commentId: string,
+        topLevelLimit: number,
+        nestedLimit: number,
+        nestedLevel: number
+    ): Promise<Comment[]> {
+        const foundComment = await this._dbContext.Comments.findCommentById(commentId);
+        if (foundComment === null) throw new HttpException("Comment not found", 404);
+
+        // level 0 means no nesting
+        const comments = await foundComment.getChildrenComments(topLevelLimit);
+        if (nestedLevel === 0) return comments;
+
+        await this._postService.getNestedComments(comments, nestedLevel, nestedLimit);
+
+        return comments;
     }
 
     public async voteComment(voteCommentPayload: VoteCommentPayloadDto): Promise<void> {

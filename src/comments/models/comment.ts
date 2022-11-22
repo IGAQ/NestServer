@@ -8,6 +8,7 @@ import { AuthoredProps, UserToCommentRelTypes } from "../../users/models/toComme
 import { RestrictedProps, _ToSelfRelTypes } from "../../_domain/models/toSelf";
 import { CommentToSelfRelTypes, DeletedProps } from "./toSelf";
 import { PublicUserDto } from "../../users/dtos";
+import neo4j from "neo4j-driver";
 
 @Labels("Comment")
 export class Comment extends Model {
@@ -77,6 +78,38 @@ export class Comment extends Model {
 
         this.neo4jService = undefined;
         return { ...this };
+    }
+
+    public async toJSONNested() {
+        if (!this.childComments) {
+            return this.toJSON();
+        }
+        for (const i in this.childComments) {
+            this.childComments[i] = await this.childComments[i].toJSONNested();
+        }
+        return this.toJSON();
+    }
+
+    public async getChildrenComments(limit = 0): Promise<Comment[]> {
+        const queryResult = await this.neo4jService.tryReadAsync(
+            `
+            MATCH (c:Comment)-[:${
+                CommentToSelfRelTypes.REPLIED
+            }]->(p:Comment) WHERE p.commentId = $parentId 
+            RETURN c
+            ${limit > 0 ? `LIMIT $limit` : ""}
+            `,
+            {
+                parentId: this.commentId,
+                ...(limit > 0 ? { limit: neo4j.int(limit) } : {}),
+            }
+        );
+        const records = queryResult.records;
+        if (records.length === 0) return [];
+        this.childComments = records.map(
+            record => new Comment(record.get("c").properties, this.neo4jService)
+        );
+        return this.childComments;
     }
 
     public async getTotalVotes(): Promise<number> {

@@ -6,10 +6,16 @@ import { DatabaseAccessLayerModule } from "../database-access-layer/database-acc
 import { forwardRef, Module } from "@nestjs/common";
 import { HttpModule } from "@nestjs/axios";
 import { ModerationModule } from "../moderation/moderation.module";
+import { PostsModule } from "../posts/posts.module";
 
 @Module({
     controllers: [CommentsController],
-    imports: [forwardRef(() => DatabaseAccessLayerModule), HttpModule, ModerationModule],
+    imports: [
+        forwardRef(() => DatabaseAccessLayerModule),
+        HttpModule,
+        ModerationModule,
+        PostsModule,
+    ],
     providers: [
         {
             provide: _$.ICommentsService,

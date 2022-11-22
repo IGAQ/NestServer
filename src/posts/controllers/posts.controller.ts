@@ -18,7 +18,8 @@ import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { DatabaseContext } from "../../database-access-layer/databaseContext";
 import { _$ } from "../../_domain/injectableTokens";
 import { Post as PostModel } from "../models";
-import { PostCreationPayloadDto } from "../dtos";
+import { Comment } from "../../comments/models";
+import { PostCreationPayloadDto, VotePostPayloadDto } from "../dtos";
 import { IPostsService } from "../services/posts/posts.service.interface";
 
 @ApiTags("posts")
@@ -68,6 +69,21 @@ export class PostsController {
         return await Promise.all(decoratedStories);
     }
 
+    @Get(":postId/nestedComments")
+    @UseGuards(AuthGuard("jwt"))
+    public async getNestedCommentsByPostId(
+        @Param("postId", new ParseUUIDPipe()) postId: string
+    ): Promise<Comment[] | Error> {
+        const topLevelComments = await this._postsService.findNestedCommentsByPostId(
+            postId,
+            10,
+            2,
+            2
+        );
+        const decoratedTopLevelComments = topLevelComments.map(comment => comment.toJSONNested());
+        return await Promise.all(decoratedTopLevelComments);
+    }
+
     @Get(":postId")
     public async getPostById(
         @Param("postId", new ParseUUIDPipe()) postId: string
@@ -84,5 +100,12 @@ export class PostsController {
     ): Promise<PostModel | Error> {
         const post = await this._postsService.authorNewPost(postPayload);
         return await post.toJSON();
+    }
+
+    @Post("vote")
+    @UseGuards(AuthGuard("jwt"))
+    public async votePost(@Body() votePostPayload: VotePostPayloadDto): Promise<void | Error> {
+        await this._postsService.votePost(votePostPayload);
+        return;
     }
 }

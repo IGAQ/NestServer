@@ -6,6 +6,13 @@ export interface ICommentsService {
 
     findCommentById(commentId: string): Promise<Comment>;
 
+    findNestedCommentsByCommentId(
+        commentId: string,
+        topLevelLimit: number,
+        nestedLimit: number,
+        nestedLevel: number
+    ): Promise<Comment[]>;
+
     voteComment(votePayload: VoteCommentPayloadDto): Promise<void>;
 
     markAsPinned(commentId: string): Promise<void>;

@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsBoolean, isNotEmpty, IsNotEmpty, IsString } from "class-validator";
+import { IsBoolean, IsNotEmpty, IsString } from "class-validator";
 
 export class CommentCreationPayloadDto {
     @ApiProperty({ type: String, minLength: 5, maxLength: 2500 })

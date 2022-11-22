@@ -8,8 +8,9 @@ import { DatabaseContext } from "../../../database-access-layer/databaseContext"
 import { DeletedProps } from "../../models/toSelf";
 import { REQUEST } from "@nestjs/core";
 import { Request } from "express";
-import { UserToPostRelTypes } from "../../../users/models/toPost";
+import { UserToPostRelTypes, VoteProps } from "../../../users/models/toPost";
 import { IAutoModerationService } from "../../../moderation/services/autoModeration/autoModeration.service.interface";
+import { Comment } from "../../../comments/models";
 
 @Injectable({ scope: Scope.REQUEST })
 export class PostsService implements IPostsService {
@@ -126,6 +127,33 @@ export class PostsService implements IPostsService {
         return await foundPost.toJSON();
     }
 
+    public async findNestedCommentsByPostId(
+        postId: string,
+        topLevelLimit: number,
+        nestedLimit: number,
+        nestedLevel: number
+    ): Promise<Comment[]> {
+        const foundPost = await this._dbContext.Posts.findPostById(postId);
+        if (foundPost === null) throw new HttpException("Post not found", 404);
+
+        // level 0 means no nesting
+        const comments = await foundPost.getComments(topLevelLimit);
+        if (nestedLevel === 0) return comments;
+
+        await this.getNestedComments(comments, nestedLevel, nestedLimit);
+
+        return comments;
+    }
+
+    public async getNestedComments(comments, nestedLevel, nestedLimit): Promise<void> {
+        if (nestedLevel === 0) return;
+        for (const i in comments) {
+            const comment: Comment = comments[i];
+            await comment.getChildrenComments(nestedLimit);
+            await this.getNestedComments(comment.childComments, nestedLevel - 1, nestedLimit);
+        }
+    }
+
     public async markAsDeleted(postId: string): Promise<void> {
         const post = await this._dbContext.Posts.findPostById(postId);
         if (post === undefined) throw new Error("Post not found");
@@ -151,7 +179,7 @@ export class PostsService implements IPostsService {
 
         const queryResult = await this._dbContext.neo4jService.tryReadAsync(
             `
-            MATCH (u:User { userId: $userId })-[r:${UserToPostRelTypes.UPVOTES}|${UserToPostRelTypes.DOWN_VOTES}]->(p:Post { postId: $postId })
+            MATCH (u:User { userId: $userId })-[r:${UserToPostRelTypes.UPVOTES}|${UserToPostRelTypes.DOWN_VOTES}]->(p:Post { postId: $postId }) RETURN r
             `,
             {
                 userId: user.userId,
@@ -160,39 +188,46 @@ export class PostsService implements IPostsService {
         );
 
         if (queryResult.records.length > 0) {
+            // user has already voted on this post
             const relType = queryResult.records[0].get("r").type;
-            if (
-                relType === UserToPostRelTypes.UPVOTES &&
-                votePostPayload.voteType === VoteType.UPVOTES
-            ) {
-                throw new HttpException("User already upvoted this post", 400);
-            } else if (
-                relType === UserToPostRelTypes.DOWN_VOTES &&
-                votePostPayload.voteType === VoteType.DOWN_VOTES
-            ) {
-                throw new HttpException("User already downvoted this post", 400);
-            } else {
-                await this._dbContext.neo4jService.tryWriteAsync(
-                    `
+
+            // remove the existing vote
+            await this._dbContext.neo4jService.tryWriteAsync(
+                `
                     MATCH (u:User { userId: $userId })-[r:${relType}]->(p:Post { postId: $postId })
                     DELETE r
                     `,
-                    {
-                        userId: user.userId,
-                        postId: votePostPayload.postId,
-                    }
-                );
+                {
+                    userId: user.userId,
+                    postId: votePostPayload.postId,
+                }
+            );
+
+            // don't add a new vote if the user is removing their vote (stop)
+            if (
+                (relType === UserToPostRelTypes.UPVOTES &&
+                    votePostPayload.voteType === VoteType.UPVOTES) ||
+                (relType === UserToPostRelTypes.DOWN_VOTES &&
+                    votePostPayload.voteType === VoteType.DOWN_VOTES)
+            ) {
+                return;
             }
         }
 
+        // add the new vote
+        const voteProps = new VoteProps({
+            votedAt: new Date().getTime(),
+        });
         await this._dbContext.neo4jService.tryWriteAsync(
             `
             MATCH (u:User { userId: $userId }), (p:Post { postId: $postId })
-            MERGE (u)-[r:${votePostPayload.voteType}]->(p)
+            MERGE (u)-[r:${votePostPayload.voteType} { votedAt: $votedAt }]->(p)
             `,
             {
                 userId: user.userId,
                 postId: votePostPayload.postId,
+
+                votedAt: voteProps.votedAt,
             }
         );
     }
