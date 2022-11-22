@@ -70,7 +70,6 @@ export class PostsController {
     }
 
     @Get(":postId/nestedComments")
-    @UseGuards(AuthGuard("jwt"))
     public async getNestedCommentsByPostId(
         @Param("postId", new ParseUUIDPipe()) postId: string
     ): Promise<Comment[] | Error> {
