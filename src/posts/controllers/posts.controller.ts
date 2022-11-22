@@ -18,7 +18,7 @@ import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { DatabaseContext } from "../../database-access-layer/databaseContext";
 import { _$ } from "../../_domain/injectableTokens";
 import { Post as PostModel } from "../models";
-import { PostCreationPayloadDto } from "../dtos";
+import { PostCreationPayloadDto, VotePostPayloadDto } from "../dtos";
 import { IPostsService } from "../services/posts/posts.service.interface";
 
 @ApiTags("posts")
@@ -84,5 +84,12 @@ export class PostsController {
     ): Promise<PostModel | Error> {
         const post = await this._postsService.authorNewPost(postPayload);
         return await post.toJSON();
+    }
+
+    @Post("vote")
+    @UseGuards(AuthGuard("jwt"))
+    public async votePost(@Body() votePostPayload: VotePostPayloadDto): Promise<void | Error> {
+        await this._postsService.votePost(votePostPayload);
+        return;
     }
 }

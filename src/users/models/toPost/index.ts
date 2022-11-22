@@ -1,7 +1,6 @@
 export { AuthoredProps } from "./authored.props";
 export { ReadProps } from "./read.props";
-export { UpVotesProps } from "./upVotes.props";
-export { DownVotesProps } from "./downVotes.props";
+export { VoteProps } from "./vote.props";
 export { FavoritesProps } from "./favorites.props";
 export { ReportedProps } from "./reported.props";
 
