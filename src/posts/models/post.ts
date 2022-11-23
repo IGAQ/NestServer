@@ -19,6 +19,8 @@ import { PublicUserDto } from "../../users/dtos";
 import { PostToCommentRelTypes } from "./toComment";
 import { Comment } from "../../comments/models";
 import neo4j from "neo4j-driver";
+import { VoteType } from "../../_domain/models/enums";
+import { IsOptional } from "class-validator";
 
 @Labels("Post")
 export class Post extends Model {
@@ -62,6 +64,10 @@ export class Post extends Model {
     @ApiProperty({ type: Number })
     totalVotes: number;
 
+    @ApiProperty({ type: Number })
+    @IsOptional()
+    totalComments: number | undefined;
+
     @ApiProperty({ type: Comment, isArray: true })
     comments: Comment[];
 
@@ -70,12 +76,16 @@ export class Post extends Model {
     @Exclude()
     deletedProps: Nullable<DeletedProps> = null;
 
+    @ApiProperty({ type: VoteType, nullable: true })
+    @IsOptional()
+    userVote: Nullable<VoteType> | undefined = undefined;
+
     constructor(partial?: Partial<Post>, neo4jService?: Neo4jService) {
         super(neo4jService);
         Object.assign(this, partial);
     }
 
-    public async toJSON() {
+    public async toJSON(props: ToJSONProps = {}) {
         if (this.neo4jService) {
             await Promise.all([
                 this.getPostType(),
@@ -85,6 +95,7 @@ export class Post extends Model {
                 this.getCreatedAt(),
                 this.getTotalVotes(),
                 this.getAuthorUser(),
+                ...(props.authenticatedUserId ? [this.getUserVote(props.authenticatedUserId)] : []),
             ]);
         }
 
@@ -113,6 +124,29 @@ export class Post extends Model {
         const comments = records.map(r => new Comment(r.get("c").properties, this.neo4jService));
         this.comments = comments;
         return comments;
+    }
+
+    public async getUserVote(userId): Promise<Nullable<VoteType>> {
+        const queryResult = await this.neo4jService.tryReadAsync(
+            `
+            MATCH (u:User { userId: $userId })-[r:${UserToPostRelTypes.UPVOTES}|${UserToPostRelTypes.DOWN_VOTES}]->(p:Post { postId: $postId }) 
+            RETURN r
+            `,
+            {
+                userId,
+                postId: this.postId,
+            }
+        );
+
+        if (queryResult.records.length > 0) {
+            // user has already voted on this post
+            const relType = queryResult.records[0].get("r").type as VoteType;
+            this.userVote = relType;
+            return relType;
+        }
+
+        this.userVote = null;
+        return null;
     }
 
     public async getTotalVotes(): Promise<number> {
@@ -273,4 +307,8 @@ export class Post extends Model {
         this.postTags = result;
         return result;
     }
+}
+
+interface ToJSONProps {
+    authenticatedUserId?: string;
 }

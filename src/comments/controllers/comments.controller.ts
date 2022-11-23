@@ -18,8 +18,11 @@ import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { DatabaseContext } from "../../database-access-layer/databaseContext";
 import { _$ } from "../../_domain/injectableTokens";
 import { Comment as CommentModel } from "../models";
-import { CommentCreationPayloadDto } from "../dtos";
+import { CommentCreationPayloadDto, VoteCommentPayloadDto } from "../dtos";
 import { ICommentsService } from "../services/comments/comments.service.interface";
+import { OptionalJwtAuthGuard } from "../../auth/guards/optionalJwtAuth.guard";
+import { AuthedUser } from "../../auth/decorators/authedUser.param.decorator";
+import { User } from "../../users/models";
 
 @ApiTags("comments")
 @Controller("comments")
@@ -38,16 +41,21 @@ export class CommentsController {
     }
 
     @Get()
-    @CacheTTL(10) // idk how many to cache this needs to change
+    @CacheTTL(4)
+    @UseGuards(OptionalJwtAuthGuard)
     @UseInterceptors(CacheInterceptor)
-    public async index(): Promise<CommentModel[] | Error> {
+    public async index(@AuthedUser() user: User): Promise<CommentModel[] | Error> {
         const comments = await this._dbContext.Comments.findAll();
-        const decoratedComments = comments.map(comment => comment.toJSON());
+        const decoratedComments = comments.map(comment =>
+            comment.toJSON({ authenticatedUserId: user?.userId ?? undefined })
+        );
         return await Promise.all(decoratedComments);
     }
 
     @Get(":commentId/nestedComments")
+    @UseGuards(OptionalJwtAuthGuard)
     public async getNestedComments(
+        @AuthedUser() user: User,
         @Param("commentId", new ParseUUIDPipe()) commentId: string
     ): Promise<CommentModel[] | Error> {
         const comments = await this._commentsService.findNestedCommentsByCommentId(
@@ -56,17 +64,21 @@ export class CommentsController {
             2,
             3
         );
-        const decoratedComments = comments.map(comment => comment.toJSONNested());
+        const decoratedComments = comments.map(comment =>
+            comment.toJSONNested({ authenticatedUserId: user?.userId ?? undefined })
+        );
         return await Promise.all(decoratedComments);
     }
 
     @Get(":commentId")
+    @UseGuards(OptionalJwtAuthGuard)
     public async getCommentById(
+        @AuthedUser() user: User,
         @Param("commentId", new ParseUUIDPipe()) commentId: string
     ): Promise<CommentModel | Error> {
         const comment = await this._dbContext.Comments.findCommentById(commentId);
         if (comment === undefined) throw new HttpException("Comment not found", 404);
-        return await comment.toJSON();
+        return await comment.toJSON({ authenticatedUserId: user?.userId ?? undefined });
     }
 
     @Post("create")
@@ -76,5 +88,14 @@ export class CommentsController {
     ): Promise<CommentModel | Error> {
         const comment = await this._commentsService.authorNewComment(commentPayload);
         return await comment.toJSON();
+    }
+
+    @Post("vote")
+    @UseGuards(AuthGuard("jwt"))
+    public async voteComment(
+        @Body() voteCommentPayload: VoteCommentPayloadDto
+    ): Promise<void | Error> {
+        await this._commentsService.voteComment(voteCommentPayload);
+        return;
     }
 }
