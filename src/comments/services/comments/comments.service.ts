@@ -3,8 +3,10 @@ import { HttpException, Inject, Injectable, Scope } from "@nestjs/common";
 import { REQUEST } from "@nestjs/core";
 import { Request } from "express";
 import { DatabaseContext } from "../../../database-access-layer/databaseContext";
+import { IAutoModerationService } from "../../../moderation/services/autoModeration/autoModeration.service.interface";
 import { Post } from "../../../posts/models";
 import { PostToCommentRelTypes } from "../../../posts/models/toComment";
+import { IPostsService } from "../../../posts/services/posts/posts.service.interface";
 import { User } from "../../../users/models";
 import { UserToCommentRelTypes } from "../../../users/models/toComment";
 import { _$ } from "../../../_domain/injectableTokens";
@@ -177,21 +179,30 @@ export class CommentsService implements ICommentsService {
         const comment = await this._dbContext.Comments.findCommentById(commentId);
         if (!comment) throw new HttpException("Comment not found", 404);
 
-        const user = this.getUserFromRequest();
 
         const [parentPost] = await this.findParentCommentRoot(commentId);
+        const user = this.getUserFromRequest();
+        const isPinned = await this.checkIfAnyCommentIsPinned(parentPost);
 
-        if (parentPost.authorUser.userId !== user.userId) {
+        const postAuthor = await parentPost.getAuthorUser();
+
+        if (postAuthor.userId !== user.userId) {
             throw new HttpException("User is not the author of the post", 403);
+        }
+
+        if (isPinned === true) {
+            throw new HttpException("Post already has a pinned comment", 400);
         }
 
         await this._dbContext.neo4jService.tryWriteAsync(
             `
-            MATCH (c:Comment { commentId: $commentId })
-            SET c.pinned = true
-            `,
+            MATCH  (p:Post { postId: $postId }), (c:Comment { commentId: $commentId })
+            CREATE (p)-[:${PostToCommentRelTypes.PINNED_COMMENT}]->(c)
+            `
+            ,
             {
-                commentId,
+                postId: parentPost.postId,
+                commentId: commentId,
             }
         );
     }
@@ -232,7 +243,7 @@ export class CommentsService implements ICommentsService {
         if (parentPost.records.length === 0) {
             throw new HttpException("Post not found", 404);
         }
-        return parentPost.records[0].get("p");
+        return new Post(parentPost.records[0].get("p").properties, this._dbContext.neo4jService);
     }
 
     // gets the parent comment of any nested comment of the post
@@ -246,7 +257,10 @@ export class CommentsService implements ICommentsService {
                 commentId,
             }
         );
-        return queryResult.records[0].get("commentParent");
+        if (queryResult.records.length > 0) {
+            return true;
+        }
+        return false;
     }
 
     // gets the root comment of any nested comment
@@ -256,22 +270,38 @@ export class CommentsService implements ICommentsService {
     ): Promise<[Post, boolean]> {
         const queryResult = await this._dbContext.neo4jService.tryReadAsync(
             ` 
-                MATCH (c:Comment { commentId: $commentId })-[:${CommentToSelfRelTypes.REPLIED}]->(c:Comment)
-                 RETURN c
-                 `,
+                MATCH (c:Comment { commentId: $commentId })-[:${CommentToSelfRelTypes.REPLIED}]->(commentParent:Comment)
+                RETURN commentParent
+            `,
             {
                 commentId,
             }
         );
         if (queryResult.records.length > 0) {
             return await this.findParentCommentRoot(
-                queryResult.records[0].get("c").properties.commentId,
+                queryResult.records[0].get("commentParent").properties.commentId,
                 true
             );
         } else {
             const rootComment = await this._dbContext.Comments.findCommentById(commentId);
             return [await this.findParentPost(rootComment.commentId), isNestedComment];
         }
+    }
+
+    private async checkIfAnyCommentIsPinned(post: Post): Promise<boolean> {
+        const queryResult = await this._dbContext.neo4jService.tryReadAsync(
+            `
+            MATCH (p:Post { postId: $postId })-[:${PostToCommentRelTypes.PINNED_COMMENT}]->(c:Comment)
+            RETURN c
+            `,
+            {
+                postId: post.postId,
+            }
+        );
+        if (queryResult.records.length > 0) {
+            return true;
+        }
+        return false;
     }
 
     private getUserFromRequest(): User {

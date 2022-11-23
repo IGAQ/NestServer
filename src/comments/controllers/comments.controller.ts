@@ -11,7 +11,7 @@ import {
     ParseUUIDPipe,
     Post,
     UseGuards,
-    UseInterceptors,
+    UseInterceptors
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
@@ -79,6 +79,13 @@ export class CommentsController {
         const comment = await this._dbContext.Comments.findCommentById(commentId);
         if (comment === undefined) throw new HttpException("Comment not found", 404);
         return await comment.toJSON({ authenticatedUserId: user?.userId ?? undefined });
+    }
+
+    // pin comment 
+    @Post(":commentId/pin")
+    @UseGuards(AuthGuard("jwt"))
+    public async pinComment(@Param("commentId", new ParseUUIDPipe()) commentId: string): Promise<void> {
+        await this._commentsService.markAsPinned(commentId);
     }
 
     @Post("create")
