@@ -244,7 +244,8 @@ export class Neo4jSeedService {
                     updatedAt: $updatedAt,
                     postTitle: $postTitle,
                     postContent: $postContent,
-                    pending: $pending
+                    pending: $pending,
+                    totalComments: $totalComments
                 })${restrictedQueryString}<-[authoredRelationship:${UserToPostRelTypes.AUTHORED} {
                     authoredAt: $authoredProps_authoredAt,
                     anonymously: $authoredProps_anonymously
@@ -292,6 +293,7 @@ export class Neo4jSeedService {
                     postTitle: postEntity.postTitle,
                     postContent: postEntity.postContent,
                     pending: postEntity.pending,
+                    totalComments: postEntity.totalComments,
 
                     // PostType
                     postTypeName: postEntity.postType.postTypeName.trim().toLowerCase(),
@@ -326,12 +328,14 @@ export class Neo4jSeedService {
                 anonymously: false,
             });
             await this._neo4jService.tryWriteAsync(
-                `MATCH (authorUser:${this.userLabel}) WHERE authorUser.userId = $authorUserId
+                `
+                MATCH (authorUser:${this.userLabel}) WHERE authorUser.userId = $authorUserId
                 CREATE (comment:${this.commentLabel} {
                     commentId: $commentId,
                     commentContent: $commentContent,
                     updatedAt: $updatedAt,
-                    pending: $pending
+                    pending: $pending,
+                    totalComments: $totalComments
                 })${restrictedQueryString}<-[authoredRelationship:${UserToPostRelTypes.AUTHORED} {
                     authoredAt: $authoredProps_authoredAt,
                     anonymously: $authoredProps_anonymously
@@ -346,6 +350,7 @@ export class Neo4jSeedService {
                     commentContent: commentEntity.commentContent,
                     updatedAt: commentEntity.updatedAt,
                     pending: commentEntity.pending,
+                    totalComments: commentEntity.totalComments,
 
                     // AuthoredProps
                     authoredProps_authoredAt: authoredProps.authoredAt,
@@ -360,6 +365,7 @@ export class Neo4jSeedService {
                 await this._neo4jService.tryWriteAsync(
                     `MATCH (comment:${this.commentLabel} { commentId: $commentId })
 					MATCH (parent) WHERE (parent:${this.postLabel} AND parent.postId = $parentId) OR (parent:${this.commentLabel} AND parent.commentId = $parentId)
+					    SET parent.totalComments = parent.totalComments + 1
 					FOREACH (i in CASE WHEN parent:${this.postLabel} THEN [1] ELSE [] END | 
 					    MERGE (comment)<-[:${PostToCommentRelTypes.HAS_COMMENT}]-(parent))
 					FOREACH (i in CASE WHEN parent:${this.commentLabel} THEN [1] ELSE [] END |
@@ -373,7 +379,8 @@ export class Neo4jSeedService {
 
                 if (commentEntity.pinned) {
                     await this._neo4jService.tryWriteAsync(
-                        `MATCH (comment:${this.commentLabel} { commentId: $commentId })
+                        `
+                        MATCH (comment:${this.commentLabel} { commentId: $commentId })
                         MATCH (parent) WHERE parent:${this.postLabel} AND parent.postId = $parentId
                         MERGE (comment)-[:${PostToCommentRelTypes.PINNED_COMMENT}]->(parent)
                         `,
@@ -545,6 +552,7 @@ export class Neo4jSeedService {
                 }),
                 pending: false,
                 totalVotes: 1,
+                totalComments: 0,
                 awards: {
                     [PostToAwardRelTypes.HAS_AWARD]: {
                         records: (await this.getAwards()).slice(0, 2).map(award => ({
@@ -574,6 +582,7 @@ export class Neo4jSeedService {
                 }),
                 pending: true,
                 totalVotes: 3,
+                totalComments: 0,
                 awards: {
                     [PostToAwardRelTypes.HAS_AWARD]: {
                         records: (await this.getAwards()).slice(0, 2).map(award => ({
@@ -601,6 +610,7 @@ export class Neo4jSeedService {
                     userId: "5c0f145b-ffad-4881-8ee6-7647c3c1b695",
                 }),
                 pinned: true,
+                totalComments: 0,
                 pending: false,
                 restrictedProps: null,
                 childComments: [],
@@ -615,6 +625,7 @@ export class Neo4jSeedService {
                     userId: "5c0f145b-ffad-4881-8ee6-7647c3c1b695",
                 }),
                 pinned: false,
+                totalComments: 0,
                 pending: true,
                 restrictedProps: new RestrictedProps({
                     restrictedAt: 1665780000,
@@ -632,6 +643,7 @@ export class Neo4jSeedService {
                             userId: "3109f9e2-a262-4aef-b648-90d86d6fbf6c",
                         }),
                         pinned: false,
+                        totalComments: 0,
                         pending: true,
                         restrictedProps: new RestrictedProps({
                             restrictedAt: 1665780000,
@@ -650,6 +662,7 @@ export class Neo4jSeedService {
                             userId: "3109f9e2-a262-4aef-b648-90d86d6fbf6c",
                         }),
                         pinned: false,
+                        totalComments: 0,
                         pending: false,
                         restrictedProps: null,
                         childComments: [],
