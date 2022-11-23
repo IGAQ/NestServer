@@ -9,9 +9,9 @@ export interface IPostsService {
 
     getQueeryOfTheDay(): Promise<Post>;
 
-    findAllQueeries(sorted: null | postSortCallback): Promise<Post[]>;
+    findAllQueeries(): Promise<Post[]>;
 
-    findAllStories(sorted: null | postSortCallback): Promise<Post[]>;
+    findAllStories(): Promise<Post[]>;
 
     findPostById(postId: string): Promise<Post>;
 
