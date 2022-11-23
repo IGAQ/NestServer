@@ -1,16 +1,16 @@
 import { HttpException, Inject, Injectable, Scope } from "@nestjs/common";
-import { PostCreationPayloadDto, VotePostPayloadDto, VoteType } from "../../dtos";
-import { User } from "../../../users/models";
-import { Post, PostTag } from "../../models";
-import { IPostsService, postSortCallback } from "./posts.service.interface";
-import { _$ } from "../../../_domain/injectableTokens";
-import { DatabaseContext } from "../../../database-access-layer/databaseContext";
-import { DeletedProps } from "../../models/toSelf";
 import { REQUEST } from "@nestjs/core";
 import { Request } from "express";
-import { UserToPostRelTypes, VoteProps } from "../../../users/models/toPost";
-import { IAutoModerationService } from "../../../moderation/services/autoModeration/autoModeration.service.interface";
 import { Comment } from "../../../comments/models";
+import { DatabaseContext } from "../../../database-access-layer/databaseContext";
+import { IAutoModerationService } from "../../../moderation/services/autoModeration/autoModeration.service.interface";
+import { User } from "../../../users/models";
+import { UserToPostRelTypes, VoteProps } from "../../../users/models/toPost";
+import { _$ } from "../../../_domain/injectableTokens";
+import { PostCreationPayloadDto, VotePostPayloadDto, VoteType } from "../../dtos";
+import { Post, PostTag } from "../../models";
+import { DeletedProps } from "../../models/toSelf";
+import { IPostsService, postSortCallback } from "./posts.service.interface";
 
 @Injectable({ scope: Scope.REQUEST })
 export class PostsService implements IPostsService {
@@ -145,7 +145,7 @@ export class PostsService implements IPostsService {
         return comments;
     }
 
-    public async getNestedComments(comments, nestedLevel, nestedLimit): Promise<void> {
+    public async getNestedComments(comments: Comment[], nestedLevel: number, nestedLimit: number): Promise<void> {
         if (nestedLevel === 0) return;
         for (const i in comments) {
             const comment: Comment = comments[i];
