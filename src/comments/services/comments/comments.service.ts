@@ -162,8 +162,6 @@ export class CommentsService implements ICommentsService {
         const user = this.getUserFromRequest();
         const isPinned = await this.checkIfAnyCommentIsPinned(parentPost);
 
-        console.log(parentPost)
-
         const postAuthor = await parentPost.getAuthorUser();
 
         if (postAuthor.userId !== user.userId) {
@@ -258,13 +256,11 @@ export class CommentsService implements ICommentsService {
             }
         );
         if (queryResult.records.length > 0) {
-            console.log(commentId)
             return await this.findParentCommentRoot(
                 queryResult.records[0].get("commentParent").properties.commentId,
                 true
             );
         } else {
-            console.log(commentId)
             const rootComment = await this._dbContext.Comments.findCommentById(commentId);
             return [await this.findParentPost(rootComment.commentId), isNestedComment];
         }
