@@ -244,8 +244,7 @@ export class Neo4jSeedService {
                     updatedAt: $updatedAt,
                     postTitle: $postTitle,
                     postContent: $postContent,
-                    pending: $pending,
-                    totalComments: $totalComments
+                    pending: $pending
                 })${restrictedQueryString}<-[authoredRelationship:${UserToPostRelTypes.AUTHORED} {
                     authoredAt: $authoredProps_authoredAt,
                     anonymously: $authoredProps_anonymously
@@ -293,7 +292,6 @@ export class Neo4jSeedService {
                     postTitle: postEntity.postTitle,
                     postContent: postEntity.postContent,
                     pending: postEntity.pending,
-                    totalComments: postEntity.totalComments,
 
                     // PostType
                     postTypeName: postEntity.postType.postTypeName.trim().toLowerCase(),
@@ -334,8 +332,7 @@ export class Neo4jSeedService {
                     commentId: $commentId,
                     commentContent: $commentContent,
                     updatedAt: $updatedAt,
-                    pending: $pending,
-                    totalComments: $totalComments
+                    pending: $pending
                 })${restrictedQueryString}<-[authoredRelationship:${UserToPostRelTypes.AUTHORED} {
                     authoredAt: $authoredProps_authoredAt,
                     anonymously: $authoredProps_anonymously
@@ -350,7 +347,6 @@ export class Neo4jSeedService {
                     commentContent: commentEntity.commentContent,
                     updatedAt: commentEntity.updatedAt,
                     pending: commentEntity.pending,
-                    totalComments: commentEntity.totalComments,
 
                     // AuthoredProps
                     authoredProps_authoredAt: authoredProps.authoredAt,
@@ -361,11 +357,12 @@ export class Neo4jSeedService {
                 }
             );
 
+            // Connect Comment to its parent (either a Post or another Comment)
             if (commentEntity.parentId !== null) {
                 await this._neo4jService.tryWriteAsync(
-                    `MATCH (comment:${this.commentLabel} { commentId: $commentId })
+                    `
+                    MATCH (comment:${this.commentLabel} { commentId: $commentId })
 					MATCH (parent) WHERE (parent:${this.postLabel} AND parent.postId = $parentId) OR (parent:${this.commentLabel} AND parent.commentId = $parentId)
-					    SET parent.totalComments = parent.totalComments + 1
 					FOREACH (i in CASE WHEN parent:${this.postLabel} THEN [1] ELSE [] END | 
 					    MERGE (comment)<-[:${PostToCommentRelTypes.HAS_COMMENT}]-(parent))
 					FOREACH (i in CASE WHEN parent:${this.commentLabel} THEN [1] ELSE [] END |
@@ -541,10 +538,13 @@ export class Neo4jSeedService {
         return new Array<Post>(
             new Post({
                 postId: "b73edbf4-ba84-4b11-a91c-e1d8b1366974",
-                postTitle: "Am I Lesbian?",
-                postContent: "today I kissed a girl! it felt so good.",
+                postTitle: "sister caught me checking out a guy on a camping trip",
+                postContent:
+                    "I was on a camping trip and my sister caught me staring at someone across the site with his \n" +
+                    " shirt off, for the the rest of the day she wouldn't stop asking me, even getting the other members \n" +
+                    " who came with us to join in, I eventually gave in, she was super kind about it and came out as Bisexual the following months",
                 updatedAt: 1665770000,
-                postType: (await this.getPostTypes())[0],
+                postType: (await this.getPostTypes())[1],
                 postTags: (await this.getPostTags()).slice(0, 2),
                 restrictedProps: null,
                 authorUser: new User({
@@ -552,7 +552,6 @@ export class Neo4jSeedService {
                 }),
                 pending: false,
                 totalVotes: 1,
-                totalComments: 0,
                 awards: {
                     [PostToAwardRelTypes.HAS_AWARD]: {
                         records: (await this.getAwards()).slice(0, 2).map(award => ({
@@ -567,10 +566,25 @@ export class Neo4jSeedService {
             }),
             new Post({
                 postId: "596632ac-dd54-4700-a783-688618d99fa9",
-                postTitle: "Am I Gay?",
-                postContent: "today I kissed a boy! it felt so good.",
+                postTitle: "Coming out to my accepting family",
+                postContent:
+                    "Growing up my family was really gay friendly. I had two gay uncles and everyone was accepting of them. \n " +
+                    "When I was in fifth grade my mom told me that she would love me no matter who I loved. At the time I had  \n " +
+                    "no idea what she meant because all I cared about was playing soccer. However, as I got older I started \n " +
+                    "to comprehend what my mother's words really meant. In middle school all my friends talked about boys and \n " +
+                    "tried getting boyfriends, but I wasn't interested. That's when I started to realize that I was different from all my friends. \n\n " +
+                    "During my first year of high school I realized I was a lesbian and it felt good to know that my mother was there to support me. \n " +
+                    "At the end of my first year of high school I began dating my best friend, but that relationship only lasted three months before my \n " +
+                    "girlfriend started cheating on me with my cousin. I hadn't openly come out to my family yet so I tried to keep the relationship and \n " +
+                    "breakup a secret. One day one of my sisters saw me crying and she asked me what was wrong. I told her everything that had been going \n " +
+                    "on between my cousin, my ex-girlfriend, and me. Instead of addressing the fact that I had dated a girl, my sister was mad about what \n " +
+                    "my cousin had done. My sister told everyone in my family what had happened and everyone was upset about what my cousin had done. \n " +
+                    "No one in my family was upset about the fact that my cousin and I were gay. \n\n " +
+                    "Today my entire family knows that I am gay and they accept me. It is nice to have such an accepting family and I know that I am \n " +
+                    "very fortunate to have a family that loves me unconditionally. I am grateful that my family has never judged me or made me feel \n " +
+                    "uncomfortable expressing who I am.",
                 updatedAt: 1665770000,
-                postType: (await this.getPostTypes())[0],
+                postType: (await this.getPostTypes())[1],
                 postTags: (await this.getPostTags()).slice(0, 2),
                 restrictedProps: new RestrictedProps({
                     restrictedAt: 1665780000,
@@ -582,7 +596,6 @@ export class Neo4jSeedService {
                 }),
                 pending: true,
                 totalVotes: 3,
-                totalComments: 0,
                 awards: {
                     [PostToAwardRelTypes.HAS_AWARD]: {
                         records: (await this.getAwards()).slice(0, 2).map(award => ({
@@ -610,7 +623,6 @@ export class Neo4jSeedService {
                     userId: "5c0f145b-ffad-4881-8ee6-7647c3c1b695",
                 }),
                 pinned: true,
-                totalComments: 0,
                 pending: false,
                 restrictedProps: null,
                 childComments: [],
@@ -625,7 +637,6 @@ export class Neo4jSeedService {
                     userId: "5c0f145b-ffad-4881-8ee6-7647c3c1b695",
                 }),
                 pinned: false,
-                totalComments: 0,
                 pending: true,
                 restrictedProps: new RestrictedProps({
                     restrictedAt: 1665780000,
@@ -643,7 +654,6 @@ export class Neo4jSeedService {
                             userId: "3109f9e2-a262-4aef-b648-90d86d6fbf6c",
                         }),
                         pinned: false,
-                        totalComments: 0,
                         pending: true,
                         restrictedProps: new RestrictedProps({
                             restrictedAt: 1665780000,
@@ -662,7 +672,6 @@ export class Neo4jSeedService {
                             userId: "3109f9e2-a262-4aef-b648-90d86d6fbf6c",
                         }),
                         pinned: false,
-                        totalComments: 0,
                         pending: false,
                         restrictedProps: null,
                         childComments: [],
