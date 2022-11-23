@@ -1,6 +1,6 @@
+import { Comment } from "../../../comments/models";
 import { PostCreationPayloadDto, VotePostPayloadDto } from "../../dtos";
 import { Post } from "../../models";
-import { Comment } from "../../../comments/models";
 
 export type postSortCallback = (postA: Post, postB: Post) => number;
 
@@ -22,7 +22,7 @@ export interface IPostsService {
         nestedLevel: number
     ): Promise<Comment[]>;
 
-    getNestedComments(comments, nestedLevel, nestedLimit): Promise<void>;
+    getNestedComments(comments: Comment[], nestedLevel: number, nestedLimit: number): Promise<void>;
 
     markAsDeleted(postId: string): Promise<void>;
 
