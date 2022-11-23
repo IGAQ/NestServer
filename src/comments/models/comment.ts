@@ -9,6 +9,8 @@ import { RestrictedProps, _ToSelfRelTypes } from "../../_domain/models/toSelf";
 import { CommentToSelfRelTypes, DeletedProps } from "./toSelf";
 import { PublicUserDto } from "../../users/dtos";
 import neo4j from "neo4j-driver";
+import { VoteType } from "../../_domain/models/enums";
+import { IsOptional } from "class-validator";
 
 @Labels("Comment")
 export class Comment extends Model {
@@ -48,11 +50,19 @@ export class Comment extends Model {
     @ApiProperty({ type: Number })
     totalVotes: number;
 
+    @ApiProperty({ type: Number })
+    @IsOptional()
+    totalComments: number | undefined;
+
     @ApiProperty({ type: RestrictedProps })
     restrictedProps: Nullable<RestrictedProps> = null;
 
     @ApiProperty({ type: Comment })
     childComments: Comment[];
+
+    @ApiProperty({ type: VoteType, nullable: true })
+    @IsOptional()
+    userVote: Nullable<VoteType> | undefined = undefined;
 
     @ApiProperty({ type: Boolean })
     @NodeProperty()
@@ -64,13 +74,14 @@ export class Comment extends Model {
         Object.assign(this, partial);
     }
 
-    public async toJSON() {
+    public async toJSON(props: ToJSONProps = {}) {
         if (this.neo4jService) {
             await Promise.all([
                 this.getRestricted(),
                 this.getCreatedAt(),
                 this.getTotalVotes(),
                 this.getAuthorUser(),
+                ...(props.authenticatedUserId ? [this.getUserVote(props.authenticatedUserId)] : []),
             ]);
         }
 
@@ -80,14 +91,14 @@ export class Comment extends Model {
         return { ...this };
     }
 
-    public async toJSONNested() {
+    public async toJSONNested(props: ToJSONProps = {}) {
         if (!this.childComments) {
-            return this.toJSON();
+            return this.toJSON(props);
         }
         for (const i in this.childComments) {
-            this.childComments[i] = await this.childComments[i].toJSONNested();
+            this.childComments[i] = await this.childComments[i].toJSONNested(props);
         }
-        return this.toJSON();
+        return this.toJSON(props);
     }
 
     public async getChildrenComments(limit = 0): Promise<Comment[]> {
@@ -110,6 +121,29 @@ export class Comment extends Model {
             record => new Comment(record.get("c").properties, this.neo4jService)
         );
         return this.childComments;
+    }
+
+    public async getUserVote(userId): Promise<Nullable<VoteType>> {
+        const queryResult = await this.neo4jService.tryReadAsync(
+            `
+            MATCH (u:User { userId: $userId })-[r:${UserToCommentRelTypes.UPVOTES}|${UserToCommentRelTypes.DOWN_VOTES}]->(c:Comment { commentId: $commentId }) 
+            RETURN r
+            `,
+            {
+                userId,
+                commentId: this.commentId,
+            }
+        );
+
+        if (queryResult.records.length > 0) {
+            // user has already voted on this comment
+            const relType = queryResult.records[0].get("r").type as VoteType;
+            this.userVote = relType;
+            return relType;
+        }
+
+        this.userVote = null;
+        return null;
     }
 
     public async getTotalVotes(): Promise<number> {
@@ -213,4 +247,8 @@ export class Comment extends Model {
         this.restrictedProps = result;
         return result;
     }
+}
+
+interface ToJSONProps {
+    authenticatedUserId?: string;
 }

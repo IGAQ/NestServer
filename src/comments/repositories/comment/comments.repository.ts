@@ -3,7 +3,7 @@ import { Neo4jService } from "../../../neo4j/services/neo4j.service";
 import { AuthoredProps, UserToCommentRelTypes } from "../../../users/models/toComment";
 import { RestrictedProps, _ToSelfRelTypes } from "../../../_domain/models/toSelf";
 import { Comment } from "../../models";
-import { CommentToSelfRelTypes, RepliedProps } from "../../models/toSelf";
+import { CommentToSelfRelTypes } from "../../models/toSelf";
 import { ICommentsRepository } from "./comments.repository.interface";
 import { PostToCommentRelTypes } from "../../../posts/models/toComment";
 
@@ -31,7 +31,6 @@ export class CommentsRepository implements ICommentsRepository {
         if (comment.commentId === undefined) {
             comment.commentId = this._neo4jService.generateId();
         }
-        console.log(comment);
         let restrictedQueryString = "";
         let restrictedQueryParams = {};
         if (comment.restrictedProps !== null) {
@@ -111,7 +110,7 @@ export class CommentsRepository implements ICommentsRepository {
         await this._neo4jService.tryWriteAsync(
             `
                 MATCH (u:User { userId: $userId })
-                MATCH (commentParent:Post { postId: $parentId })
+                MATCH (parentPost:Post { postId: $parentId })
                 CREATE (c:Comment {
                     commentId: $commentId,
                     updatedAt: $updatedAt,
@@ -120,7 +119,7 @@ export class CommentsRepository implements ICommentsRepository {
                 })${restrictedQueryString}<-[:${UserToCommentRelTypes.AUTHORED} {
                     authoredAt: $authoredAt
                 }]-(u),
-                (c)<-[:${PostToCommentRelTypes.HAS_COMMENT}]-(commentParent)
+                (c)<-[:${PostToCommentRelTypes.HAS_COMMENT}]-(parentPost)
             `,
             {
                 // Comment properties

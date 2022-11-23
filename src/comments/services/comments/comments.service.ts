@@ -10,10 +10,14 @@ import { IPostsService } from "../../../posts/services/posts/posts.service.inter
 import { User } from "../../../users/models";
 import { UserToCommentRelTypes } from "../../../users/models/toComment";
 import { _$ } from "../../../_domain/injectableTokens";
-import { CommentCreationPayloadDto, VoteCommentPayloadDto, VoteType } from "../../dtos";
+import { CommentCreationPayloadDto, VoteCommentPayloadDto } from "../../dtos";
 import { Comment } from "../../models";
 import { CommentToSelfRelTypes, DeletedProps } from "../../models/toSelf";
 import { ICommentsService } from "./comments.service.interface";
+import { IAutoModerationService } from "../../../moderation/services/autoModeration/autoModeration.service.interface";
+import { IPostsService } from "../../../posts/services/posts/posts.service.interface";
+import { VoteType } from "../../../_domain/models/enums";
+import { VoteProps } from "../../../users/models/toPost";
 
 @Injectable({ scope: Scope.REQUEST })
 export class CommentsService implements ICommentsService {
@@ -25,7 +29,6 @@ export class CommentsService implements ICommentsService {
     constructor(
         @Inject(REQUEST) request: Request,
         @Inject(_$.IDatabaseContext) databaseContext: DatabaseContext,
-        httpService: HttpService,
         @Inject(_$.IAutoModerationService) autoModerationService: IAutoModerationService,
         @Inject(_$.IPostsService) postsService: IPostsService
     ) {
@@ -119,6 +122,7 @@ export class CommentsService implements ICommentsService {
         const queryResult = await this._dbContext.neo4jService.tryReadAsync(
             `
             MATCH (u:User { userId: $userId })-[r:${UserToCommentRelTypes.UPVOTES}|${UserToCommentRelTypes.DOWN_VOTES}]->(c:Comment { commentId: $commentId })
+            RETURN r
             `,
             {
                 userId: user.userId,
@@ -127,30 +131,48 @@ export class CommentsService implements ICommentsService {
         );
 
         if (queryResult.records.length > 0) {
+            // user has already voted on this comment
             const relType = queryResult.records[0].get("r").type;
-            if (
-                relType === UserToCommentRelTypes.UPVOTES &&
-                voteCommentPayload.voteType === VoteType.UPVOTES
-            ) {
-                throw new HttpException("User already upvoted this comment", 400);
-            } else if (
-                relType === UserToCommentRelTypes.DOWN_VOTES &&
-                voteCommentPayload.voteType === VoteType.DOWN_VOTES
-            ) {
-                throw new HttpException("User already downvoted this comment", 400);
-            } else {
-                await this._dbContext.neo4jService.tryWriteAsync(
-                    `
+
+            // remove the existing vote
+            await this._dbContext.neo4jService.tryWriteAsync(
+                `
                     MATCH (u:User { userId: $userId })-[r:${relType}]->(c:Comment { commentId: $commentId })
                     DELETE r
                     `,
-                    {
-                        userId: user.userId,
-                        commentId: voteCommentPayload.commentId,
-                    }
-                );
+                {
+                    userId: user.userId,
+                    commentId: voteCommentPayload.commentId,
+                }
+            );
+
+            // don't add a new vote if the user is removing their vote (stop)
+            if (
+                (relType === UserToCommentRelTypes.UPVOTES &&
+                    voteCommentPayload.voteType === VoteType.UPVOTES) ||
+                (relType === UserToCommentRelTypes.DOWN_VOTES &&
+                    voteCommentPayload.voteType === VoteType.DOWN_VOTES)
+            ) {
+                return;
             }
         }
+
+        // add the new vote
+        const voteProps = new VoteProps({
+            votedAt: new Date().getTime(),
+        });
+        await this._dbContext.neo4jService.tryWriteAsync(
+            `
+            MATCH (u:User { userId: $userId }), (c:Comment { commentId: $commentId })
+            MERGE (u)-[r:${voteCommentPayload.voteType} { votedAt: $votedAt }]->(c)
+            `,
+            {
+                userId: user.userId,
+                commentId: voteCommentPayload.commentId,
+
+                votedAt: voteProps.votedAt,
+            }
+        );
     }
 
     public async markAsPinned(commentId: string): Promise<void> {

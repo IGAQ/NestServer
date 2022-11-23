@@ -21,6 +21,9 @@ import { Post as PostModel } from "../models";
 import { Comment } from "../../comments/models";
 import { PostCreationPayloadDto, VotePostPayloadDto } from "../dtos";
 import { IPostsService } from "../services/posts/posts.service.interface";
+import { OptionalJwtAuthGuard } from "../../auth/guards/optionalJwtAuth.guard";
+import { AuthedUser } from "../../auth/decorators/authedUser.param.decorator";
+import { User } from "../../users/models";
 
 @ApiTags("posts")
 @Controller("posts")
@@ -39,33 +42,38 @@ export class PostsController {
     }
 
     @Get()
-    @CacheTTL(10)
+    @UseGuards(OptionalJwtAuthGuard)
+    @CacheTTL(5)
     @UseInterceptors(CacheInterceptor)
-    public async index(): Promise<PostModel[] | Error> {
+    public async index(@AuthedUser() user: User): Promise<PostModel[] | Error> {
         const posts = await this._dbContext.Posts.findAll();
-        const decoratedPosts = posts.map(post => post.toJSON());
+        const decoratedPosts = posts.map(post =>
+            post.toJSON({ authenticatedUserId: user?.userId ?? undefined })
+        );
         return await Promise.all(decoratedPosts);
     }
 
     @Get("/queery")
-    @CacheTTL(10)
+    @UseGuards(OptionalJwtAuthGuard)
+    @CacheTTL(5)
     @UseInterceptors(CacheInterceptor)
-    public async getAllQueeries(): Promise<PostModel[] | Error> {
-        const queeries = await this._postsService.findAllQueeries(
-            (postA, postB) => postB.createdAt - postA.createdAt
+    public async getAllQueeries(@AuthedUser() user: User): Promise<PostModel[] | Error> {
+        const queeries = await this._postsService.findAllQueeries();
+        const decoratedQueeries = queeries.map(queery =>
+            queery.toJSON({ authenticatedUserId: user?.userId ?? undefined })
         );
-        const decoratedQueeries = queeries.map(queery => queery.toJSON());
         return await Promise.all(decoratedQueeries);
     }
 
     @Get("/story")
-    @CacheTTL(10)
+    @UseGuards(OptionalJwtAuthGuard)
+    @CacheTTL(5)
     @UseInterceptors(CacheInterceptor)
-    public async getAllStories(): Promise<PostModel[] | Error> {
-        const stories = await this._postsService.findAllStories(
-            (postA, postB) => postB.createdAt - postA.createdAt
+    public async getAllStories(@AuthedUser() user: User): Promise<PostModel[] | Error> {
+        const stories = await this._postsService.findAllStories();
+        const decoratedStories = stories.map(story =>
+            story.toJSON({ authenticatedUserId: user?.userId ?? undefined })
         );
-        const decoratedStories = stories.map(story => story.toJSON());
         return await Promise.all(decoratedStories);
     }
 
@@ -84,12 +92,14 @@ export class PostsController {
     }
 
     @Get(":postId")
+    @UseGuards(OptionalJwtAuthGuard)
     public async getPostById(
+        @AuthedUser() user: User,
         @Param("postId", new ParseUUIDPipe()) postId: string
     ): Promise<PostModel | Error> {
         const post = await this._dbContext.Posts.findPostById(postId);
         if (post === undefined) throw new HttpException("Post not found", 404);
-        return await post.toJSON();
+        return await post.toJSON({ authenticatedUserId: user?.userId ?? undefined });
     }
 
     @Post("create")

@@ -1,12 +1,13 @@
 import { HttpException, Inject, Injectable, Scope } from "@nestjs/common";
+import { User } from "../../../users/models";
+import { _$ } from "../../../_domain/injectableTokens";
+import { DatabaseContext } from "../../../database-access-layer/databaseContext";
 import { REQUEST } from "@nestjs/core";
 import { Request } from "express";
 import { Comment } from "../../../comments/models";
-import { DatabaseContext } from "../../../database-access-layer/databaseContext";
+import { VoteType } from "../../../_domain/models/enums";
 import { IAutoModerationService } from "../../../moderation/services/autoModeration/autoModeration.service.interface";
-import { User } from "../../../users/models";
 import { UserToPostRelTypes, VoteProps } from "../../../users/models/toPost";
-import { _$ } from "../../../_domain/injectableTokens";
 import { PostCreationPayloadDto, VotePostPayloadDto, VoteType } from "../../dtos";
 import { Post, PostTag } from "../../models";
 import { DeletedProps } from "../../models/toSelf";
@@ -95,20 +96,40 @@ export class PostsService implements IPostsService {
         return queeryPosts[queeryOfTheDayIndex];
     }
 
-    public async findAllQueeries(sorted: null | postSortCallback): Promise<Post[]> {
+    public async findAllQueeries(): Promise<Post[]> {
         const queeries = await this._dbContext.Posts.findPostByPostType("queery");
-        if (sorted !== null) {
-            queeries.sort(sorted);
-        }
-        return queeries;
+        return this.decoratePosts(queeries, (postA, postB) => postB.createdAt - postA.createdAt);
     }
 
-    public async findAllStories(sorted: null | postSortCallback): Promise<Post[]> {
+    public async findAllStories(): Promise<Post[]> {
         const stories = await this._dbContext.Posts.findPostByPostType("story");
+        return this.decoratePosts(stories, (postA, postB) => postB.createdAt - postA.createdAt);
+    }
+
+    private async decoratePosts(posts: Post[], sorted: null | postSortCallback): Promise<Post[]> {
+        posts = await Promise.all(
+            posts.map(async post => {
+                post.totalComments = await this.getTotalComments(post);
+                return post;
+            })
+        );
         if (sorted !== null) {
-            stories.sort(sorted);
+            posts.sort(sorted);
         }
-        return stories;
+        return posts;
+    }
+
+    private async getTotalComments(post: Post, comments = null, result = 0): Promise<number> {
+        if (comments === null) {
+            comments = await this.findNestedCommentsByPostId(post.postId, 0, 0, Infinity);
+        }
+
+        if (comments.length === 0) return result;
+        result += comments.length;
+        for (const comment of comments) {
+            result = await this.getTotalComments(post, comment.childComments ?? [], result);
+        }
+        return result;
     }
 
     public async findPostById(postId: string): Promise<Post> {
@@ -145,11 +166,28 @@ export class PostsService implements IPostsService {
         return comments;
     }
 
+    /**
+     * Recursively gets the total number of every comment's child comments that are **available**.
+     * @param comment
+     * @param result
+     * @private
+     */
+    private async getTotalCommentsByComment(comment: Comment, result = 0): Promise<number> {
+        if (!comment.childComments || comment.childComments.length === 0) return result;
+        result += comment.childComments.length;
+        for (const childComment of comment.childComments) {
+            result = await this.getTotalCommentsByComment(childComment, result);
+            childComment.totalComments = await this.getTotalCommentsByComment(childComment, 0);
+        }
+        return result;
+    }
+
     public async getNestedComments(comments: Comment[], nestedLevel: number, nestedLimit: number): Promise<void> {
         if (nestedLevel === 0) return;
         for (const i in comments) {
             const comment: Comment = comments[i];
             await comment.getChildrenComments(nestedLimit);
+            // comment.totalComments = await this.getTotalCommentsByComment(comment);
             await this.getNestedComments(comment.childComments, nestedLevel - 1, nestedLimit);
         }
     }
@@ -179,7 +217,8 @@ export class PostsService implements IPostsService {
 
         const queryResult = await this._dbContext.neo4jService.tryReadAsync(
             `
-            MATCH (u:User { userId: $userId })-[r:${UserToPostRelTypes.UPVOTES}|${UserToPostRelTypes.DOWN_VOTES}]->(p:Post { postId: $postId }) RETURN r
+            MATCH (u:User { userId: $userId })-[r:${UserToPostRelTypes.UPVOTES}|${UserToPostRelTypes.DOWN_VOTES}]->(p:Post { postId: $postId }) 
+            RETURN r
             `,
             {
                 userId: user.userId,
