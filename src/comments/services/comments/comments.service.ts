@@ -1,12 +1,9 @@
-import { HttpService } from "@nestjs/axios";
 import { HttpException, Inject, Injectable, Scope } from "@nestjs/common";
 import { REQUEST } from "@nestjs/core";
 import { Request } from "express";
 import { DatabaseContext } from "../../../database-access-layer/databaseContext";
-import { IAutoModerationService } from "../../../moderation/services/autoModeration/autoModeration.service.interface";
 import { Post } from "../../../posts/models";
 import { PostToCommentRelTypes } from "../../../posts/models/toComment";
-import { IPostsService } from "../../../posts/services/posts/posts.service.interface";
 import { User } from "../../../users/models";
 import { UserToCommentRelTypes } from "../../../users/models/toComment";
 import { _$ } from "../../../_domain/injectableTokens";
@@ -179,7 +176,6 @@ export class CommentsService implements ICommentsService {
         const comment = await this._dbContext.Comments.findCommentById(commentId);
         if (!comment) throw new HttpException("Comment not found", 404);
 
-
         const [parentPost] = await this.findParentCommentRoot(commentId);
         const user = this.getUserFromRequest();
         const isPinned = await this.checkIfAnyCommentIsPinned(parentPost);
@@ -198,8 +194,7 @@ export class CommentsService implements ICommentsService {
             `
             MATCH  (p:Post { postId: $postId }), (c:Comment { commentId: $commentId })
             CREATE (p)-[:${PostToCommentRelTypes.PINNED_COMMENT}]->(c)
-            `
-            ,
+            `,
             {
                 postId: parentPost.postId,
                 commentId: commentId,

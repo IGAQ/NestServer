@@ -8,7 +8,7 @@ import { Comment } from "../../../comments/models";
 import { VoteType } from "../../../_domain/models/enums";
 import { IAutoModerationService } from "../../../moderation/services/autoModeration/autoModeration.service.interface";
 import { UserToPostRelTypes, VoteProps } from "../../../users/models/toPost";
-import { PostCreationPayloadDto, VotePostPayloadDto, VoteType } from "../../dtos";
+import { PostCreationPayloadDto, VotePostPayloadDto } from "../../dtos";
 import { Post, PostTag } from "../../models";
 import { DeletedProps } from "../../models/toSelf";
 import { IPostsService, postSortCallback } from "./posts.service.interface";
@@ -182,7 +182,11 @@ export class PostsService implements IPostsService {
         return result;
     }
 
-    public async getNestedComments(comments: Comment[], nestedLevel: number, nestedLimit: number): Promise<void> {
+    public async getNestedComments(
+        comments: Comment[],
+        nestedLevel: number,
+        nestedLimit: number
+    ): Promise<void> {
         if (nestedLevel === 0) return;
         for (const i in comments) {
             const comment: Comment = comments[i];
