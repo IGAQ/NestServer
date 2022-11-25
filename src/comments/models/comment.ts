@@ -1,5 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { Exclude } from "class-transformer";
+import { Exclude, Type } from "class-transformer";
 import { Labels, NodeProperty } from "../../neo4j/neo4j.decorators";
 import { Model } from "../../neo4j/neo4j.helper.types";
 import { Neo4jService } from "../../neo4j/services/neo4j.service";
@@ -10,12 +9,21 @@ import { CommentToSelfRelTypes } from "./toSelf";
 import { PublicUserDto } from "../../users/dtos";
 import neo4j from "neo4j-driver";
 import { VoteType } from "../../_domain/models/enums";
-import { IsOptional } from "class-validator";
+import {
+    IsArray,
+    IsBoolean,
+    IsEnum,
+    IsInstance,
+    IsNumber,
+    IsOptional,
+    IsString,
+    IsUUID,
+} from "class-validator";
 
 @Labels("Comment")
 export class Comment extends Model {
-    @ApiProperty({ type: String, format: "uuid" })
     @NodeProperty()
+    @IsUUID()
     commentId: string;
 
     /**
@@ -23,50 +31,53 @@ export class Comment extends Model {
      * properties of (u:User)-[authored:AUTHORED]->(c:Comment) RETURN c, authored
      * where authored.createdAt is the value of this property.
      */
-    @ApiProperty({ type: Number })
+    @IsNumber()
     createdAt: number;
 
-    @ApiProperty({ type: String })
     @NodeProperty()
+    @IsString()
     commentContent: string;
 
-    @ApiProperty({ type: String, format: "uuid" })
+    @IsUUID()
+    @IsOptional()
     parentId: Nullable<string>;
 
-    @ApiProperty({ type: Boolean })
+    @IsBoolean()
     pinned: boolean;
 
-    @ApiProperty({ type: String })
     @NodeProperty()
+    @IsString()
     updatedAt: number;
 
-    @ApiProperty({ type: User })
+    @IsInstance(User)
     authorUser: User | any;
 
-    @ApiProperty({ type: Boolean })
     @NodeProperty()
+    @IsBoolean()
     pending: boolean;
 
-    @ApiProperty({ type: Number })
+    @IsNumber()
     totalVotes: number;
 
-    @ApiProperty({ type: Number })
+    @IsNumber()
     @IsOptional()
     totalComments: number | undefined;
 
-    @ApiProperty({ type: RestrictedProps })
+    @IsInstance(RestrictedProps)
+    @IsOptional()
     restrictedProps: Nullable<RestrictedProps> = null;
 
-    @ApiProperty({ type: Comment })
+    @IsArray({ each: true })
+    @Type(() => RestrictedProps)
     childComments: Comment[];
 
-    @ApiProperty({ type: VoteType, nullable: true })
+    @IsEnum(VoteType)
     @IsOptional()
     userVote: Nullable<VoteType> | undefined = undefined;
 
-    @ApiProperty({ type: Boolean })
     @NodeProperty()
     @Exclude()
+    @IsBoolean()
     deletedProps: Nullable<DeletedProps> = null;
 
     constructor(partial?: Partial<Comment>, neo4jService?: Neo4jService) {

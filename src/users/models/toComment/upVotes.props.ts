@@ -1,8 +1,8 @@
-import { ApiProperty } from "@nestjs/swagger";
 import { RelationshipProps } from "../../../neo4j/neo4j.helper.types";
+import { IsNumber } from "class-validator";
 
 export class UpVotesProps implements RelationshipProps {
-    @ApiProperty({ type: Number })
+    @IsNumber()
     upVotedAt: number;
 
     constructor(partial?: Partial<UpVotesProps>) {

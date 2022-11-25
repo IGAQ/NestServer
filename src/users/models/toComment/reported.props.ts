@@ -1,11 +1,14 @@
 import { RelationshipProps } from "../../../neo4j/neo4j.helper.types";
-import { User } from "../user";
+import { IsNumber, IsString, IsUUID } from "class-validator";
 
 export class ReportedProps implements RelationshipProps {
-    reportedBy: User;
+    @IsUUID()
+    moderatorId: string;
 
+    @IsNumber()
     reportedAt: number;
 
+    @IsString()
     reason: string;
 
     constructor(partial?: Partial<ReportedProps>) {

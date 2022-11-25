@@ -5,7 +5,7 @@ import { ConfigService } from "@nestjs/config";
 import { catchError, lastValueFrom, map, throwError } from "rxjs";
 import { HttpService } from "@nestjs/axios";
 import { IAutoModerationService } from "./autoModeration.service.interface";
-import { HateSpeechRequestPayloadDto, HateSpeechResponseDto } from "../../../posts/dtos";
+import { HateSpeechRequestPayloadDto, HateSpeechResponseDto } from "../../dtos";
 import { WasOffendingProps } from "../../../users/models/toSelf";
 import { User } from "../../../users/models";
 

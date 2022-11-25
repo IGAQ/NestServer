@@ -1,6 +1,7 @@
 import { Post } from "../../../posts/models";
 import { Comment } from "../../../comments/models";
 import { ModerationPayloadDto } from "../../dtos/moderatorActions";
+import { User } from "../../../users/models";
 
 export interface IModeratorActionsService {
     allowPost(postId: string): Promise<Post>;
@@ -14,4 +15,7 @@ export interface IModeratorActionsService {
 
     deleteComment(payload: ModerationPayloadDto): Promise<Comment>;
     undeleteComment(commentId: string): Promise<Comment>;
+
+    banUser(payload: ModerationPayloadDto): Promise<User>;
+    unbanUser(userId: string): Promise<User>;
 }

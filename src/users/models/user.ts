@@ -1,4 +1,3 @@
-import { ApiProperty } from "@nestjs/swagger";
 import { Exclude } from "class-transformer";
 import { Comment } from "../../comments/models";
 import { Labels, NodeProperty } from "../../neo4j/neo4j.decorators";
@@ -20,77 +19,91 @@ import { UserToOpennessRelTypes } from "./toOpenness";
 import { AuthoredProps, FavoritesProps, UserToPostRelTypes } from "./toPost";
 import { UserToSelfRelTypes, WasOffendingProps } from "./toSelf";
 import { UserToSexualityRelTypes } from "./toSexuality";
+import {
+    IsArray,
+    IsBoolean,
+    IsEnum,
+    IsInstance,
+    IsNumber,
+    IsOptional,
+    IsString,
+    IsUUID,
+} from "class-validator";
 
 export type AvatarUrl = string;
 export type AvatarAscii = string;
 
 @Labels("User")
 export class User extends Model {
-    @ApiProperty({ type: String, format: "uuid" })
     @NodeProperty()
+    @IsUUID()
     userId: string;
 
-    @ApiProperty({ type: Date })
     @NodeProperty()
+    @IsNumber()
     createdAt: number;
-    @ApiProperty({ type: Date })
     @NodeProperty()
+    @IsNumber()
     updatedAt: number;
 
-    @ApiProperty({ type: String })
     @NodeProperty()
+    @IsString()
     avatar: AvatarAscii | AvatarUrl;
 
-    @ApiProperty({ type: String })
     @NodeProperty()
+    @IsString()
     email: string;
-    @ApiProperty({ type: Boolean })
     @NodeProperty()
+    @IsBoolean()
     emailVerified: boolean;
 
-    @ApiProperty({ type: String })
     @NodeProperty()
+    @IsString()
+    @IsOptional()
     phoneNumber: Nullable<string>;
-    @ApiProperty({ type: Boolean })
     @NodeProperty()
+    @IsBoolean()
     phoneNumberVerified: boolean;
 
-    @ApiProperty({ type: String })
     @NodeProperty()
+    @IsString()
     username: string;
-    @ApiProperty({ type: String })
     @NodeProperty()
+    @IsString()
     normalizedUsername: string;
 
-    @ApiProperty({ type: String })
     @NodeProperty()
+    @IsString()
     @Exclude()
     passwordHash: string;
 
-    @ApiProperty({ type: Number })
     @NodeProperty()
+    @IsNumber()
     level: number;
 
-    @ApiProperty({ type: Role })
+    @IsEnum(Role)
     roles: Role[];
 
-    @ApiProperty({ type: Post, isArray: true })
+    @IsOptional()
     posts: RichRelatedEntities<Post, UserToPostRelTypes>;
 
-    @ApiProperty({ type: Comment, isArray: true })
+    @IsOptional()
     comments: RichRelatedEntities<Comment, UserToPostRelTypes>;
 
-    @ApiProperty({ type: Sexuality })
+    @IsInstance(Sexuality)
+    @IsOptional()
     sexuality: Nullable<Sexuality>;
 
-    @ApiProperty({ type: Gender })
+    @IsInstance(Gender)
+    @IsOptional()
     gender: Nullable<Gender>;
 
-    @ApiProperty({ type: Openness })
+    @IsInstance(Openness)
+    @IsOptional()
     openness: Nullable<Openness>;
 
-    @ApiProperty({ type: WasOffendingProps, isArray: true })
-    @Exclude()
+    @IsArray()
+    @IsOptional()
     wasOffendingRecords: WasOffendingProps[] = [];
 
     constructor(partial?: Partial<User>, neo4jService?: Neo4jService) {

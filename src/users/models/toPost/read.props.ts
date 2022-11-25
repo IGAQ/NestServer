@@ -1,8 +1,8 @@
-import { ApiProperty } from "@nestjs/swagger";
 import { RelationshipProps } from "../../../neo4j/neo4j.helper.types";
+import { IsNumber } from "class-validator";
 
 export class ReadProps implements RelationshipProps {
-    @ApiProperty({ type: Number })
+    @IsNumber()
     readAt: number;
 
     constructor(partial?: Partial<ReadProps>) {

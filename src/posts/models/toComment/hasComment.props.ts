@@ -1,8 +1,8 @@
 import { RelationshipProps } from "../../../neo4j/neo4j.helper.types";
-import { ApiProperty } from "@nestjs/swagger";
+import { IsBoolean } from "class-validator";
 
 export class HasCommentProps implements RelationshipProps {
-    @ApiProperty({ type: Boolean })
+    @IsBoolean()
     pinned: boolean;
 
     constructor(partial?: Partial<HasCommentProps>) {

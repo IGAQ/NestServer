@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { forwardRef, Module } from "@nestjs/common";
 import { AutoModerationService } from "./services/autoModeration/autoModeration.service";
 import { ModeratorActionsService } from "./services/moderatorActions/moderatorActions.service";
 import { _$ } from "../_domain/injectableTokens";
@@ -6,7 +6,7 @@ import { HttpModule } from "@nestjs/axios";
 import { DatabaseAccessLayerModule } from "../database-access-layer/database-access-layer.module";
 
 @Module({
-    imports: [HttpModule, DatabaseAccessLayerModule],
+    imports: [HttpModule, forwardRef(() => DatabaseAccessLayerModule)],
     providers: [
         {
             provide: _$.IAutoModerationService,

@@ -13,70 +13,82 @@ import { Neo4jService } from "../../neo4j/services/neo4j.service";
 import { PostToPostTypeRelTypes } from "./toPostType";
 import { PostToPostTagRelTypes } from "./toTags";
 import { AuthoredProps, UserToPostRelTypes } from "../../users/models/toPost";
-import { Exclude } from "class-transformer";
+import { Exclude, Type } from "class-transformer";
 import { PublicUserDto } from "../../users/dtos";
 import { PostToCommentRelTypes } from "./toComment";
 import { Comment } from "../../comments/models";
 import neo4j from "neo4j-driver";
 import { VoteType } from "../../_domain/models/enums";
-import { IsOptional } from "class-validator";
+import {
+    IsArray,
+    IsBoolean,
+    IsEnum,
+    IsInstance,
+    IsNumber,
+    IsOptional,
+    IsString,
+    IsUUID,
+} from "class-validator";
 
 @Labels("Post")
 export class Post extends Model {
-    @ApiProperty({ type: String, format: "uuid" })
     @NodeProperty()
+    @IsUUID()
     postId: string;
 
-    @ApiProperty({ type: PostType })
+    @IsInstance(PostType)
+    @IsOptional()
     postType: PostType;
 
-    @ApiProperty({ type: PostTag, isArray: true })
+    @IsArray()
+    @IsOptional()
     postTags: PostTag[] = new Array<PostTag>();
 
-    @ApiProperty({ type: Award, isArray: true })
+    @IsOptional()
     awards: RichRelatedEntities<Award, PostToAwardRelTypes>;
 
-    @ApiProperty({ type: Number })
+    @IsNumber()
     createdAt: number;
 
-    @ApiProperty({ type: Number })
     @NodeProperty()
     updatedAt: number;
 
-    @ApiProperty({ type: String })
     @NodeProperty()
+    @IsString()
     postTitle: string;
-    @ApiProperty({ type: String })
     @NodeProperty()
+    @IsString()
     postContent: string;
 
-    @ApiProperty({ type: User })
+    @IsInstance(User)
     authorUser: User | any;
 
-    @ApiProperty({ type: Boolean })
     @NodeProperty()
+    @IsBoolean()
     pending: boolean;
 
-    @ApiProperty({ type: RestrictedProps })
+    @IsInstance(RestrictedProps)
+    @IsOptional()
     restrictedProps: Nullable<RestrictedProps> = null;
 
-    @ApiProperty({ type: Number })
+    @IsNumber()
     totalVotes: number;
 
-    @ApiProperty({ type: Number })
+    @IsNumber()
     @IsOptional()
     totalComments: number | undefined;
 
-    @ApiProperty({ type: Comment, isArray: true })
+    @IsArray({ each: true })
+    @Type(() => Comment)
     comments: Comment[];
 
-    @ApiProperty({ type: Boolean })
     @NodeProperty()
-    @Exclude()
+    @IsOptional()
+    @IsInstance(DeletedProps)
     deletedProps: Nullable<DeletedProps> = null;
 
-    @ApiProperty({ type: VoteType, nullable: true })
     @IsOptional()
+    @IsEnum(VoteType)
     userVote: Nullable<VoteType> | undefined = undefined;
 
     constructor(partial?: Partial<Post>, neo4jService?: Neo4jService) {

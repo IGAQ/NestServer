@@ -1,18 +1,18 @@
-import { ApiProperty } from "@nestjs/swagger";
 import { Labels, NodeProperty } from "../../neo4j/neo4j.decorators";
+import { IsNumber, IsString, IsUUID } from "class-validator";
 
 @Labels("Openness")
 export class Openness {
-    @ApiProperty({ type: String, format: "uuid" })
     @NodeProperty()
+    @IsUUID()
     opennessId: string;
 
-    @ApiProperty({ type: Number })
     @NodeProperty()
+    @IsNumber()
     opennessLevel: number;
 
-    @ApiProperty({ type: Number })
     @NodeProperty()
+    @IsString()
     opennessDescription: string;
 
     constructor(partial?: Partial<Openness>) {

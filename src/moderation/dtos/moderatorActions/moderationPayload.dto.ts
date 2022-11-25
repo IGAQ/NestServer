@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsUUID } from "class-validator";
+import { IsNotEmpty, IsString, IsUUID } from "class-validator";
 
 export class ModerationPayloadDto {
     @ApiProperty({ type: String, format: "uuid" })
@@ -11,6 +11,8 @@ export class ModerationPayloadDto {
     moderatorId: string;
 
     @ApiProperty({ type: String })
+    @IsString()
+    @IsNotEmpty()
     reason: string;
 
     constructor(partial?: Partial<ModerationPayloadDto>) {

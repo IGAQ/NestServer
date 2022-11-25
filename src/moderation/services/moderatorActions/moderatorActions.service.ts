@@ -6,6 +6,7 @@ import { _ToSelfRelTypes, DeletedProps, RestrictedProps } from "../../../_domain
 import { Comment } from "../../../comments/models";
 import { Post } from "../../../posts/models";
 import { ModerationPayloadDto } from "../../dtos/moderatorActions";
+import { User } from "../../../users/models";
 
 /**
  * This service is responsible for moderating posts and comments.
@@ -19,6 +20,13 @@ export class ModeratorActionsService implements IModeratorActionsService {
 
     constructor(@Inject(_$.IDatabaseContext) dbContext: DatabaseContext) {
         this._dbContext = dbContext;
+    }
+
+    public async banUser(payload: ModerationPayloadDto): Promise<User> {
+        throw new Error("Method not implemented.");
+    }
+    public async unbanUser(userId: string): Promise<User> {
+        throw new Error("Method not implemented.");
     }
 
     /**
