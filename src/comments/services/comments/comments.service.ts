@@ -9,11 +9,12 @@ import { UserToCommentRelTypes } from "../../../users/models/toComment";
 import { _$ } from "../../../_domain/injectableTokens";
 import { CommentCreationPayloadDto, VoteCommentPayloadDto } from "../../dtos";
 import { Comment } from "../../models";
-import { CommentToSelfRelTypes, DeletedProps } from "../../models/toSelf";
+import { CommentToSelfRelTypes } from "../../models/toSelf";
 import { ICommentsService } from "./comments.service.interface";
 import { IAutoModerationService } from "../../../moderation/services/autoModeration/autoModeration.service.interface";
 import { IPostsService } from "../../../posts/services/posts/posts.service.interface";
 import { VoteType } from "../../../_domain/models/enums";
+import { DeletedProps } from "../../../_domain/models/toSelf";
 import { VoteProps } from "../../../users/models/toPost";
 
 @Injectable({ scope: Scope.REQUEST })
@@ -218,7 +219,7 @@ export class CommentsService implements ICommentsService {
         await comment.setDeletedProps(
             new DeletedProps({
                 deletedAt: new Date().getTime(),
-                deletedByUserId: comment.authorUser.userId,
+                moderatorId: comment.authorUser.userId,
             })
         );
     }

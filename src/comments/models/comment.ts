@@ -5,8 +5,8 @@ import { Model } from "../../neo4j/neo4j.helper.types";
 import { Neo4jService } from "../../neo4j/services/neo4j.service";
 import { User } from "../../users/models";
 import { AuthoredProps, UserToCommentRelTypes } from "../../users/models/toComment";
-import { RestrictedProps, _ToSelfRelTypes } from "../../_domain/models/toSelf";
-import { CommentToSelfRelTypes, DeletedProps } from "./toSelf";
+import { RestrictedProps, _ToSelfRelTypes, DeletedProps } from "../../_domain/models/toSelf";
+import { CommentToSelfRelTypes } from "./toSelf";
 import { PublicUserDto } from "../../users/dtos";
 import neo4j from "neo4j-driver";
 import { VoteType } from "../../_domain/models/enums";
@@ -204,7 +204,7 @@ export class Comment extends Model {
     public async getDeletedProps(): Promise<DeletedProps> {
         const queryResult = await this.neo4jService.tryReadAsync(
             `
-            MATCH (c:Comment {commentId: $commentId})-[r:${CommentToSelfRelTypes.DELETED}]->(c)
+            MATCH (c:Comment {commentId: $commentId})-[r:${_ToSelfRelTypes.DELETED}]->(c)
             RETURN r
             `,
             {
@@ -221,7 +221,7 @@ export class Comment extends Model {
         await this.neo4jService.tryWriteAsync(
             `
             MATCH (c:Comment {commentId: $commentId})
-            MERGE (c)-[r:${CommentToSelfRelTypes.DELETED}]->(c)
+            MERGE (c)-[r:${_ToSelfRelTypes.DELETED}]->(c)
             SET r = $deletedProps
             `,
             {

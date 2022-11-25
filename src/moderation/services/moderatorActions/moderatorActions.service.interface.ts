@@ -1,13 +1,17 @@
+import { Post } from "../../../posts/models";
+import { Comment } from "../../../comments/models";
+import { ModerationPayloadDto } from "../../dtos/moderatorActions";
+
 export interface IModeratorActionsService {
-    allowPost(postId: string): Promise<void>;
-    restrictPost(postId: string): Promise<void>;
+    allowPost(postId: string): Promise<Post>;
+    restrictPost(payload: ModerationPayloadDto): Promise<Post>;
 
-    allowComment(commentId: string): Promise<void>;
-    restrictComment(commentId: string): Promise<void>;
+    allowComment(commentId: string): Promise<Comment>;
+    restrictComment(payload: ModerationPayloadDto): Promise<Comment>;
 
-    deletePost(postId: string): Promise<void>;
-    undeletePost(postId: string): Promise<void>;
+    deletePost(payload: ModerationPayloadDto): Promise<Post>;
+    undeletePost(postId: string): Promise<Post>;
 
-    deleteComment(commentId: string): Promise<void>;
-    undeleteComment(commentId: string): Promise<void>;
+    deleteComment(payload: ModerationPayloadDto): Promise<Comment>;
+    undeleteComment(commentId: string): Promise<Comment>;
 }

@@ -1,12 +1,15 @@
 import { RelationshipProps } from "../../../neo4j/neo4j.helper.types";
-import { ApiProperty } from "@nestjs/swagger";
+import { IsNumber, IsString, IsUUID } from "class-validator";
 
 export class DeletedProps implements RelationshipProps {
-    @ApiProperty({ type: Number })
+    @IsNumber()
     deletedAt: number;
 
-    @ApiProperty({ type: String })
-    deletedByUserId: string;
+    @IsUUID()
+    moderatorId: string;
+
+    @IsString()
+    reason: string;
 
     constructor(partial?: Partial<DeletedProps>) {
         Object.assign(this, partial);

@@ -7,13 +7,12 @@ import {
 } from "../../neo4j/neo4j.helper.types";
 import { User } from "../../users/models";
 import { PostType, PostTag, Award } from "./index";
-import { _ToSelfRelTypes, RestrictedProps } from "../../_domain/models/toSelf";
+import { _ToSelfRelTypes, RestrictedProps, DeletedProps } from "../../_domain/models/toSelf";
 import { HasAwardProps, PostToAwardRelTypes } from "./toAward";
 import { Neo4jService } from "../../neo4j/services/neo4j.service";
 import { PostToPostTypeRelTypes } from "./toPostType";
 import { PostToPostTagRelTypes } from "./toTags";
 import { AuthoredProps, UserToPostRelTypes } from "../../users/models/toPost";
-import { DeletedProps, PostToSelfRelTypes } from "./toSelf";
 import { Exclude } from "class-transformer";
 import { PublicUserDto } from "../../users/dtos";
 import { PostToCommentRelTypes } from "./toComment";
@@ -207,7 +206,7 @@ export class Post extends Model {
     public async getDeletedProps(): Promise<DeletedProps> {
         const queryResult = await this.neo4jService.tryReadAsync(
             `
-            MATCH (p:Post {postId: $postId})-[r:${PostToSelfRelTypes.DELETED}]->(p)
+            MATCH (p:Post {postId: $postId})-[r:${_ToSelfRelTypes.DELETED}]->(p)
             RETURN r
             `,
             {
@@ -224,7 +223,7 @@ export class Post extends Model {
         await this.neo4jService.tryWriteAsync(
             `
             MATCH (p:Post {postId: $postId})
-            MERGE (p)-[r:${PostToSelfRelTypes.DELETED}]->(p)
+            MERGE (p)-[r:${_ToSelfRelTypes.DELETED}]->(p)
             SET r = $deletedProps
             `,
             {

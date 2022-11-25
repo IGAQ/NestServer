@@ -6,11 +6,11 @@ import { REQUEST } from "@nestjs/core";
 import { Request } from "express";
 import { Comment } from "../../../comments/models";
 import { VoteType } from "../../../_domain/models/enums";
+import { DeletedProps } from "../../../_domain/models/toSelf";
 import { IAutoModerationService } from "../../../moderation/services/autoModeration/autoModeration.service.interface";
 import { UserToPostRelTypes, VoteProps } from "../../../users/models/toPost";
 import { PostCreationPayloadDto, VotePostPayloadDto } from "../../dtos";
 import { Post, PostTag } from "../../models";
-import { DeletedProps } from "../../models/toSelf";
 import { IPostsService, postSortCallback } from "./posts.service.interface";
 
 @Injectable({ scope: Scope.REQUEST })
@@ -208,7 +208,7 @@ export class PostsService implements IPostsService {
         await post.setDeletedProps(
             new DeletedProps({
                 deletedAt: new Date().getTime(),
-                deletedByUserId: post.authorUser.userId,
+                moderatorId: post.authorUser.userId,
             })
         );
     }
