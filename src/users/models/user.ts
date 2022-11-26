@@ -17,7 +17,7 @@ import { AuthoredProps as UserToCommentAuthoredProps, UserToCommentRelTypes } fr
 import { UserToGenderRelTypes } from "./toGender";
 import { UserToOpennessRelTypes } from "./toOpenness";
 import { AuthoredProps, FavoritesProps, UserToPostRelTypes } from "./toPost";
-import { UserToSelfRelTypes, WasOffendingProps } from "./toSelf";
+import { GotBannedProps, UserToSelfRelTypes, WasOffendingProps } from "./toSelf";
 import { UserToSexualityRelTypes } from "./toSexuality";
 import {
     IsArray,
@@ -106,6 +106,10 @@ export class User extends Model {
     @IsOptional()
     wasOffendingRecords: WasOffendingProps[] = [];
 
+    @IsInstance(GotBannedProps)
+    @IsOptional()
+    gotBannedProps: Nullable<GotBannedProps>;
+
     constructor(partial?: Partial<User>, neo4jService?: Neo4jService) {
         super(neo4jService);
         Object.assign(this, partial);
@@ -120,6 +124,24 @@ export class User extends Model {
         delete this.neo4jService;
         delete this.wasOffendingRecords;
         return { ...this };
+    }
+
+    public async getGotBannedProps(): Promise<Nullable<GotBannedProps>> {
+        const queryResult = await this.neo4jService.tryReadAsync(
+            `
+            MATCH (u:User { userId: $userId})-[r:${UserToSelfRelTypes.GOT_BANNED}]-(u)
+            RETURN r
+            `,
+            {
+                userId: this.userId,
+            }
+        );
+        if (queryResult.records.length === 0) {
+            this.gotBannedProps = null;
+            return null;
+        }
+        this.gotBannedProps = new GotBannedProps(queryResult.records[0].get("r").properties);
+        return this.gotBannedProps;
     }
 
     public async addWasOffendingRecord(record: WasOffendingProps): Promise<void> {
