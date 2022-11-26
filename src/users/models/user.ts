@@ -126,6 +126,11 @@ export class User extends Model {
         return { ...this };
     }
 
+    /**
+     * Checks with the database if the user has a GOT_BANNED relationship, and if it has, it will get its properties
+     * and assigns it to the instance's .gotBannedProps property.
+     * If the user has no GOT_BANNED relationship, it will assign null to the instance's .gotBannedProps property.
+     */
     public async getGotBannedProps(): Promise<Nullable<GotBannedProps>> {
         const queryResult = await this.neo4jService.tryReadAsync(
             `
