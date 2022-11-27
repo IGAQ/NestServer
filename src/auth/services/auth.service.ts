@@ -7,6 +7,7 @@ import { SignInPayloadDto, SignTokenDto, SignUpPayloadDto } from "../dtos";
 import { IAuthService } from "./auth.service.interface";
 import { User } from "../../users/models";
 import { _$ } from "../../_domain/injectableTokens";
+import { JwtTokenPayloadDto } from "../dtos/jwtTokenPayload.dto";
 
 @Injectable({})
 export class AuthService implements IAuthService {
@@ -67,7 +68,7 @@ export class AuthService implements IAuthService {
     }
 
     private async signToken(user: User): Promise<string> {
-        const payload = {
+        const payload: JwtTokenPayloadDto = {
             sub: user.userId,
             username: user.username,
         };
