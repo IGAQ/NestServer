@@ -103,6 +103,7 @@ export class Post extends Model {
                 this.getPostTags(),
                 this.getAwards(),
                 this.getRestricted(),
+                this.getDeletedProps(),
                 this.getCreatedAt(),
                 this.getTotalVotes(),
                 this.getAuthorUser(),
