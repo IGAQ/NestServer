@@ -1,5 +1,4 @@
-import { SignInPayloadDto, SignTokenDto, SignUpPayloadDto } from "../dtos";
-import { ChangePasswordAdminDto } from "../dtos/changePasswordAdmin.dto";
+import { SignInPayloadDto, SignTokenDto, SignUpPayloadDto, ChangePasswordAdminDto } from "../dtos";
 
 export interface IAuthService {
     signup(signUpPayloadDto: SignUpPayloadDto): Promise<SignTokenDto>;
