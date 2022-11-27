@@ -231,21 +231,6 @@ export class Post extends Model {
         return result;
     }
 
-    public async setDeletedProps(deletedProps: DeletedProps): Promise<void> {
-        await this.neo4jService.tryWriteAsync(
-            `
-            MATCH (p:Post {postId: $postId})
-            MERGE (p)-[r:${_ToSelfRelTypes.DELETED}]->(p)
-            SET r = $deletedProps
-            `,
-            {
-                postId: this.postId,
-                deletedProps,
-            }
-        );
-        this.deletedProps = deletedProps;
-    }
-
     public async getRestricted(): Promise<Nullable<RestrictedProps>> {
         const queryResult = await this.neo4jService.tryReadAsync(
             `
