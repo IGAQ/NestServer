@@ -87,7 +87,9 @@ export class PostsController {
     }
 
     @Get("/:postId/nestedComments")
+    @UseGuards(OptionalJwtAuthGuard)
     public async getNestedCommentsByPostId(
+        @AuthedUser() user: User,
         @Param("postId", new ParseUUIDPipe()) postId: UUID
     ): Promise<Comment[]> {
         const topLevelComments = await this._postsService.findNestedCommentsByPostId(
@@ -96,7 +98,9 @@ export class PostsController {
             2,
             2
         );
-        const decoratedTopLevelComments = topLevelComments.map(comment => comment.toJSONNested());
+        const decoratedTopLevelComments = topLevelComments.map(comment =>
+            comment.toJSONNested({ authenticatedUserId: user?.userId ?? undefined })
+        );
         return await Promise.all(decoratedTopLevelComments);
     }
 
