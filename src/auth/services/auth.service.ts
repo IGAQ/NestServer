@@ -3,11 +3,16 @@ import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
 import { IUsersRepository } from "../../users/repositories/users/users.repository.interface";
-import { SignInPayloadDto, SignTokenDto, SignUpPayloadDto } from "../dtos";
+import {
+    ChangePasswordAdminDto,
+    SignInPayloadDto,
+    SignTokenDto,
+    SignUpPayloadDto,
+    JwtTokenPayloadDto,
+} from "../dtos";
 import { IAuthService } from "./auth.service.interface";
 import { User } from "../../users/models";
 import { _$ } from "../../_domain/injectableTokens";
-import { JwtTokenPayloadDto } from "../dtos/jwtTokenPayload.dto";
 
 @Injectable({})
 export class AuthService implements IAuthService {
@@ -53,11 +58,11 @@ export class AuthService implements IAuthService {
     public async signIn(signInPayloadDto: SignInPayloadDto): Promise<SignTokenDto> {
         const user = await this._usersRepository.findUserByUsername(signInPayloadDto.username);
         if (!user) {
-            throw new HttpException("User not found", 404);
+            throw new HttpException("Authentication failed.", 400);
         }
         const isMatch = await bcrypt.compare(signInPayloadDto.password, user.passwordHash);
         if (!isMatch) {
-            throw new HttpException("Incorrect password", 400);
+            throw new HttpException("Authentication failed.", 400);
         }
 
         const token = await this.signToken(user);
@@ -79,5 +84,17 @@ export class AuthService implements IAuthService {
             expiresIn: "15m",
             secret: secret,
         });
+    }
+
+    public async changePasswordAdmin(payload: ChangePasswordAdminDto): Promise<void> {
+        const user = await this._usersRepository.findUserByUsername(payload.username);
+        if (!user) {
+            throw new HttpException("User not found", 404);
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        user.passwordHash = await bcrypt.hash(payload.newPassword, salt);
+
+        await this._usersRepository.updateUser(user);
     }
 }
