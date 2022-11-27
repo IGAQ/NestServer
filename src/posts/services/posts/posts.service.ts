@@ -196,23 +196,6 @@ export class PostsService implements IPostsService {
         }
     }
 
-    public async markAsDeleted(postId: string): Promise<void> {
-        const post = await this._dbContext.Posts.findPostById(postId);
-        if (post === undefined) throw new Error("Post not found");
-
-        await post.getDeletedProps();
-        if (post.deletedProps !== null) throw new Error("Post already deleted");
-
-        await post.getAuthorUser();
-
-        await post.setDeletedProps(
-            new DeletedProps({
-                deletedAt: new Date().getTime(),
-                moderatorId: post.authorUser.userId,
-            })
-        );
-    }
-
     public async votePost(votePostPayload: VotePostPayloadDto): Promise<void> {
         const user = this.getUserFromRequest();
 

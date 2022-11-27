@@ -24,7 +24,5 @@ export interface IPostsService {
 
     getNestedComments(comments: Comment[], nestedLevel: number, nestedLimit: number): Promise<void>;
 
-    markAsDeleted(postId: string): Promise<void>;
-
     votePost(votePostPayload: VotePostPayloadDto): Promise<void>;
 }
