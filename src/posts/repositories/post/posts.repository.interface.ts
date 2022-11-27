@@ -1,5 +1,5 @@
 import { Post } from "../../models";
-import { RestrictedProps } from "../../../_domain/models/toSelf";
+import { DeletedProps, RestrictedProps } from "../../../_domain/models/toSelf";
 
 export interface IPostsRepository {
     findAll(): Promise<Post[]>;
@@ -13,6 +13,10 @@ export interface IPostsRepository {
     updatePost(post: Post): Promise<void>;
 
     deletePost(postId: string): Promise<void>;
+
+    markAsDeleted(postId: string, deletedProps: DeletedProps): Promise<void>;
+
+    removeDeletedMark(postId: string): Promise<void>;
 
     restrictPost(postId: string, restrictedProps: RestrictedProps): Promise<void>;
 
