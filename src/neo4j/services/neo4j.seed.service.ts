@@ -427,34 +427,34 @@ export class Neo4jSeedService {
 
         return new Array<User>(
             new User({
-                userId: "5c0f145b-ffad-4881-8ee6-7647c3c1b695",
+                userId: "c612c987-6825-473c-882f-129f17d906b4",
                 createdAt: new Date().getTime(),
                 updatedAt: new Date().getTime(),
                 avatar: ":^)",
-                username: "alice",
-                normalizedUsername: "ALICE",
-                passwordHash: "password",
+                username: "gabriel",
+                normalizedUsername: "GABRIEL",
+                passwordHash: "someotherpassword",
                 phoneNumber: null,
                 phoneNumberVerified: false,
-                email: "a@a.com",
+                email: "email@domain.com",
                 emailVerified: false,
                 level: 0,
-                roles: [Role.MODERATOR],
+                roles: [Role.USER],
                 gender: new Gender({
                     genderId: "d2945763-d1fb-46aa-b896-7f701b4ca699",
                 }),
                 sexuality: new Sexuality({
-                    sexualityId: "1b67cf76-752d-4ea5-9584-a4232998b838",
+                    sexualityId: "55da84cc-5f17-454a-a653-227458763edb",
                 }),
                 openness: new Openness({
-                    opennessId: "d5c97584-cd1b-4aa6-82ad-b5ddd3577bee",
+                    opennessId: "c8921055-563f-4a54-8773-b408efcfb7ac",
                 }),
                 posts: {
                     [UserToPostRelTypes.AUTHORED]: {
                         records: (await this.getPosts()).slice(0, 2).map(post => ({
                             entity: post,
                             relProps: new AuthoredProps({
-                                authoredAt: new Date("June 1st, 2022").getTime(),
+                                authoredAt: new Date("10/11/2022").getTime(),
                                 anonymously: false,
                             }),
                         })),
@@ -468,64 +468,33 @@ export class Neo4jSeedService {
                 createdAt: new Date().getTime(),
                 updatedAt: new Date().getTime(),
                 avatar: "^_^",
-                username: "leo",
-                normalizedUsername: "LEO",
-                passwordHash: "123",
+                username: "alphonse",
+                normalizedUsername: "ALPHONSE",
+                passwordHash: "num3r1ca1pa55w0rd",
                 phoneNumber: null,
                 phoneNumberVerified: false,
-                email: "b@b.com",
+                email: "admin@domain.com",
                 emailVerified: false,
                 level: 0,
-                roles: [Role.USER, Role.MODERATOR],
+                roles: [Role.USER],
                 gender: new Gender({
                     genderId: "585d31aa-d5b3-4b8d-9690-ffcd57ce2862",
                 }),
                 sexuality: new Sexuality({
-                    sexualityId: "9164d89b-8d71-4fd1-af61-155d1d7ffe53",
+                    sexualityId: "d2945763-d1fb-46aa-b896-7f701b4ca699",
                 }),
                 openness: new Openness({
-                    opennessId: "ae90b960-5f00-4298-b509-fac92a59b406",
+                    opennessId: "d5c97584-cd1b-4aa6-82ad-b5ddd3577bee",
                 }),
                 posts: {
                     [UserToPostRelTypes.AUTHORED]: {
-                        records: (await this.getPosts()).slice(2).map(post => ({
+                        records: (await this.getPosts()).slice(1, 3).map(post => ({
                             entity: post,
                             relProps: new AuthoredProps({
-                                authoredAt: new Date("June 1st, 2022").getTime(),
+                                authoredAt: new Date("09/6/2022").getTime(),
                                 anonymously: false,
                             }),
                         })),
-                        relType: UserToPostRelTypes.AUTHORED,
-                    },
-                    ...onlyAuthoredPosts,
-                },
-            }),
-            new User({
-                userId: "8f0c1ecf-6853-4642-9199-6e8244b89312",
-                createdAt: new Date().getTime(),
-                updatedAt: new Date().getTime(),
-                avatar: "🤠",
-                username: "ilia",
-                normalizedUsername: "ILIA",
-                passwordHash: "$2b$10$nBR48Qq3e27FWfO3Yxezseaz7GRDe9qo4wXnwT7XoaDnCx9.Id7x6",
-                phoneNumber: null,
-                phoneNumberVerified: false,
-                email: "b@b.com",
-                emailVerified: true,
-                level: 3,
-                roles: [Role.ADMIN, Role.MODERATOR],
-                gender: new Gender({
-                    genderId: "585d31aa-d5b3-4b8d-9690-ffcd57ce2862",
-                }),
-                sexuality: new Sexuality({
-                    sexualityId: "9164d89b-8d71-4fd1-af61-155d1d7ffe53",
-                }),
-                openness: new Openness({
-                    opennessId: "ae90b960-5f00-4298-b509-fac92a59b406",
-                }),
-                posts: {
-                    [UserToPostRelTypes.AUTHORED]: {
-                        records: [],
                         relType: UserToPostRelTypes.AUTHORED,
                     },
                     ...onlyAuthoredPosts,
@@ -537,35 +506,30 @@ export class Neo4jSeedService {
     public async getPosts(): Promise<Post[]> {
         return new Array<Post>(
             new Post({
-                postId: "b73edbf4-ba84-4b11-a91c-e1d8b1366974",
-                postTitle: "sister caught me checking out a guy on a camping trip",
+                postId: "bcddeb57-939d-441b-b4ea-71e1d2055f32",
+                postTitle: "Sister caught me checking out a guy on a camping trip",
                 postContent:
                     "I was on a camping trip and my sister caught me staring at someone across the site with his \n" +
                     " shirt off, for the the rest of the day she wouldn't stop asking me, even getting the other members \n" +
                     " who came with us to join in, I eventually gave in, she was super kind about it and came out as Bisexual the following months",
-                updatedAt: 1665770000,
+                updatedAt: 1666690000,
                 postType: (await this.getPostTypes())[1],
-                postTags: (await this.getPostTags()).slice(0, 2),
+                postTags: (await this.getPostTags()).slice(-1),
                 restrictedProps: null,
                 authorUser: new User({
-                    userId: "3109f9e2-a262-4aef-b648-90d86d6fbf6c",
+                    userId: "c612c987-6825-473c-882f-129f17d906b4",
                 }),
                 pending: false,
-                totalVotes: 1,
+                totalVotes: 0,
                 awards: {
                     [PostToAwardRelTypes.HAS_AWARD]: {
-                        records: (await this.getAwards()).slice(0, 2).map(award => ({
-                            entity: award,
-                            relProps: new HasAwardProps({
-                                awardedBy: "5c0f145b-ffad-4881-8ee6-7647c3c1b695",
-                            }),
-                        })),
+                        records: [],
                         relType: PostToAwardRelTypes.HAS_AWARD,
                     },
                 },
             }),
             new Post({
-                postId: "596632ac-dd54-4700-a783-688618d99fa9",
+                postId: "be9ab5e4-eb7c-469b-a1e3-592dca2a00d0",
                 postTitle: "Coming out to my accepting family",
                 postContent:
                     "Growing up my family was really gay friendly. I had two gay uncles and everyone was accepting of them. \n " +
@@ -583,9 +547,9 @@ export class Neo4jSeedService {
                     "Today my entire family knows that I am gay and they accept me. It is nice to have such an accepting family and I know that I am \n " +
                     "very fortunate to have a family that loves me unconditionally. I am grateful that my family has never judged me or made me feel \n " +
                     "uncomfortable expressing who I am.",
-                updatedAt: 1665770000,
+                updatedAt: 1666770000,
                 postType: (await this.getPostTypes())[1],
-                postTags: (await this.getPostTags()).slice(0, 2),
+                postTags: (await this.getPostTags()).slice(0, 1),
                 restrictedProps: new RestrictedProps({
                     restrictedAt: 1665780000,
                     moderatorId: "3109f9e2-a262-4aef-b648-90d86d6fbf6c",
@@ -598,10 +562,10 @@ export class Neo4jSeedService {
                 totalVotes: 3,
                 awards: {
                     [PostToAwardRelTypes.HAS_AWARD]: {
-                        records: (await this.getAwards()).slice(0, 2).map(award => ({
+                        records: (await this.getAwards()).slice(-1, 1).map(award => ({
                             entity: award,
                             relProps: new HasAwardProps({
-                                awardedBy: "5c0f145b-ffad-4881-8ee6-7647c3c1b695",
+                                awardedBy: "6bd7b8a2-bf8c-49e6-9c28-ee3d89be2453",
                             }),
                         })),
                         relType: PostToAwardRelTypes.HAS_AWARD,
@@ -614,13 +578,13 @@ export class Neo4jSeedService {
     public async getComments(): Promise<Comment[]> {
         return new Array<Comment>(
             new Comment({
-                commentId: "37fbb7c9-013f-4057-bc90-f38498b69295",
-                parentId: "596632ac-dd54-4700-a783-688618d99fa9",
-                commentContent: "I think this post is great!",
-                createdAt: 1665770000,
-                updatedAt: 1665770000,
+                commentId: "f8959b32-5b68-4f68-97bc-59afdc0d09cb",
+                parentId: "bcddeb57-939d-441b-b4ea-71e1d2055f32",
+                commentContent: "Wow that's so nice to hear!",
+                createdAt: 1666990000,
+                updatedAt: 1666990000,
                 authorUser: new User({
-                    userId: "5c0f145b-ffad-4881-8ee6-7647c3c1b695",
+                    userId: "6bd7b8a2-bf8c-49e6-9c28-ee3d89be2453",
                 }),
                 pinned: true,
                 pending: false,
@@ -628,53 +592,51 @@ export class Neo4jSeedService {
                 childComments: [],
             }),
             new Comment({
-                commentId: "13cc9fd9-4c99-4daa-bf17-750bd1efa5d8",
-                parentId: "596632ac-dd54-4700-a783-688618d99fa9",
-                commentContent: "First comment! :yay:",
-                createdAt: 1665770000,
-                updatedAt: 1665770000,
+                commentId: "c13c4349-bbf9-45a7-a573-7a04efa66e3c",
+                parentId: "be9ab5e4-eb7c-469b-a1e3-592dca2a00d0",
+                commentContent: `Congratulations! That's so nice you have such a supportive family. 
+                                Sorry to hear about your ex-girlfriend and your cousin though. I hope you're doing better now.`,
+                createdAt: 1666890000,
+                updatedAt: 1666890000,
                 authorUser: new User({
-                    userId: "5c0f145b-ffad-4881-8ee6-7647c3c1b695",
+                    userId: "6bd7b8a2-bf8c-49e6-9c28-ee3d89be2453",
                 }),
                 pinned: false,
                 pending: true,
-                restrictedProps: new RestrictedProps({
-                    restrictedAt: 1665780000,
-                    moderatorId: "3109f9e2-a262-4aef-b648-90d86d6fbf6c",
-                    reason: "The moderator thinks there is profanity in this comment",
-                }),
+                restrictedProps: null,
                 childComments: [
                     new Comment({
-                        commentId: "04658465-f9ea-427b-9f5b-ed5e93db27ff",
-                        parentId: "13cc9fd9-4c99-4daa-bf17-750bd1efa5d8",
-                        commentContent: "Second comment! :yay:",
-                        createdAt: 1665770000,
-                        updatedAt: 1665770000,
+                        commentId: "3ee2801a-998d-437a-a49e-3974919f35c1",
+                        parentId: "be9ab5e4-eb7c-469b-a1e3-592dca2a00d0",
+                        commentContent: `Wow that's so scummy of your cousin to do that to you! I would have never forgiven her.`,
+                        createdAt: 1666990000,
+                        updatedAt: 1666990000,
                         authorUser: new User({
                             userId: "3109f9e2-a262-4aef-b648-90d86d6fbf6c",
                         }),
                         pinned: false,
                         pending: true,
-                        restrictedProps: new RestrictedProps({
-                            restrictedAt: 1665780000,
-                            moderatorId: "3109f9e2-a262-4aef-b648-90d86d6fbf6c",
-                            reason: "The moderator died of cringe",
-                        }),
-                        childComments: [],
-                    }),
-                    new Comment({
-                        commentId: "acba2871-2435-4439-82c3-adebc7cdc942",
-                        parentId: "13cc9fd9-4c99-4daa-bf17-750bd1efa5d8",
-                        commentContent: "First-Second comment! :yay:",
-                        createdAt: 1665770000,
-                        updatedAt: 1665770000,
-                        authorUser: new User({
-                            userId: "3109f9e2-a262-4aef-b648-90d86d6fbf6c",
-                        }),
-                        pinned: false,
-                        pending: false,
                         restrictedProps: null,
-                        childComments: [],
+                        childComments: [
+                            new Comment({
+                                commentId: "287ca219-005e-41fa-af40-abf59c2c2caf",
+                                parentId: "3ee2801a-998d-437a-a49e-3974919f35c1",
+                                commentContent: `I agree! I would have never forgiven her either.`,
+                                createdAt: 1667000000,
+                                updatedAt: 1667000000,
+                                authorUser: new User({
+                                    userId: "f0b42305-9513-4fe7-a918-320d2b488e61",
+                                }),
+                                pinned: false,
+                                pending: true,
+                                restrictedProps: new RestrictedProps({
+                                    restrictedAt: 1667000001,
+                                    moderatorId: "3109f9e2-a262-4aef-b648-90d86d6fbf6c",
+                                    reason: "The moderator died of cringe",
+                                }),
+                                childComments: [],
+                            }),
+                        ],
                     }),
                 ],
             })
@@ -724,13 +686,18 @@ export class Neo4jSeedService {
     public async getAwards(): Promise<Award[]> {
         return new Array<Award>(
             new Award({
-                awardId: "2049221e-1f45-4430-8edc-95db808db072",
-                awardName: "Sean's Mom Award",
+                awardId: "032930d2-9994-46cc-ad35-559bb41a9d05",
+                awardName: "Ian's Mom Award",
                 awardSvg: "<svg></svg>",
             }),
             new Award({
                 awardId: "375608ce-ca65-4293-8402-da34cd2c42c7",
                 awardName: "",
+                awardSvg: "<svg></svg>",
+            }),
+            new Award({
+                awardId: "bf99f8f5-66f7-41ce-8014-5f70e5145174",
+                awardName: "Ilia's Mom Award",
                 awardSvg: "<svg></svg>",
             })
         );
