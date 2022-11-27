@@ -89,6 +89,7 @@ export class Comment extends Model {
         if (this.neo4jService) {
             await Promise.all([
                 this.getRestricted(),
+                this.getDeletedProps(),
                 this.getCreatedAt(),
                 this.getTotalVotes(),
                 this.getAuthorUser(),
