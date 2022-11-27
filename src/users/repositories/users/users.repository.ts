@@ -41,7 +41,7 @@ export class UsersRepository implements IUsersRepository {
         return new User(props, this._neo4jService);
     }
 
-    public async findUserById(userId: string): Promise<User | undefined> {
+    public async findUserById(userId: UUID): Promise<User | undefined> {
         const queryResult = await this._neo4jService.read(
             `MATCH (u:User {userId: $userId}) RETURN u`,
             {
@@ -175,7 +175,7 @@ export class UsersRepository implements IUsersRepository {
         );
     }
 
-    public async deleteUser(userId: string): Promise<void> {
+    public async deleteUser(userId: UUID): Promise<void> {
         await this._neo4jService.tryWriteAsync(`MATCH (u:User {userId: $userId}) DETACH DELETE u`, {
             userId: userId,
         });

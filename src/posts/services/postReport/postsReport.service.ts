@@ -37,7 +37,7 @@ export class PostsReportService implements IPostsReportService {
 
         const reports = await this.getReportsForPost(post.postId);
 
-        if (reports.some(r => r.reportedBy.userId === user.userId)) {
+        if (reports.some(r => r.moderatorId === user.userId)) {
             throw new HttpException("Post already reported", 400);
         }
 
@@ -68,10 +68,7 @@ export class PostsReportService implements IPostsReportService {
         );
         return queryResult.records.map(record => {
             const reportedProps = new ReportedProps(record.get("r").properties);
-            reportedProps.reportedBy = new User(
-                record.get("u").properties,
-                this._dbContext.neo4jService
-            );
+            reportedProps.moderatorId = record.get("u").properties.userId;
             return reportedProps;
         });
     }

@@ -10,7 +10,7 @@ export class CommentCreationPayloadDto {
     @ApiProperty({ type: String, format: "uuid" })
     @IsString()
     @IsNotEmpty()
-    parentId: string;
+    parentId: UUID;
 
     @ApiProperty({ type: Boolean })
     @IsBoolean()

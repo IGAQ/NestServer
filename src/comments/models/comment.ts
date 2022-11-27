@@ -1,72 +1,83 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { Exclude } from "class-transformer";
+import { Exclude, Type } from "class-transformer";
 import { Labels, NodeProperty } from "../../neo4j/neo4j.decorators";
 import { Model } from "../../neo4j/neo4j.helper.types";
 import { Neo4jService } from "../../neo4j/services/neo4j.service";
 import { User } from "../../users/models";
 import { AuthoredProps, UserToCommentRelTypes } from "../../users/models/toComment";
-import { RestrictedProps, _ToSelfRelTypes } from "../../_domain/models/toSelf";
-import { CommentToSelfRelTypes, DeletedProps } from "./toSelf";
+import { RestrictedProps, _ToSelfRelTypes, DeletedProps } from "../../_domain/models/toSelf";
+import { CommentToSelfRelTypes } from "./toSelf";
 import { PublicUserDto } from "../../users/dtos";
 import neo4j from "neo4j-driver";
 import { VoteType } from "../../_domain/models/enums";
-import { IsOptional } from "class-validator";
+import {
+    IsArray,
+    IsBoolean,
+    IsEnum,
+    IsInstance,
+    IsNumber,
+    IsOptional,
+    IsString,
+    IsUUID,
+} from "class-validator";
 
 @Labels("Comment")
 export class Comment extends Model {
-    @ApiProperty({ type: String, format: "uuid" })
     @NodeProperty()
-    commentId: string;
+    @IsUUID()
+    commentId: UUID;
 
     /**
      * The time the comment was created. Its value will be derived from the relationship
      * properties of (u:User)-[authored:AUTHORED]->(c:Comment) RETURN c, authored
      * where authored.createdAt is the value of this property.
      */
-    @ApiProperty({ type: Number })
+    @IsNumber()
     createdAt: number;
 
-    @ApiProperty({ type: String })
     @NodeProperty()
+    @IsString()
     commentContent: string;
 
-    @ApiProperty({ type: String, format: "uuid" })
-    parentId: Nullable<string>;
+    @IsUUID()
+    @IsOptional()
+    parentId: Nullable<UUID>;
 
-    @ApiProperty({ type: Boolean })
+    @IsBoolean()
     pinned: boolean;
 
-    @ApiProperty({ type: String })
     @NodeProperty()
+    @IsString()
     updatedAt: number;
 
-    @ApiProperty({ type: User })
+    @IsInstance(User)
     authorUser: User | any;
 
-    @ApiProperty({ type: Boolean })
     @NodeProperty()
+    @IsBoolean()
     pending: boolean;
 
-    @ApiProperty({ type: Number })
+    @IsNumber()
     totalVotes: number;
 
-    @ApiProperty({ type: Number })
+    @IsNumber()
     @IsOptional()
     totalComments: number | undefined;
 
-    @ApiProperty({ type: RestrictedProps })
+    @IsInstance(RestrictedProps)
+    @IsOptional()
     restrictedProps: Nullable<RestrictedProps> = null;
 
-    @ApiProperty({ type: Comment })
+    @IsArray({ each: true })
+    @Type(() => RestrictedProps)
     childComments: Comment[];
 
-    @ApiProperty({ type: VoteType, nullable: true })
+    @IsEnum(VoteType)
     @IsOptional()
     userVote: Nullable<VoteType> | undefined = undefined;
 
-    @ApiProperty({ type: Boolean })
     @NodeProperty()
     @Exclude()
+    @IsBoolean()
     deletedProps: Nullable<DeletedProps> = null;
 
     constructor(partial?: Partial<Comment>, neo4jService?: Neo4jService) {
@@ -78,6 +89,7 @@ export class Comment extends Model {
         if (this.neo4jService) {
             await Promise.all([
                 this.getRestricted(),
+                this.getDeletedProps(),
                 this.getCreatedAt(),
                 this.getTotalVotes(),
                 this.getAuthorUser(),
@@ -204,7 +216,7 @@ export class Comment extends Model {
     public async getDeletedProps(): Promise<DeletedProps> {
         const queryResult = await this.neo4jService.tryReadAsync(
             `
-            MATCH (c:Comment {commentId: $commentId})-[r:${CommentToSelfRelTypes.DELETED}]->(c)
+            MATCH (c:Comment {commentId: $commentId})-[r:${_ToSelfRelTypes.DELETED}]->(c)
             RETURN r
             `,
             {
@@ -221,7 +233,7 @@ export class Comment extends Model {
         await this.neo4jService.tryWriteAsync(
             `
             MATCH (c:Comment {commentId: $commentId})
-            MERGE (c)-[r:${CommentToSelfRelTypes.DELETED}]->(c)
+            MERGE (c)-[r:${_ToSelfRelTypes.DELETED}]->(c)
             SET r = $deletedProps
             `,
             {

@@ -54,6 +54,7 @@ export class Neo4jService {
             return await session.run(cypher, params);
         } catch (error) {
             this._logger.debug(error);
+        } finally {
             await session.close();
         }
     }
@@ -69,6 +70,7 @@ export class Neo4jService {
             return await session.run(cypher, params);
         } catch (error) {
             this._logger.debug(error);
+        } finally {
             await session.close();
         }
     }

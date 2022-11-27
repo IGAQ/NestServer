@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { IPostsRepository } from "./posts.repository.interface";
 import { Neo4jService } from "../../../neo4j/services/neo4j.service";
-import { _ToSelfRelTypes, RestrictedProps } from "../../../_domain/models/toSelf";
+import { _ToSelfRelTypes, DeletedProps, RestrictedProps } from "../../../_domain/models/toSelf";
 import { PostToPostTypeRelTypes } from "../../models/toPostType";
 import { PostToPostTagRelTypes } from "../../models/toTags";
 import { HasAwardProps, PostToAwardRelTypes } from "../../models/toAward";
@@ -147,7 +147,7 @@ export class PostsRepository implements IPostsRepository {
             `,
             {
                 postId: post.postId,
-                updatedAt: post.updatedAt,
+                updatedAt: Date.now(),
                 postTitle: post.postTitle,
                 postContent: post.postContent,
                 pending: post.pending,
@@ -159,6 +159,32 @@ export class PostsRepository implements IPostsRepository {
         this._neo4jService.write(`MATCH (p:Post) WHERE p.postId = $postId DETACH DELETE p`, {
             postId: postId,
         });
+    }
+
+    public async markAsDeleted(postId: string, deletedProps: DeletedProps): Promise<void> {
+        await this._neo4jService.tryWriteAsync(
+            `
+            MATCH (p:Post {postId: $postId})
+            MERGE (p)-[r:${_ToSelfRelTypes.DELETED}]->(p)
+            SET r = $deletedProps
+            `,
+            {
+                postId,
+                deletedProps,
+            }
+        );
+    }
+
+    public async removeDeletedMark(postId: string): Promise<void> {
+        await this._neo4jService.tryWriteAsync(
+            `
+            MATCH (p:Post {postId: $postId})-[r:${_ToSelfRelTypes.DELETED}]->(p)
+            DELETE r
+            `,
+            {
+                postId,
+            }
+        );
     }
 
     public async restrictPost(postId: string, restrictedProps: RestrictedProps): Promise<void> {

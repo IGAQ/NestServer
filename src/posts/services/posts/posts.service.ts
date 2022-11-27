@@ -6,11 +6,11 @@ import { REQUEST } from "@nestjs/core";
 import { Request } from "express";
 import { Comment } from "../../../comments/models";
 import { VoteType } from "../../../_domain/models/enums";
+import { DeletedProps } from "../../../_domain/models/toSelf";
 import { IAutoModerationService } from "../../../moderation/services/autoModeration/autoModeration.service.interface";
 import { UserToPostRelTypes, VoteProps } from "../../../users/models/toPost";
 import { PostCreationPayloadDto, VotePostPayloadDto } from "../../dtos";
 import { Post, PostTag } from "../../models";
-import { DeletedProps } from "../../models/toSelf";
 import { IPostsService, postSortCallback } from "./posts.service.interface";
 
 @Injectable({ scope: Scope.REQUEST })
@@ -194,23 +194,6 @@ export class PostsService implements IPostsService {
             // comment.totalComments = await this.getTotalCommentsByComment(comment);
             await this.getNestedComments(comment.childComments, nestedLevel - 1, nestedLimit);
         }
-    }
-
-    public async markAsDeleted(postId: string): Promise<void> {
-        const post = await this._dbContext.Posts.findPostById(postId);
-        if (post === undefined) throw new Error("Post not found");
-
-        await post.getDeletedProps();
-        if (post.deletedProps !== null) throw new Error("Post already deleted");
-
-        await post.getAuthorUser();
-
-        await post.setDeletedProps(
-            new DeletedProps({
-                deletedAt: new Date().getTime(),
-                deletedByUserId: post.authorUser.userId,
-            })
-        );
     }
 
     public async votePost(votePostPayload: VotePostPayloadDto): Promise<void> {

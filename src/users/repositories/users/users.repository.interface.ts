@@ -7,11 +7,11 @@ export interface IUsersRepository {
 
     findUserByEmail(email: string): Promise<User | undefined>;
 
-    findUserById(userId: string): Promise<User | undefined>;
+    findUserById(userId: UUID): Promise<User | undefined>;
 
     addUser(user: User): Promise<User>;
 
     updateUser(user: User): Promise<void>;
 
-    deleteUser(userId: string): Promise<void>;
+    deleteUser(userId: UUID): Promise<void>;
 }

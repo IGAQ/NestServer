@@ -1,4 +1,3 @@
-import { ApiProperty } from "@nestjs/swagger";
 import { Labels, NodeProperty } from "../../neo4j/neo4j.decorators";
 import {
     Model,
@@ -7,77 +6,88 @@ import {
 } from "../../neo4j/neo4j.helper.types";
 import { User } from "../../users/models";
 import { PostType, PostTag, Award } from "./index";
-import { _ToSelfRelTypes, RestrictedProps } from "../../_domain/models/toSelf";
+import { _ToSelfRelTypes, RestrictedProps, DeletedProps } from "../../_domain/models/toSelf";
 import { HasAwardProps, PostToAwardRelTypes } from "./toAward";
 import { Neo4jService } from "../../neo4j/services/neo4j.service";
 import { PostToPostTypeRelTypes } from "./toPostType";
 import { PostToPostTagRelTypes } from "./toTags";
 import { AuthoredProps, UserToPostRelTypes } from "../../users/models/toPost";
-import { DeletedProps, PostToSelfRelTypes } from "./toSelf";
-import { Exclude } from "class-transformer";
+import { Type } from "class-transformer";
 import { PublicUserDto } from "../../users/dtos";
 import { PostToCommentRelTypes } from "./toComment";
 import { Comment } from "../../comments/models";
 import neo4j from "neo4j-driver";
 import { VoteType } from "../../_domain/models/enums";
-import { IsOptional } from "class-validator";
+import {
+    IsArray,
+    IsBoolean,
+    IsEnum,
+    IsInstance,
+    IsNumber,
+    IsOptional,
+    IsString,
+    IsUUID,
+} from "class-validator";
 
 @Labels("Post")
 export class Post extends Model {
-    @ApiProperty({ type: String, format: "uuid" })
     @NodeProperty()
-    postId: string;
+    @IsUUID()
+    postId: UUID;
 
-    @ApiProperty({ type: PostType })
+    @IsInstance(PostType)
+    @IsOptional()
     postType: PostType;
 
-    @ApiProperty({ type: PostTag, isArray: true })
+    @IsArray()
+    @IsOptional()
     postTags: PostTag[] = new Array<PostTag>();
 
-    @ApiProperty({ type: Award, isArray: true })
+    @IsOptional()
     awards: RichRelatedEntities<Award, PostToAwardRelTypes>;
 
-    @ApiProperty({ type: Number })
+    @IsNumber()
     createdAt: number;
 
-    @ApiProperty({ type: Number })
     @NodeProperty()
     updatedAt: number;
 
-    @ApiProperty({ type: String })
     @NodeProperty()
+    @IsString()
     postTitle: string;
-    @ApiProperty({ type: String })
     @NodeProperty()
+    @IsString()
     postContent: string;
 
-    @ApiProperty({ type: User })
+    @IsInstance(User)
     authorUser: User | any;
 
-    @ApiProperty({ type: Boolean })
     @NodeProperty()
+    @IsBoolean()
     pending: boolean;
 
-    @ApiProperty({ type: RestrictedProps })
+    @IsInstance(RestrictedProps)
+    @IsOptional()
     restrictedProps: Nullable<RestrictedProps> = null;
 
-    @ApiProperty({ type: Number })
+    @IsNumber()
     totalVotes: number;
 
-    @ApiProperty({ type: Number })
+    @IsNumber()
     @IsOptional()
     totalComments: number | undefined;
 
-    @ApiProperty({ type: Comment, isArray: true })
+    @IsArray({ each: true })
+    @Type(() => Comment)
     comments: Comment[];
 
-    @ApiProperty({ type: Boolean })
     @NodeProperty()
-    @Exclude()
+    @IsOptional()
+    @IsInstance(DeletedProps)
     deletedProps: Nullable<DeletedProps> = null;
 
-    @ApiProperty({ type: VoteType, nullable: true })
     @IsOptional()
+    @IsEnum(VoteType)
     userVote: Nullable<VoteType> | undefined = undefined;
 
     constructor(partial?: Partial<Post>, neo4jService?: Neo4jService) {
@@ -92,6 +102,7 @@ export class Post extends Model {
                 this.getPostTags(),
                 this.getAwards(),
                 this.getRestricted(),
+                this.getDeletedProps(),
                 this.getCreatedAt(),
                 this.getTotalVotes(),
                 this.getAuthorUser(),
@@ -207,7 +218,7 @@ export class Post extends Model {
     public async getDeletedProps(): Promise<DeletedProps> {
         const queryResult = await this.neo4jService.tryReadAsync(
             `
-            MATCH (p:Post {postId: $postId})-[r:${PostToSelfRelTypes.DELETED}]->(p)
+            MATCH (p:Post {postId: $postId})-[r:${_ToSelfRelTypes.DELETED}]->(p)
             RETURN r
             `,
             {
@@ -218,21 +229,6 @@ export class Post extends Model {
         const result = new DeletedProps(queryResult.records[0].get("r").properties);
         this.deletedProps = result;
         return result;
-    }
-
-    public async setDeletedProps(deletedProps: DeletedProps): Promise<void> {
-        await this.neo4jService.tryWriteAsync(
-            `
-            MATCH (p:Post {postId: $postId})
-            MERGE (p)-[r:${PostToSelfRelTypes.DELETED}]->(p)
-            SET r = $deletedProps
-            `,
-            {
-                postId: this.postId,
-                deletedProps,
-            }
-        );
-        this.deletedProps = deletedProps;
     }
 
     public async getRestricted(): Promise<Nullable<RestrictedProps>> {

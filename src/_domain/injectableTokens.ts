@@ -27,5 +27,6 @@ const injectableTokens = {
 
     // Moderation Module
     IAutoModerationService: Symbol("IAutoModerationService"),
+    IModeratorActionsService: Symbol("IModeratorActionsService"),
 };
 export { injectableTokens as _$ };

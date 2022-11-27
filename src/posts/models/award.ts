@@ -1,18 +1,18 @@
-import { ApiProperty } from "@nestjs/swagger";
 import { Labels, NodeProperty } from "../../neo4j/neo4j.decorators";
+import { IsString, IsUUID } from "class-validator";
 
 @Labels("Award")
 export class Award {
-    @ApiProperty({ type: String, format: "uuid" })
     @NodeProperty()
-    awardId: string;
+    @IsUUID()
+    awardId: UUID;
 
-    @ApiProperty({ type: String })
     @NodeProperty()
+    @IsString()
     awardName: string;
 
-    @ApiProperty({ type: String })
     @NodeProperty()
+    @IsString()
     awardSvg: string;
 
     constructor(partial?: Partial<Award>) {

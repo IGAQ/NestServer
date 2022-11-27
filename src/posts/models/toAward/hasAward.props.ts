@@ -1,9 +1,9 @@
 import { RelationshipProps } from "../../../neo4j/neo4j.helper.types";
-import { ApiProperty } from "@nestjs/swagger";
+import { IsUUID } from "class-validator";
 
 export class HasAwardProps implements RelationshipProps {
-    @ApiProperty({ type: String, format: "uuid" })
-    awardedBy: string;
+    @IsUUID()
+    awardedBy: UUID;
 
     constructor(partial?: Partial<HasAwardProps>) {
         Object.assign(this, partial);
