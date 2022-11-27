@@ -4,6 +4,7 @@ import {
     CacheTTL,
     ClassSerializerInterceptor,
     Controller,
+    Delete,
     Get,
     HttpException,
     Inject,
@@ -23,7 +24,11 @@ import { PostCreationPayloadDto, VotePostPayloadDto } from "../dtos";
 import { IPostsService } from "../services/posts/posts.service.interface";
 import { OptionalJwtAuthGuard } from "../../auth/guards/optionalJwtAuth.guard";
 import { AuthedUser } from "../../auth/decorators/authedUser.param.decorator";
-import { User } from "../../users/models";
+import { Role, User } from "../../users/models";
+import { Roles } from "../../auth/decorators/roles.decorator";
+import { RolesGuard } from "../../auth/guards/roles.guard";
+import { ModerationPayloadDto } from "../../moderation/dtos/moderatorActions";
+import { IModeratorActionsService } from "../../moderation/services/moderatorActions/moderatorActions.service.interface";
 
 @ApiTags("posts")
 @Controller("posts")
@@ -32,20 +37,24 @@ import { User } from "../../users/models";
 export class PostsController {
     private readonly _dbContext: DatabaseContext;
     private readonly _postsService: IPostsService;
+    private readonly _moderationActionsService: IModeratorActionsService;
 
     constructor(
         @Inject(_$.IDatabaseContext) dbContext: DatabaseContext,
-        @Inject(_$.IPostsService) postsService: IPostsService
+        @Inject(_$.IPostsService) postsService: IPostsService,
+        @Inject(_$.IModeratorActionsService) moderationActionsService: IModeratorActionsService
     ) {
         this._dbContext = dbContext;
         this._postsService = postsService;
+        this._moderationActionsService = moderationActionsService;
     }
 
     @Get()
-    @UseGuards(OptionalJwtAuthGuard)
+    @Roles(Role.MODERATOR)
+    @UseGuards(OptionalJwtAuthGuard, RolesGuard)
     @CacheTTL(5)
     @UseInterceptors(CacheInterceptor)
-    public async index(@AuthedUser() user: User): Promise<PostModel[] | Error> {
+    public async index(@AuthedUser() user: User): Promise<PostModel[]> {
         const posts = await this._dbContext.Posts.findAll();
         const decoratedPosts = posts.map(post =>
             post.toJSON({ authenticatedUserId: user?.userId ?? undefined })
@@ -57,7 +66,7 @@ export class PostsController {
     @UseGuards(OptionalJwtAuthGuard)
     @CacheTTL(5)
     @UseInterceptors(CacheInterceptor)
-    public async getAllQueeries(@AuthedUser() user: User): Promise<PostModel[] | Error> {
+    public async getAllQueeries(@AuthedUser() user: User): Promise<PostModel[]> {
         const queeries = await this._postsService.findAllQueeries();
         const decoratedQueeries = queeries.map(queery =>
             queery.toJSON({ authenticatedUserId: user?.userId ?? undefined })
@@ -69,7 +78,7 @@ export class PostsController {
     @UseGuards(OptionalJwtAuthGuard)
     @CacheTTL(5)
     @UseInterceptors(CacheInterceptor)
-    public async getAllStories(@AuthedUser() user: User): Promise<PostModel[] | Error> {
+    public async getAllStories(@AuthedUser() user: User): Promise<PostModel[]> {
         const stories = await this._postsService.findAllStories();
         const decoratedStories = stories.map(story =>
             story.toJSON({ authenticatedUserId: user?.userId ?? undefined })
@@ -77,10 +86,10 @@ export class PostsController {
         return await Promise.all(decoratedStories);
     }
 
-    @Get(":postId/nestedComments")
+    @Get("/:postId/nestedComments")
     public async getNestedCommentsByPostId(
-        @Param("postId", new ParseUUIDPipe()) postId: string
-    ): Promise<Comment[] | Error> {
+        @Param("postId", new ParseUUIDPipe()) postId: UUID
+    ): Promise<Comment[]> {
         const topLevelComments = await this._postsService.findNestedCommentsByPostId(
             postId,
             10,
@@ -91,30 +100,57 @@ export class PostsController {
         return await Promise.all(decoratedTopLevelComments);
     }
 
-    @Get(":postId")
+    @Get("/:postId")
     @UseGuards(OptionalJwtAuthGuard)
     public async getPostById(
         @AuthedUser() user: User,
-        @Param("postId", new ParseUUIDPipe()) postId: string
-    ): Promise<PostModel | Error> {
+        @Param("postId", new ParseUUIDPipe()) postId: UUID
+    ): Promise<PostModel> {
         const post = await this._dbContext.Posts.findPostById(postId);
         if (post === undefined) throw new HttpException("Post not found", 404);
         return await post.toJSON({ authenticatedUserId: user?.userId ?? undefined });
     }
 
-    @Post("create")
+    @Post("/create")
     @UseGuards(AuthGuard("jwt"))
-    public async createPost(
-        @Body() postPayload: PostCreationPayloadDto
-    ): Promise<PostModel | Error> {
+    public async createPost(@Body() postPayload: PostCreationPayloadDto): Promise<PostModel> {
         const post = await this._postsService.authorNewPost(postPayload);
         return await post.toJSON();
     }
 
-    @Post("vote")
+    @Delete("/")
+    @Roles(Role.MODERATOR)
+    @UseGuards(AuthGuard("jwt"), RolesGuard)
+    public async deletePost(
+        @AuthedUser() user: User,
+        @Body() deletePostPayload: ModerationPayloadDto
+    ): Promise<void> {
+        deletePostPayload.moderatorId = user.userId;
+        await this._moderationActionsService.deletePost(deletePostPayload);
+    }
+
+    @Post("/vote")
     @UseGuards(AuthGuard("jwt"))
-    public async votePost(@Body() votePostPayload: VotePostPayloadDto): Promise<void | Error> {
+    public async votePost(@Body() votePostPayload: VotePostPayloadDto): Promise<void> {
         await this._postsService.votePost(votePostPayload);
         return;
+    }
+
+    @Post("/report")
+    @UseGuards(AuthGuard("jwt"))
+    public async reportPost(
+        @AuthedUser() user: User,
+        @Body() reportPayload: ModerationPayloadDto
+    ): Promise<void> {
+        reportPayload.moderatorId = user.userId;
+        throw new Error("Not implemented");
+    }
+
+    @Post("/allow/:postId")
+    @Roles(Role.MODERATOR)
+    @UseGuards(AuthGuard("jwt"), RolesGuard)
+    public async allowPost(@Param("postId", new ParseUUIDPipe()) postId: UUID): Promise<void> {
+        await this._moderationActionsService.allowPost(postId);
+        throw new Error("Not implemented");
     }
 }
