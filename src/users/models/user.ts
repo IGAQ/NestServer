@@ -104,7 +104,7 @@ export class User extends Model {
 
     @IsArray()
     @IsOptional()
-    wasOffendingRecords: WasOffendingProps[] = [];
+    wasOffendingRecords: WasOffendingProps[];
 
     @IsInstance(GotBannedProps)
     @IsOptional()
