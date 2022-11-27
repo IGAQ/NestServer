@@ -4,10 +4,10 @@ import { VoteCommentPayloadDto, CommentCreationPayloadDto } from "../../dtos";
 export interface ICommentsService {
     authorNewComment(commentPayload: CommentCreationPayloadDto): Promise<Comment>;
 
-    findCommentById(commentId: string): Promise<Comment>;
+    findCommentById(commentId: UUID): Promise<Comment>;
 
     findNestedCommentsByCommentId(
-        commentId: string,
+        commentId: UUID,
         topLevelLimit: number,
         nestedLimit: number,
         nestedLevel: number
@@ -15,7 +15,5 @@ export interface ICommentsService {
 
     voteComment(votePayload: VoteCommentPayloadDto): Promise<void>;
 
-    markAsPinned(commentId: string): Promise<void>;
-
-    markAsDeleted(commentId: string): Promise<void>;
+    markAsPinned(commentId: UUID): Promise<void>;
 }

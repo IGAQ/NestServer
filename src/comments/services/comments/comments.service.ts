@@ -203,27 +203,6 @@ export class CommentsService implements ICommentsService {
         );
     }
 
-    public async markAsDeleted(commentId: string): Promise<void> {
-        const comment = await this._dbContext.Comments.findCommentById(commentId);
-        if (!comment) {
-            throw new HttpException("Comment not found", 404);
-        }
-
-        await comment.getDeletedProps();
-        if (comment.deletedProps) {
-            throw new HttpException("Comment was already deleted", 400);
-        }
-
-        await comment.getAuthorUser();
-
-        await comment.setDeletedProps(
-            new DeletedProps({
-                deletedAt: new Date().getTime(),
-                moderatorId: comment.authorUser.userId,
-            })
-        );
-    }
-
     // gets the parent post of any nested comment of the post
     private async findParentPost(commentId: string): Promise<Post> {
         const parentPost = await this._dbContext.neo4jService.tryReadAsync(
@@ -253,10 +232,7 @@ export class CommentsService implements ICommentsService {
                 commentId,
             }
         );
-        if (queryResult.records.length > 0) {
-            return true;
-        }
-        return false;
+        return queryResult.records.length > 0;
     }
 
     // gets the root comment of any nested comment
@@ -294,10 +270,7 @@ export class CommentsService implements ICommentsService {
                 postId: post.postId,
             }
         );
-        if (queryResult.records.length > 0) {
-            return true;
-        }
-        return false;
+        return queryResult.records.length > 0;
     }
 
     private getUserFromRequest(): User {
