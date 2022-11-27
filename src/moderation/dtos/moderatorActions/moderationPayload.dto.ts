@@ -1,14 +1,16 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString, IsUUID } from "class-validator";
+import { IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
+import { Exclude } from "class-transformer";
 
 export class ModerationPayloadDto {
     @ApiProperty({ type: String, format: "uuid" })
     @IsUUID()
-    id: string;
+    id: UUID;
 
-    @ApiProperty({ type: String })
     @IsUUID()
-    moderatorId: string;
+    @IsOptional()
+    @Exclude()
+    moderatorId: UUID;
 
     @ApiProperty({ type: String })
     @IsString()
