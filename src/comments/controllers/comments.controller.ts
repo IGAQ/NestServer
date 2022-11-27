@@ -4,6 +4,7 @@ import {
     CacheTTL,
     ClassSerializerInterceptor,
     Controller,
+    Delete,
     Get,
     HttpException,
     Inject,
@@ -11,7 +12,7 @@ import {
     ParseUUIDPipe,
     Post,
     UseGuards,
-    UseInterceptors
+    UseInterceptors,
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
@@ -22,7 +23,11 @@ import { CommentCreationPayloadDto, VoteCommentPayloadDto } from "../dtos";
 import { ICommentsService } from "../services/comments/comments.service.interface";
 import { OptionalJwtAuthGuard } from "../../auth/guards/optionalJwtAuth.guard";
 import { AuthedUser } from "../../auth/decorators/authedUser.param.decorator";
-import { User } from "../../users/models";
+import { Role, User } from "../../users/models";
+import { RolesGuard } from "../../auth/guards/roles.guard";
+import { Roles } from "../../auth/decorators/roles.decorator";
+import { ModerationPayloadDto } from "../../moderation/dtos/moderatorActions";
+import { IModeratorActionsService } from "../../moderation/services/moderatorActions/moderatorActions.service.interface";
 
 @ApiTags("comments")
 @Controller("comments")
@@ -31,20 +36,23 @@ import { User } from "../../users/models";
 export class CommentsController {
     private readonly _dbContext: DatabaseContext;
     private readonly _commentsService: ICommentsService;
+    private readonly _moderatorActionsService: IModeratorActionsService;
 
     constructor(
         @Inject(_$.IDatabaseContext) dbContext: DatabaseContext,
-        @Inject(_$.ICommentsService) commentsService: ICommentsService
+        @Inject(_$.ICommentsService) commentsService: ICommentsService,
+        @Inject(_$.IModeratorActionsService) moderatorActionsService: IModeratorActionsService
     ) {
         this._dbContext = dbContext;
         this._commentsService = commentsService;
+        this._moderatorActionsService = moderatorActionsService;
     }
 
     @Get()
     @CacheTTL(4)
     @UseGuards(OptionalJwtAuthGuard)
     @UseInterceptors(CacheInterceptor)
-    public async index(@AuthedUser() user: User): Promise<CommentModel[] | Error> {
+    public async index(@AuthedUser() user: User): Promise<CommentModel[]> {
         const comments = await this._dbContext.Comments.findAll();
         const decoratedComments = comments.map(comment =>
             comment.toJSON({ authenticatedUserId: user?.userId ?? undefined })
@@ -56,8 +64,8 @@ export class CommentsController {
     @UseGuards(OptionalJwtAuthGuard)
     public async getNestedComments(
         @AuthedUser() user: User,
-        @Param("commentId", new ParseUUIDPipe()) commentId: string
-    ): Promise<CommentModel[] | Error> {
+        @Param("commentId", new ParseUUIDPipe()) commentId: UUID
+    ): Promise<CommentModel[]> {
         const comments = await this._commentsService.findNestedCommentsByCommentId(
             commentId,
             10,
@@ -74,17 +82,18 @@ export class CommentsController {
     @UseGuards(OptionalJwtAuthGuard)
     public async getCommentById(
         @AuthedUser() user: User,
-        @Param("commentId", new ParseUUIDPipe()) commentId: string
+        @Param("commentId", new ParseUUIDPipe()) commentId: UUID
     ): Promise<CommentModel | Error> {
         const comment = await this._dbContext.Comments.findCommentById(commentId);
         if (comment === undefined) throw new HttpException("Comment not found", 404);
         return await comment.toJSON({ authenticatedUserId: user?.userId ?? undefined });
     }
 
-    // pin comment 
     @Post(":commentId/pin")
     @UseGuards(AuthGuard("jwt"))
-    public async pinComment(@Param("commentId", new ParseUUIDPipe()) commentId: string): Promise<void> {
+    public async pinComment(
+        @Param("commentId", new ParseUUIDPipe()) commentId: UUID
+    ): Promise<void> {
         await this._commentsService.markAsPinned(commentId);
     }
 
@@ -92,17 +101,40 @@ export class CommentsController {
     @UseGuards(AuthGuard("jwt"))
     public async createComment(
         @Body() commentPayload: CommentCreationPayloadDto
-    ): Promise<CommentModel | Error> {
+    ): Promise<CommentModel> {
         const comment = await this._commentsService.authorNewComment(commentPayload);
         return await comment.toJSON();
     }
 
+    @Delete("/")
+    @Roles(Role.MODERATOR)
+    @UseGuards(AuthGuard("jwt"), RolesGuard)
+    public async deleteComment(
+        @AuthedUser() user: User,
+        @Body() moderationPayload: ModerationPayloadDto
+    ): Promise<void> {
+        moderationPayload.moderatorId = user.userId;
+        await this._moderatorActionsService.deleteComment(moderationPayload);
+    }
+
     @Post("vote")
     @UseGuards(AuthGuard("jwt"))
-    public async voteComment(
-        @Body() voteCommentPayload: VoteCommentPayloadDto
-    ): Promise<void | Error> {
+    public async voteComment(@Body() voteCommentPayload: VoteCommentPayloadDto): Promise<void> {
         await this._commentsService.voteComment(voteCommentPayload);
-        return;
+    }
+
+    @Post("/report")
+    @UseGuards(AuthGuard("jwt"))
+    public async reportComment(@Body() reportCommentPayload: VoteCommentPayloadDto): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+
+    @Post("/allow/:commentId")
+    @Roles(Role.MODERATOR)
+    @UseGuards(AuthGuard("jwt"), RolesGuard)
+    public async allowComment(
+        @Param("commentId", new ParseUUIDPipe()) commentId: UUID
+    ): Promise<void> {
+        await this._moderatorActionsService.allowComment(commentId);
     }
 }
