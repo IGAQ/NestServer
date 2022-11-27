@@ -12,7 +12,7 @@ import {
     ParseUUIDPipe,
     Post,
     UseGuards,
-    UseInterceptors
+    UseInterceptors,
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
@@ -125,7 +125,7 @@ export class CommentsController {
         await this._moderatorActionsService.deleteComment(moderationPayload);
     }
 
-    @Post("vote")
+    @Post("/vote")
     @UseGuards(AuthGuard("jwt"))
     public async voteComment(@Body() voteCommentPayload: VoteCommentPayloadDto): Promise<void> {
         await this._commentsService.voteComment(voteCommentPayload);
