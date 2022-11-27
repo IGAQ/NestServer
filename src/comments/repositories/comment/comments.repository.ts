@@ -1,11 +1,12 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { Neo4jService } from "../../../neo4j/services/neo4j.service";
 import { AuthoredProps, UserToCommentRelTypes } from "../../../users/models/toComment";
-import { RestrictedProps, _ToSelfRelTypes } from "../../../_domain/models/toSelf";
+import { RestrictedProps, _ToSelfRelTypes, DeletedProps } from "../../../_domain/models/toSelf";
 import { Comment } from "../../models";
 import { CommentToSelfRelTypes } from "../../models/toSelf";
 import { ICommentsRepository } from "./comments.repository.interface";
 import { PostToCommentRelTypes } from "../../../posts/models/toComment";
+import { Post } from "../../../posts/models";
 
 @Injectable()
 export class CommentsRepository implements ICommentsRepository {
@@ -25,6 +26,23 @@ export class CommentsRepository implements ICommentsRepository {
         );
         if (comment.records.length === 0) return undefined;
         return new Comment(comment.records[0].get("c").properties, this._neo4jService);
+    }
+
+    public async updateComment(comment: Comment): Promise<void> {
+        await this._neo4jService.tryWriteAsync(
+            `
+                MATCH (c:Comment) WHERE c.commentId = $commentId
+                SET c.updatedAt = $updatedAt,
+                    p.commentContent = $commentContent,
+                    p.pending = $pending
+            `,
+            {
+                commentId: comment.commentId,
+                updatedAt: Date.now(),
+                commentContent: comment.commentContent,
+                pending: comment.pending,
+            }
+        );
     }
 
     public async addCommentToComment(comment: Comment): Promise<Comment> {
@@ -177,6 +195,32 @@ export class CommentsRepository implements ICommentsRepository {
         await this._neo4jService.tryWriteAsync(
             `MATCH (c:Comment { commentId: $commentId })-[r:${_ToSelfRelTypes.RESTRICTED}]->(c) DELETE r`,
             { commentId: commentId }
+        );
+    }
+
+    public async markAsDeleted(commentId: UUID, deletedProps: DeletedProps): Promise<void> {
+        await this._neo4jService.tryWriteAsync(
+            `
+            MATCH (c:Comment {commentId: $commentId})
+            MERGE (c)-[r:${_ToSelfRelTypes.DELETED}]->(c)
+            SET r = $deletedProps
+            `,
+            {
+                commentId,
+                deletedProps,
+            }
+        );
+    }
+
+    public async removeDeletedMark(commentId: UUID): Promise<void> {
+        await this._neo4jService.tryWriteAsync(
+            `
+            MATCH (c:Comment {commentId: $commentId})-[r:${_ToSelfRelTypes.DELETED}]->(c)
+            DELETE r
+            `,
+            {
+                commentId,
+            }
         );
     }
 }
