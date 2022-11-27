@@ -2,20 +2,20 @@ import { HttpException, Inject, Injectable, Scope } from "@nestjs/common";
 import { REQUEST } from "@nestjs/core";
 import { Request } from "express";
 import { DatabaseContext } from "../../../database-access-layer/databaseContext";
+import { IAutoModerationService } from "../../../moderation/services/autoModeration/autoModeration.service.interface";
 import { Post } from "../../../posts/models";
 import { PostToCommentRelTypes } from "../../../posts/models/toComment";
+import { IPostsService } from "../../../posts/services/posts/posts.service.interface";
 import { User } from "../../../users/models";
 import { UserToCommentRelTypes } from "../../../users/models/toComment";
+import { VoteProps } from "../../../users/models/toPost";
 import { _$ } from "../../../_domain/injectableTokens";
+import { VoteType } from "../../../_domain/models/enums";
+import { DeletedProps } from "../../../_domain/models/toSelf";
 import { CommentCreationPayloadDto, VoteCommentPayloadDto } from "../../dtos";
 import { Comment } from "../../models";
 import { CommentToSelfRelTypes } from "../../models/toSelf";
 import { ICommentsService } from "./comments.service.interface";
-import { IAutoModerationService } from "../../../moderation/services/autoModeration/autoModeration.service.interface";
-import { IPostsService } from "../../../posts/services/posts/posts.service.interface";
-import { VoteType } from "../../../_domain/models/enums";
-import { DeletedProps } from "../../../_domain/models/toSelf";
-import { VoteProps } from "../../../users/models/toPost";
 
 @Injectable({ scope: Scope.REQUEST })
 export class CommentsService implements ICommentsService {
@@ -194,7 +194,7 @@ export class CommentsService implements ICommentsService {
         await this._dbContext.neo4jService.tryWriteAsync(
             `
             MATCH  (p:Post { postId: $postId }), (c:Comment { commentId: $commentId })
-            CREATE (p)-[:${PostToCommentRelTypes.PINNED_COMMENT}]->(c)
+            MERGE (p)-[:${PostToCommentRelTypes.PINNED_COMMENT}]->(c)
             `,
             {
                 postId: parentPost.postId,
@@ -202,6 +202,38 @@ export class CommentsService implements ICommentsService {
             }
         );
     }
+
+    public async markAsUnpinned(commentId: UUID): Promise<void> {
+        const comment = await this._dbContext.Comments.findCommentById(commentId);
+        if (!comment) throw new HttpException("Comment not found", 404);
+
+        const [parentPost] = await this.findParentCommentRoot(commentId);
+        const user = this.getUserFromRequest();
+
+        const postAuthor = await parentPost.getAuthorUser();
+
+        if (postAuthor.userId !== user.userId) {
+            throw new HttpException("User is not the author of the post", 403);
+        }
+
+        const queryResult = await this._dbContext.neo4jService.tryWriteAsync(
+            `
+            MATCH  (p:Post { postId: $postId })-[r:${PostToCommentRelTypes.PINNED_COMMENT}]->(c:Comment { commentId: $commentId })
+            DELETE r
+            `,
+            {
+                postId: parentPost.postId,
+                commentId: commentId,
+            }
+        );
+
+        // Checks if a change was made to the database (If the comment was unpinned)
+        if (queryResult.summary.counters.containsUpdates() === false) {
+            throw new HttpException("Comment is not pinned", 400);
+        }
+    }
+
+
 
     // gets the parent post of any nested comment of the post
     private async findParentPost(commentId: UUID): Promise<Post> {
