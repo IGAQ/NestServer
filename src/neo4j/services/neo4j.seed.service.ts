@@ -181,6 +181,9 @@ export class Neo4jSeedService {
                         email: $email,
                         emailVerified: $emailVerified,
                         
+                        bio: $bio,
+                        avatar: $avatar,
+                        
                         level: $level,
                         
                         roles: $roles
@@ -198,6 +201,10 @@ export class Neo4jSeedService {
                     phoneNumberVerified: userEntity.phoneNumberVerified,
                     email: userEntity.email,
                     emailVerified: userEntity.emailVerified,
+
+                    bio: userEntity.bio,
+                    avatar: userEntity.avatar,
+
                     level: userEntity.level,
                     roles: userEntity.roles,
 
@@ -436,6 +443,7 @@ export class Neo4jSeedService {
                 createdAt: new Date().getTime(),
                 updatedAt: new Date().getTime(),
                 avatar: ":^)",
+                bio: "My name is gabriel.",
                 username: "gabriel",
                 normalizedUsername: "GABRIEL",
                 passwordHash: "someotherpassword",
@@ -476,6 +484,7 @@ export class Neo4jSeedService {
                 createdAt: new Date().getTime(),
                 updatedAt: new Date().getTime(),
                 avatar: "^_^",
+                bio: "My name is alphonse.",
                 username: "alphonse",
                 normalizedUsername: "ALPHONSE",
                 passwordHash: "num3r1ca1pa55w0rd",

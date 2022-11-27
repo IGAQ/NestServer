@@ -52,6 +52,10 @@ export class User extends Model {
 
     @NodeProperty()
     @IsString()
+    bio: string;
+
+    @NodeProperty()
+    @IsString()
     email: string;
     @NodeProperty()
     @IsBoolean()
