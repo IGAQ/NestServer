@@ -106,8 +106,7 @@ export class PostsController {
         @AuthedUser() user: User,
         @Param("postId", new ParseUUIDPipe()) postId: UUID
     ): Promise<PostModel> {
-        const post = await this._dbContext.Posts.findPostById(postId);
-        if (post === undefined) throw new HttpException("Post not found", 404);
+        const post = await this._postsService.findPostById(postId);
         return await post.toJSON({ authenticatedUserId: user?.userId ?? undefined });
     }
 

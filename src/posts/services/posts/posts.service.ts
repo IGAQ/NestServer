@@ -133,19 +133,18 @@ export class PostsService implements IPostsService {
     }
 
     public async findPostById(postId: string): Promise<Post> {
-        const foundPost = await this._dbContext.Posts.findPostById(postId);
+        let foundPost = await this._dbContext.Posts.findPostById(postId);
         if (foundPost === null) throw new HttpException("Post not found", 404);
 
         if (foundPost.pending)
-            throw new HttpException("Post cannot be shown publicly due to striking policies", 403);
+            throw new HttpException(
+                "Post cannot be shown publicly at the moment. please try again later.",
+                403
+            );
 
-        await foundPost.getDeletedProps();
-        if (foundPost.deletedProps !== null) throw new HttpException("Post was deleted", 404);
+        foundPost = (await this.decoratePosts([foundPost], null))[0];
 
-        await foundPost.getRestricted();
-        if (foundPost.restrictedProps !== null) throw new HttpException("Post is restricted", 404);
-
-        return await foundPost.toJSON();
+        return foundPost;
     }
 
     public async findNestedCommentsByPostId(
