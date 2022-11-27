@@ -6,7 +6,7 @@ export class GotBannedProps implements RelationshipProps {
     bannedAt: number;
 
     @IsUUID()
-    moderatorId: string;
+    moderatorId: UUID;
 
     @IsString()
     @IsNotEmpty()

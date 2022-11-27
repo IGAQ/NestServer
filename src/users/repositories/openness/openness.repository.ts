@@ -14,7 +14,7 @@ export class OpennessRepository implements IOpennessRepository {
         return records.map(record => new Openness(record.get("o").properties));
     }
 
-    public async findOpennessById(opennessId: string): Promise<Openness | undefined> {
+    public async findOpennessById(opennessId: UUID): Promise<Openness | undefined> {
         const openness = await this._neo4jService.read(
             `MATCH (o:Openness) WHERE o.opennessId = $opennessId RETURN o`,
             { opennessId: opennessId }
@@ -66,7 +66,7 @@ export class OpennessRepository implements IOpennessRepository {
         );
     }
 
-    public async deleteOpenness(opennessId: string): Promise<void> {
+    public async deleteOpenness(opennessId: UUID): Promise<void> {
         await this._neo4jService.tryWriteAsync(
             `
             MATCH (o:Openness) WHERE o.opennessId = $opennessId

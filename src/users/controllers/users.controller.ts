@@ -68,7 +68,7 @@ export class UsersController {
         return PublicUserDto.fromUser(user);
     }
 
-    @Patch("/ban/:userId")
+    @Patch("/ban")
     @Roles(Role.MODERATOR)
     @UseGuards(AuthGuard("jwt"), RolesGuard)
     public async banUser(

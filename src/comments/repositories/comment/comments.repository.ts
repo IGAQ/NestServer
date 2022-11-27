@@ -6,7 +6,6 @@ import { Comment } from "../../models";
 import { CommentToSelfRelTypes } from "../../models/toSelf";
 import { ICommentsRepository } from "./comments.repository.interface";
 import { PostToCommentRelTypes } from "../../../posts/models/toComment";
-import { Post } from "../../../posts/models";
 
 @Injectable()
 export class CommentsRepository implements ICommentsRepository {
@@ -164,17 +163,14 @@ export class CommentsRepository implements ICommentsRepository {
         return await this.findCommentById(comment.commentId);
     }
 
-    public async deleteComment(commentId: string): Promise<void> {
+    public async deleteComment(commentId: UUID): Promise<void> {
         await this._neo4jService.tryWriteAsync(
             `MATCH (c:Comment { commentId: $commentId }) DETACH DELETE c`,
             { commentId: commentId }
         );
     }
 
-    public async restrictComment(
-        commentId: string,
-        restrictedProps: RestrictedProps
-    ): Promise<void> {
+    public async restrictComment(commentId: UUID, restrictedProps: RestrictedProps): Promise<void> {
         await this._neo4jService.tryWriteAsync(
             `MATCH (c:Comment { commentId: $commentId }) 
              CREATE (c)-[:${_ToSelfRelTypes.RESTRICTED} {
@@ -191,7 +187,7 @@ export class CommentsRepository implements ICommentsRepository {
         );
     }
 
-    public async unrestrictComment(commentId: string): Promise<void> {
+    public async unrestrictComment(commentId: UUID): Promise<void> {
         await this._neo4jService.tryWriteAsync(
             `MATCH (c:Comment { commentId: $commentId })-[r:${_ToSelfRelTypes.RESTRICTED}]->(c) DELETE r`,
             { commentId: commentId }

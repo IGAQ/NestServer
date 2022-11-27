@@ -5,7 +5,7 @@ import { IsNumber, IsString, IsUUID } from "class-validator";
 export class Openness {
     @NodeProperty()
     @IsUUID()
-    opennessId: string;
+    opennessId: UUID;
 
     @NodeProperty()
     @IsNumber()

@@ -4,7 +4,7 @@ import { Comment } from "../../models";
 export interface ICommentsRepository {
     findAll(): Promise<Comment[]>;
 
-    findCommentById(commentId: string): Promise<Comment | undefined>;
+    findCommentById(commentId: UUID): Promise<Comment | undefined>;
 
     updateComment(comment: Comment): Promise<void>;
 
@@ -12,12 +12,12 @@ export interface ICommentsRepository {
 
     addCommentToPost(comment: Comment): Promise<Comment>;
 
-    deleteComment(commentId: string): Promise<void>;
+    deleteComment(commentId: UUID): Promise<void>;
 
-    restrictComment(commentId: string, restrictedProps: RestrictedProps): Promise<void>;
+    restrictComment(commentId: UUID, restrictedProps: RestrictedProps): Promise<void>;
 
-    unrestrictComment(commentId: string): Promise<void>;
+    unrestrictComment(commentId: UUID): Promise<void>;
 
-    markAsDeleted(commentId: string, deletedProps: DeletedProps): Promise<void>;
-    removeDeletedMark(commentId: string): Promise<void>;
+    markAsDeleted(commentId: UUID, deletedProps: DeletedProps): Promise<void>;
+    removeDeletedMark(commentId: UUID): Promise<void>;
 }

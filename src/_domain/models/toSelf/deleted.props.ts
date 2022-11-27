@@ -6,7 +6,7 @@ export class DeletedProps implements RelationshipProps {
     deletedAt: number;
 
     @IsUUID()
-    moderatorId: string;
+    moderatorId: UUID;
 
     @IsString()
     reason: string;

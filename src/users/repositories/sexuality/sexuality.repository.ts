@@ -14,7 +14,7 @@ export class SexualityRepository implements ISexualityRepository {
         return records.map(record => new Sexuality(record.get("s").properties));
     }
 
-    public async findSexualityById(sexualityId: string): Promise<Sexuality | undefined> {
+    public async findSexualityById(sexualityId: UUID): Promise<Sexuality | undefined> {
         const sexuality = await this._neo4jService.read(
             `MATCH (s:Sexuality) WHERE s.sexualityId = $sexualityId RETURN s`,
             { sexualityId: sexualityId }
@@ -66,7 +66,7 @@ export class SexualityRepository implements ISexualityRepository {
         );
     }
 
-    public async deleteSexuality(sexualityId: string): Promise<void> {
+    public async deleteSexuality(sexualityId: UUID): Promise<void> {
         await this._neo4jService.tryWriteAsync(
             `
             MATCH (s:Sexuality) WHERE s.sexualityId = $sexualityId

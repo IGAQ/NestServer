@@ -1,4 +1,3 @@
-import { ApiProperty } from "@nestjs/swagger";
 import { Labels, NodeProperty } from "../../neo4j/neo4j.decorators";
 import {
     Model,
@@ -13,7 +12,7 @@ import { Neo4jService } from "../../neo4j/services/neo4j.service";
 import { PostToPostTypeRelTypes } from "./toPostType";
 import { PostToPostTagRelTypes } from "./toTags";
 import { AuthoredProps, UserToPostRelTypes } from "../../users/models/toPost";
-import { Exclude, Type } from "class-transformer";
+import { Type } from "class-transformer";
 import { PublicUserDto } from "../../users/dtos";
 import { PostToCommentRelTypes } from "./toComment";
 import { Comment } from "../../comments/models";
@@ -34,7 +33,7 @@ import {
 export class Post extends Model {
     @NodeProperty()
     @IsUUID()
-    postId: string;
+    postId: UUID;
 
     @IsInstance(PostType)
     @IsOptional()

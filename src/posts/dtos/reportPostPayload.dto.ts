@@ -2,7 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 
 export class ReportPostPayloadDto {
     @ApiProperty({ type: String, format: "uuid" })
-    postId: string;
+    postId: UUID;
 
     @ApiProperty({ type: String, minLength: 5, maxLength: 500 })
     reason: string;

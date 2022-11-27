@@ -8,7 +8,7 @@ export interface IModeratorActionsService {
      * Updates the pending status of a post, and makes it visible to the public.
      * @param postId
      */
-    allowPost(postId: string): Promise<Post>;
+    allowPost(postId: UUID): Promise<Post>;
 
     /**
      * Restricts a post by an adding a self relationship to the post.
@@ -23,13 +23,13 @@ export interface IModeratorActionsService {
      * * This method will give a http 404 if the post was not found.
      * @param postId
      */
-    unrestrictPost(postId: string): Promise<Post>;
+    unrestrictPost(postId: UUID): Promise<Post>;
 
     /**
      * Updates the pending status of a comment, and makes it visible to the public.
      * @param commentId
      */
-    allowComment(commentId: string): Promise<Comment>;
+    allowComment(commentId: UUID): Promise<Comment>;
 
     /**
      * Restricts a post by an adding a self relationship to the post.
@@ -44,7 +44,7 @@ export interface IModeratorActionsService {
      * * This method will give a http 404 if the comment was not found.
      * @param commentId
      */
-    unrestrictComment(commentId: string): Promise<Comment>;
+    unrestrictComment(commentId: UUID): Promise<Comment>;
 
     /**
      * Adds the mark of "deleted" to the post.
@@ -55,7 +55,7 @@ export interface IModeratorActionsService {
      * Removes the mark of "deleted" from the post.
      * @param postId
      */
-    undeletePost(postId: string): Promise<Post>;
+    undeletePost(postId: UUID): Promise<Post>;
 
     /**
      * Adds the mark of "deleted" to the comment.
@@ -66,7 +66,7 @@ export interface IModeratorActionsService {
      * Removes the mark of deleted from a comment.
      * @param commentId
      */
-    undeleteComment(commentId: string): Promise<Comment>;
+    undeleteComment(commentId: UUID): Promise<Comment>;
 
     /**
      * Bans a user. A banned user cannot post, comment, or vote.
@@ -85,5 +85,5 @@ export interface IModeratorActionsService {
      *   - This will be a stretch goal. For now, we will just unban the user by removing the self relationship to the user node.
      * @param userId
      */
-    unbanUser(userId: string): Promise<User>;
+    unbanUser(userId: UUID): Promise<User>;
 }

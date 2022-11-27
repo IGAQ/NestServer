@@ -6,7 +6,7 @@ export class VotePostPayloadDto {
     @ApiProperty({ type: String, format: "uuid" })
     @IsNotEmpty()
     @IsUUID()
-    postId: string;
+    postId: UUID;
 
     @ApiProperty({ enum: VoteType })
     @IsNotEmpty()

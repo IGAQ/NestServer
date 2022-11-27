@@ -68,7 +68,7 @@ export class CommentsService implements ICommentsService {
         );
     }
 
-    public async findCommentById(commentId: string): Promise<Comment> {
+    public async findCommentById(commentId: UUID): Promise<Comment> {
         const foundComment = await this._dbContext.Comments.findCommentById(commentId);
         if (!foundComment) {
             throw new HttpException("Comment not found", 404);
@@ -173,7 +173,7 @@ export class CommentsService implements ICommentsService {
         );
     }
 
-    public async markAsPinned(commentId: string): Promise<void> {
+    public async markAsPinned(commentId: UUID): Promise<void> {
         const comment = await this._dbContext.Comments.findCommentById(commentId);
         if (!comment) throw new HttpException("Comment not found", 404);
 
@@ -204,7 +204,7 @@ export class CommentsService implements ICommentsService {
     }
 
     // gets the parent post of any nested comment of the post
-    private async findParentPost(commentId: string): Promise<Post> {
+    private async findParentPost(commentId: UUID): Promise<Post> {
         const parentPost = await this._dbContext.neo4jService.tryReadAsync(
             `
             MATCH (p:Post)-[:${PostToCommentRelTypes.HAS_COMMENT}]->(c:Comment { commentId: $commentId })
@@ -222,7 +222,7 @@ export class CommentsService implements ICommentsService {
     }
 
     // gets the parent comment of any nested comment of the post
-    private async findComment(commentId: string): Promise<boolean> {
+    private async findComment(commentId: UUID): Promise<boolean> {
         const queryResult = await this._dbContext.neo4jService.tryReadAsync(
             `
             MATCH (c:Comment { commentId: $commentId })-[:${CommentToSelfRelTypes.REPLIED}]->(commentParent:Comment)

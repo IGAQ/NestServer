@@ -25,11 +25,11 @@ export class ModeratorActionsService implements IModeratorActionsService {
     public async banUser(payload: ModerationPayloadDto): Promise<User> {
         throw new Error("Method not implemented.");
     }
-    public async unbanUser(userId: string): Promise<User> {
+    public async unbanUser(userId: UUID): Promise<User> {
         throw new Error("Method not implemented.");
     }
 
-    public async unrestrictComment(commentId: string): Promise<Comment> {
+    public async unrestrictComment(commentId: UUID): Promise<Comment> {
         const comment = await this.acquireComment(commentId);
 
         await comment.getRestricted();
@@ -43,7 +43,7 @@ export class ModeratorActionsService implements IModeratorActionsService {
         return comment;
     }
 
-    public async unrestrictPost(postId: string): Promise<Post> {
+    public async unrestrictPost(postId: UUID): Promise<Post> {
         const post = await this.acquirePost(postId);
 
         await post.getRestricted();
@@ -133,7 +133,7 @@ export class ModeratorActionsService implements IModeratorActionsService {
         return post;
     }
 
-    public async undeleteComment(commentId: string): Promise<Comment> {
+    public async undeleteComment(commentId: UUID): Promise<Comment> {
         const comment = await this.acquireComment(commentId);
 
         await comment.getDeletedProps();
@@ -147,7 +147,7 @@ export class ModeratorActionsService implements IModeratorActionsService {
         return comment;
     }
 
-    public async undeletePost(postId: string): Promise<Post> {
+    public async undeletePost(postId: UUID): Promise<Post> {
         const post = await this.acquirePost(postId);
 
         await post.getDeletedProps();
@@ -161,7 +161,7 @@ export class ModeratorActionsService implements IModeratorActionsService {
         return post;
     }
 
-    public async allowComment(commentId: string): Promise<Comment> {
+    public async allowComment(commentId: UUID): Promise<Comment> {
         const comment = await this.acquireComment(commentId);
 
         if (!comment.pending) {
@@ -174,7 +174,7 @@ export class ModeratorActionsService implements IModeratorActionsService {
         return comment;
     }
 
-    public async allowPost(postId: string): Promise<Post> {
+    public async allowPost(postId: UUID): Promise<Post> {
         const post = await this.acquirePost(postId);
 
         if (!post.pending) {
@@ -201,7 +201,7 @@ export class ModeratorActionsService implements IModeratorActionsService {
      * @param commentId
      * @private
      */
-    private async acquireComment(commentId: string): Promise<Comment> {
+    private async acquireComment(commentId: UUID): Promise<Comment> {
         const comment = await this._dbContext.Comments.findCommentById(commentId);
         if (!comment) {
             throw new HttpException("Comment not found", 404);
@@ -215,7 +215,7 @@ export class ModeratorActionsService implements IModeratorActionsService {
      * @param postId
      * @private
      */
-    private async acquirePost(postId: string): Promise<Post> {
+    private async acquirePost(postId: UUID): Promise<Post> {
         const post = await this._dbContext.Posts.findPostById(postId);
         if (!post) {
             throw new HttpException("Post not found", 404);

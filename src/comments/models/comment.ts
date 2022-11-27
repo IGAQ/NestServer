@@ -24,7 +24,7 @@ import {
 export class Comment extends Model {
     @NodeProperty()
     @IsUUID()
-    commentId: string;
+    commentId: UUID;
 
     /**
      * The time the comment was created. Its value will be derived from the relationship
@@ -40,7 +40,7 @@ export class Comment extends Model {
 
     @IsUUID()
     @IsOptional()
-    parentId: Nullable<string>;
+    parentId: Nullable<UUID>;
 
     @IsBoolean()
     pinned: boolean;

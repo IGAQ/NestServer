@@ -1,11 +1,11 @@
 import { Labels, NodeProperty } from "../../neo4j/neo4j.decorators";
-import { IsNumber, IsString } from "class-validator";
+import { IsString, IsUUID } from "class-validator";
 
 @Labels("Gender")
 export class Gender {
     @NodeProperty()
-    @IsNumber()
-    genderId: string;
+    @IsUUID()
+    genderId: UUID;
 
     @NodeProperty()
     @IsString()

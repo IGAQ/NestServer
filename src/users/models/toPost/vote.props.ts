@@ -1,8 +1,8 @@
 import { RelationshipProps } from "../../../neo4j/neo4j.helper.types";
-import { IsUUID } from "class-validator";
+import { IsNumber } from "class-validator";
 
 export class VoteProps implements RelationshipProps {
-    @IsUUID()
+    @IsNumber()
     votedAt: number;
 
     constructor(partial?: Partial<VoteProps>) {

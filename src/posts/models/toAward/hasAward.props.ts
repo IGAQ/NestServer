@@ -3,7 +3,7 @@ import { IsUUID } from "class-validator";
 
 export class HasAwardProps implements RelationshipProps {
     @IsUUID()
-    awardedBy: string;
+    awardedBy: UUID;
 
     constructor(partial?: Partial<HasAwardProps>) {
         Object.assign(this, partial);

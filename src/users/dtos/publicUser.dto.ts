@@ -6,7 +6,7 @@ import { AvatarAscii, AvatarUrl } from "../models/user";
 export class PublicUserDto {
     @ApiProperty({ type: String, format: "uuid" })
     @IsNotEmpty()
-    userId: string;
+    userId: UUID;
 
     @ApiProperty({ type: String })
     @IsNotEmpty()

@@ -3,7 +3,7 @@ import { IsNumber, IsString, IsUUID } from "class-validator";
 
 export class ReportedProps implements RelationshipProps {
     @IsUUID()
-    moderatorId: string;
+    moderatorId: UUID;
 
     @IsNumber()
     reportedAt: number;

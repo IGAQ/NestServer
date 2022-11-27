@@ -37,7 +37,7 @@ export type AvatarAscii = string;
 export class User extends Model {
     @NodeProperty()
     @IsUUID()
-    userId: string;
+    userId: UUID;
 
     @NodeProperty()
     @IsNumber()

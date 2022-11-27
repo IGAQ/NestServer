@@ -1,4 +1,3 @@
-import { ApiProperty } from "@nestjs/swagger";
 import { Labels, NodeProperty } from "../../neo4j/neo4j.decorators";
 import { IsString, IsUUID } from "class-validator";
 
@@ -6,7 +5,7 @@ import { IsString, IsUUID } from "class-validator";
 export class Sexuality {
     @NodeProperty()
     @IsUUID()
-    sexualityId: string;
+    sexualityId: UUID;
 
     @NodeProperty()
     @IsString()

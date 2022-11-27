@@ -14,7 +14,7 @@ export class GenderRepository implements IGenderRepository {
         return records.map(record => new Gender(record.get("g").properties));
     }
 
-    public async findGenderById(genderId: string): Promise<Gender | undefined> {
+    public async findGenderById(genderId: UUID): Promise<Gender | undefined> {
         const gender = await this._neo4jService.read(
             `MATCH (g:Gender) WHERE g.genderId = $genderId RETURN g`,
             { genderId: genderId }
@@ -72,7 +72,7 @@ export class GenderRepository implements IGenderRepository {
         );
     }
 
-    public async deleteGender(genderId: string): Promise<void> {
+    public async deleteGender(genderId: UUID): Promise<void> {
         await this._neo4jService.tryWriteAsync(
             `
             MATCH (g:Gender) WHERE g.genderId = $genderId
