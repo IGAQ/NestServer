@@ -4,7 +4,7 @@ import { PassportStrategy } from "@nestjs/passport";
 import { ExtractJwt, Strategy } from "passport-jwt";
 import { IUsersRepository } from "../../users/repositories/users/users.repository.interface";
 import { _$ } from "../../_domain/injectableTokens";
-import { JwtTokenPayloadDto } from "../dtos/jwtTokenPayload.dto";
+import { JwtTokenPayloadDto } from "../dtos";
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
