@@ -1,5 +1,6 @@
 import { Neo4jService } from "./services/neo4j.service";
 import { Exclude } from "class-transformer";
+import { IsInstance } from "class-validator";
 
 export class RelationshipProps {}
 
@@ -26,6 +27,7 @@ export type RichRelatedEntities<EntityType, T extends string> = {
 };
 
 export class Model {
+    @IsInstance(Neo4jService)
     @Exclude()
     protected neo4jService: Neo4jService;
 
