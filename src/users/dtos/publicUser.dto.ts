@@ -14,6 +14,10 @@ export class PublicUserDto {
 
     @ApiProperty({ type: String })
     @IsNotEmpty()
+    bio: string;
+
+    @ApiProperty({ type: String })
+    @IsNotEmpty()
     username: string;
 
     @ApiProperty({ type: Number })
@@ -41,6 +45,7 @@ export class PublicUserDto {
             userId: user.userId,
             username: user.username,
             avatar: user.avatar || null,
+            bio: user.bio || null,
             level: user.level,
             sexuality: user.sexuality && !user.isSexualityPrivate ? user.sexuality : null,
             gender: user.gender && !user.isGenderPrivate ? user.gender : null,
