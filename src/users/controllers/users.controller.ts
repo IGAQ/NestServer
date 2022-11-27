@@ -65,7 +65,7 @@ export class UsersController {
         if (authedUser?.userId === user.userId) {
             return await user.toJSON();
         }
-        return PublicUserDto.fromUser(user);
+        return PublicUserDto.fromUser(await user.toJSON());
     }
 
     @Patch("/ban")

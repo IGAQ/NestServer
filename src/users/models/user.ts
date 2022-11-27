@@ -14,11 +14,11 @@ import { Openness } from "./openness";
 import { Role } from "./role";
 import { Sexuality } from "./sexuality";
 import { AuthoredProps as UserToCommentAuthoredProps, UserToCommentRelTypes } from "./toComment";
-import { UserToGenderRelTypes } from "./toGender";
-import { UserToOpennessRelTypes } from "./toOpenness";
+import { HasGenderProps, UserToGenderRelTypes } from "./toGender";
+import { HasOpennessProps, UserToOpennessRelTypes } from "./toOpenness";
 import { AuthoredProps, FavoritesProps, UserToPostRelTypes } from "./toPost";
 import { GotBannedProps, UserToSelfRelTypes, WasOffendingProps } from "./toSelf";
-import { UserToSexualityRelTypes } from "./toSexuality";
+import { HasSexualityProps, UserToSexualityRelTypes } from "./toSexuality";
 import {
     IsArray,
     IsBoolean,
@@ -93,14 +93,23 @@ export class User extends Model {
     @IsInstance(Sexuality)
     @IsOptional()
     sexuality: Nullable<Sexuality>;
+    @IsBoolean()
+    @IsOptional()
+    isSexualityPrivate: boolean;
 
     @IsInstance(Gender)
     @IsOptional()
     gender: Nullable<Gender>;
+    @IsBoolean()
+    @IsOptional()
+    isGenderPrivate: boolean;
 
     @IsInstance(Openness)
     @IsOptional()
     openness: Nullable<Openness>;
+    @IsBoolean()
+    @IsOptional()
+    isOpennessPrivate: boolean;
 
     @IsArray()
     @IsOptional()
@@ -247,7 +256,9 @@ export class User extends Model {
         if (queryResult.records.length === 0) {
             return null;
         }
+        const hasSexualityProps = new HasSexualityProps(queryResult.records[0].get("r").properties);
         this.sexuality = new Sexuality(queryResult.records[0].get("s").properties);
+        this.isSexualityPrivate = hasSexualityProps.isPrivate || false;
         return this.sexuality;
     }
 
@@ -301,7 +312,9 @@ export class User extends Model {
         if (queryResult.records.length === 0) {
             return null;
         }
+        const hasGenderProps = new HasGenderProps(queryResult.records[0].get("r").properties);
         this.gender = new Gender(queryResult.records[0].get("g").properties);
+        this.isGenderPrivate = hasGenderProps.isPrivate || false;
         return this.gender;
     }
 
@@ -318,7 +331,9 @@ export class User extends Model {
         if (queryResult.records.length === 0) {
             return null;
         }
+        const hasOpennessProps = new HasOpennessProps(queryResult.records[0].get("r").properties);
         this.openness = new Openness(queryResult.records[0].get("o").properties);
+        this.isOpennessPrivate = hasOpennessProps.isPrivate || false;
         return this.openness;
     }
 }
