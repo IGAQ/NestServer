@@ -23,6 +23,11 @@ export class RolesGuard implements CanActivate {
             return false;
         }
 
+        // If the user is an admin, they can do anything.
+        if (user.roles?.includes(Role.ADMIN)) {
+            return true;
+        }
+
         return requiredRoles.some(role => user.roles?.includes(role));
     }
 }
