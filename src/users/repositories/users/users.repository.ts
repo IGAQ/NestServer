@@ -161,7 +161,7 @@ export class UsersRepository implements IUsersRepository {
 		`,
             {
                 userId: user.userId,
-                phoneNumber: user.phoneNumber,
+                phoneNumber: user.phoneNumber ?? "",
                 phoneNumberVerified: user.phoneNumberVerified,
                 username: user.username,
                 normalizedUsername: user.username.toUpperCase(),
@@ -171,7 +171,7 @@ export class UsersRepository implements IUsersRepository {
                 level: user.level,
                 roles: user.roles,
                 updatedAt: new Date().getTime(),
-            } as Omit<User, "posts" | "createdAt">
+            } as User
         );
     }
 

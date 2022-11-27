@@ -1,11 +1,13 @@
 import { Body, Controller, Inject, Post, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
-import { SignInPayloadDto, SignTokenDto, SignUpPayloadDto } from "../dtos";
+import { SignInPayloadDto, SignTokenDto, SignUpPayloadDto, ChangePasswordAdminDto } from "../dtos";
 import { IAuthService } from "../services/auth.service.interface";
 import { AuthGuard } from "@nestjs/passport";
 import { _$ } from "../../_domain/injectableTokens";
 import { AuthedUser } from "../decorators/authedUser.param.decorator";
-import { User } from "../../users/models";
+import { Role, User } from "../../users/models";
+import { Roles } from "../decorators/roles.decorator";
+import { RolesGuard } from "../guards/roles.guard";
 
 @ApiTags("authentication")
 @ApiBearerAuth()
@@ -27,5 +29,12 @@ export class AuthController {
     @UseGuards(AuthGuard("jwt"))
     public async authenticate(@AuthedUser() user: User) {
         return await user.toJSON();
+    }
+
+    @Post("change-password-admin")
+    @Roles(Role.ADMIN)
+    @UseGuards(AuthGuard("jwt"), RolesGuard)
+    public async changePasswordAdmin(@Body() payload: ChangePasswordAdminDto): Promise<void> {
+        await this._authService.changePasswordAdmin(payload);
     }
 }
