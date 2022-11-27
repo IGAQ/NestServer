@@ -12,22 +12,22 @@ import {
     ParseUUIDPipe,
     Post,
     UseGuards,
-    UseInterceptors,
+    UseInterceptors
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
-import { DatabaseContext } from "../../database-access-layer/databaseContext";
-import { _$ } from "../../_domain/injectableTokens";
-import { Comment as CommentModel } from "../models";
-import { CommentCreationPayloadDto, VoteCommentPayloadDto } from "../dtos";
-import { ICommentsService } from "../services/comments/comments.service.interface";
-import { OptionalJwtAuthGuard } from "../../auth/guards/optionalJwtAuth.guard";
 import { AuthedUser } from "../../auth/decorators/authedUser.param.decorator";
-import { Role, User } from "../../users/models";
-import { RolesGuard } from "../../auth/guards/roles.guard";
 import { Roles } from "../../auth/decorators/roles.decorator";
+import { OptionalJwtAuthGuard } from "../../auth/guards/optionalJwtAuth.guard";
+import { RolesGuard } from "../../auth/guards/roles.guard";
+import { DatabaseContext } from "../../database-access-layer/databaseContext";
 import { ModerationPayloadDto } from "../../moderation/dtos/moderatorActions";
 import { IModeratorActionsService } from "../../moderation/services/moderatorActions/moderatorActions.service.interface";
+import { Role, User } from "../../users/models";
+import { _$ } from "../../_domain/injectableTokens";
+import { CommentCreationPayloadDto, VoteCommentPayloadDto } from "../dtos";
+import { Comment as CommentModel } from "../models";
+import { ICommentsService } from "../services/comments/comments.service.interface";
 
 @ApiTags("comments")
 @Controller("comments")
@@ -95,6 +95,14 @@ export class CommentsController {
         @Param("commentId", new ParseUUIDPipe()) commentId: UUID
     ): Promise<void> {
         await this._commentsService.markAsPinned(commentId);
+    }
+
+    @Post(":commentId/unpin")
+    @UseGuards(AuthGuard("jwt"))
+    public async unpinComment(
+        @Param("commentId", new ParseUUIDPipe()) commentId: UUID
+    ): Promise<void> {
+        await this._commentsService.markAsUnpinned(commentId);
     }
 
     @Post("create")

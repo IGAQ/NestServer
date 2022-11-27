@@ -1,5 +1,5 @@
+import { CommentCreationPayloadDto, VoteCommentPayloadDto } from "../../dtos";
 import { Comment } from "../../models";
-import { VoteCommentPayloadDto, CommentCreationPayloadDto } from "../../dtos";
 
 export interface ICommentsService {
     authorNewComment(commentPayload: CommentCreationPayloadDto): Promise<Comment>;
@@ -16,4 +16,6 @@ export interface ICommentsService {
     voteComment(votePayload: VoteCommentPayloadDto): Promise<void>;
 
     markAsPinned(commentId: UUID): Promise<void>;
+
+    markAsUnpinned(commentId: UUID): Promise<void>;
 }
