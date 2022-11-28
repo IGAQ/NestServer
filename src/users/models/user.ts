@@ -30,8 +30,9 @@ import {
     IsUUID,
 } from "class-validator";
 
-export type AvatarUrl = string;
-export type AvatarAscii = string;
+type AvatarUrl = string;
+type AvatarAscii = string;
+export type UserAvatar = AvatarUrl | AvatarAscii;
 
 @Labels("User")
 export class User extends Model {
@@ -48,7 +49,7 @@ export class User extends Model {
 
     @NodeProperty()
     @IsString()
-    avatar: AvatarAscii | AvatarUrl;
+    avatar: UserAvatar;
 
     @NodeProperty()
     @IsString()
