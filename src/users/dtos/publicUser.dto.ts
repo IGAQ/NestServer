@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty } from "class-validator";
 import { Gender, Openness, Sexuality, User } from "../models";
-import { AvatarAscii, AvatarUrl } from "../models/user";
+import { UserAvatar } from "../models/user";
 
 export class PublicUserDto {
     @ApiProperty({ type: String, format: "uuid" })
@@ -10,7 +10,7 @@ export class PublicUserDto {
 
     @ApiProperty({ type: String })
     @IsNotEmpty()
-    avatar: AvatarAscii | AvatarUrl;
+    avatar: UserAvatar;
 
     @ApiProperty({ type: String })
     @IsNotEmpty()
