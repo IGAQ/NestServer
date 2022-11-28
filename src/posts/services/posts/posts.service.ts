@@ -1,14 +1,14 @@
 import { HttpException, Inject, Injectable, Scope } from "@nestjs/common";
-import { User } from "../../../users/models";
-import { _$ } from "../../../_domain/injectableTokens";
-import { DatabaseContext } from "../../../database-access-layer/databaseContext";
 import { REQUEST } from "@nestjs/core";
 import { Request } from "express";
 import { Comment } from "../../../comments/models";
-import { VoteType } from "../../../_domain/models/enums";
-import { DeletedProps } from "../../../_domain/models/toSelf";
+import { DatabaseContext } from "../../../database-access-layer/databaseContext";
 import { IAutoModerationService } from "../../../moderation/services/autoModeration/autoModeration.service.interface";
+import { PostToCommentRelTypes } from "../../../posts/models/toComment";
+import { User } from "../../../users/models";
 import { UserToPostRelTypes, VoteProps } from "../../../users/models/toPost";
+import { _$ } from "../../../_domain/injectableTokens";
+import { VoteType } from "../../../_domain/models/enums";
 import { PostCreationPayloadDto, VotePostPayloadDto } from "../../dtos";
 import { Post, PostTag } from "../../models";
 import { IPostsService, postSortCallback } from "./posts.service.interface";
@@ -148,7 +148,7 @@ export class PostsService implements IPostsService {
     }
 
     public async findNestedCommentsByPostId(
-        postId: string,
+        postId: UUID,
         topLevelLimit: number,
         nestedLimit: number,
         nestedLevel: number
@@ -163,6 +163,21 @@ export class PostsService implements IPostsService {
         await this.getNestedComments(comments, nestedLevel, nestedLimit);
 
         return comments;
+    }
+
+    public async checkForPinnedComment(postId: UUID): Promise<Comment | null> {
+        const foundPost = await this._dbContext.Posts.findPostById(postId);
+        if (foundPost === null) throw new HttpException("Post not found", 404);
+
+        const queryResult = await this._dbContext.neo4jService.tryReadAsync(
+            `MATCH (p:Post {postId: $postId})-[:${PostToCommentRelTypes.PINNED_COMMENT}]->(c:Comment)
+            RETURN c`,
+            {
+                postId: postId,
+            }
+        )
+        if (queryResult.records.length === 0) return null;
+        return new Comment(queryResult.records[0].get("c").properties);
     }
 
     /**
