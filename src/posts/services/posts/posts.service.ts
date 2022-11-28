@@ -165,21 +165,6 @@ export class PostsService implements IPostsService {
         return comments;
     }
 
-    public async checkForPinnedComment(postId: UUID): Promise<Comment | null> {
-        const foundPost = await this._dbContext.Posts.findPostById(postId);
-        if (foundPost === null) throw new HttpException("Post not found", 404);
-
-        const queryResult = await this._dbContext.neo4jService.tryReadAsync(
-            `MATCH (p:Post {postId: $postId})-[:${PostToCommentRelTypes.PINNED_COMMENT}]->(c:Comment)
-            RETURN c`,
-            {
-                postId: postId,
-            }
-        )
-        if (queryResult.records.length === 0) return null;
-        return new Comment(queryResult.records[0].get("c").properties);
-    }
-
     /**
      * Recursively gets the total number of every comment's child comments that are **available**.
      * @param comment

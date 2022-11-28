@@ -1,14 +1,4 @@
 import { Exclude, Type } from "class-transformer";
-import { Labels, NodeProperty } from "../../neo4j/neo4j.decorators";
-import { Model } from "../../neo4j/neo4j.helper.types";
-import { Neo4jService } from "../../neo4j/services/neo4j.service";
-import { User } from "../../users/models";
-import { AuthoredProps, UserToCommentRelTypes } from "../../users/models/toComment";
-import { RestrictedProps, _ToSelfRelTypes, DeletedProps } from "../../_domain/models/toSelf";
-import { CommentToSelfRelTypes } from "./toSelf";
-import { PublicUserDto } from "../../users/dtos";
-import neo4j from "neo4j-driver";
-import { VoteType } from "../../_domain/models/enums";
 import {
     IsArray,
     IsBoolean,
@@ -17,8 +7,19 @@ import {
     IsNumber,
     IsOptional,
     IsString,
-    IsUUID,
+    IsUUID
 } from "class-validator";
+import neo4j from "neo4j-driver";
+import { Labels, NodeProperty } from "../../neo4j/neo4j.decorators";
+import { Model } from "../../neo4j/neo4j.helper.types";
+import { Neo4jService } from "../../neo4j/services/neo4j.service";
+import { PostToCommentRelTypes } from "../../posts/models/toComment";
+import { PublicUserDto } from "../../users/dtos";
+import { User } from "../../users/models";
+import { AuthoredProps, UserToCommentRelTypes } from "../../users/models/toComment";
+import { VoteType } from "../../_domain/models/enums";
+import { DeletedProps, RestrictedProps, _ToSelfRelTypes } from "../../_domain/models/toSelf";
+import { CommentToSelfRelTypes } from "./toSelf";
 
 @Labels("Comment")
 export class Comment extends Model {
@@ -93,6 +94,7 @@ export class Comment extends Model {
                 this.getCreatedAt(),
                 this.getTotalVotes(),
                 this.getAuthorUser(),
+                this.getPinStatus(),
                 ...(props.authenticatedUserId ? [this.getUserVote(props.authenticatedUserId)] : []),
             ]);
         }
@@ -116,8 +118,7 @@ export class Comment extends Model {
     public async getChildrenComments(limit = 0): Promise<Comment[]> {
         const queryResult = await this.neo4jService.tryReadAsync(
             `
-            MATCH (c:Comment)-[:${
-                CommentToSelfRelTypes.REPLIED
+            MATCH (c:Comment)-[:${CommentToSelfRelTypes.REPLIED
             }]->(p:Comment) WHERE p.commentId = $parentId 
             RETURN c
             ${limit > 0 ? `LIMIT $limit` : ""}
@@ -133,6 +134,21 @@ export class Comment extends Model {
             record => new Comment(record.get("c").properties, this.neo4jService)
         );
         return this.childComments;
+    }
+
+    public async getPinStatus(): Promise<boolean> {
+        const queryResult = await this.neo4jService.tryReadAsync(
+            `
+            MATCH (n)-[r:${PostToCommentRelTypes.PINNED_COMMENT}]->(c:Comment { commentId: $commentId })
+            RETURN r, c
+            `,
+            {
+                commentId: this.commentId,
+            }
+        );
+
+        this.pinned = queryResult.records.length > 0;
+        return this.pinned;
     }
 
     public async getUserVote(userId): Promise<Nullable<VoteType>> {
