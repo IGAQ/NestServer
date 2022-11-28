@@ -17,8 +17,8 @@ import { APP_GUARD } from "@nestjs/core";
 @Module({
     imports: [
         ThrottlerModule.forRoot({
-            ttl: 60,
-            limit: 10,
+            ttl: 69,
+            limit: 42,
         }),
         Neo4jModule.forRootAsync({
             imports: [ConfigModule],
