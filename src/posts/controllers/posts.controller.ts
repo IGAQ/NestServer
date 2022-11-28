@@ -6,13 +6,12 @@ import {
     Controller,
     Delete,
     Get,
-    HttpException,
     Inject,
     Param,
     ParseUUIDPipe,
     Post,
     UseGuards,
-    UseInterceptors
+    UseInterceptors,
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
@@ -60,6 +59,22 @@ export class PostsController {
             post.toJSON({ authenticatedUserId: user?.userId ?? undefined })
         );
         return await Promise.all(decoratedPosts);
+    }
+
+    @Get("/queery/ofTheDay")
+    @UseGuards(OptionalJwtAuthGuard)
+    @CacheTTL(3600 * 24)
+    @UseInterceptors(CacheInterceptor)
+    public async getQueeriesOfTheDay(): Promise<PostModel[]> {
+        return await this._postsService.getQueeriesOfTheDay();
+    }
+
+    @Get("/story/ofTheDay")
+    @UseGuards(OptionalJwtAuthGuard)
+    @CacheTTL(3600 * 24)
+    @UseInterceptors(CacheInterceptor)
+    public async getStoriesOfTheDay(): Promise<PostModel[]> {
+        return await this._postsService.getStoriesOfTheDay();
     }
 
     @Get("/queery")

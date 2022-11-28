@@ -7,7 +7,8 @@ export type postSortCallback = (postA: Post, postB: Post) => number;
 export interface IPostsService {
     authorNewPost(postPayload: PostCreationPayloadDto): Promise<Post>;
 
-    getQueeryOfTheDay(): Promise<Post>;
+    getQueeriesOfTheDay(): Promise<Post[]>;
+    getStoriesOfTheDay(): Promise<Post[]>;
 
     findAllQueeries(): Promise<Post[]>;
 
