@@ -132,7 +132,7 @@ export class PostsService implements IPostsService {
         return result;
     }
 
-    public async findPostById(postId: string): Promise<Post> {
+    public async findPostById(postId: UUID): Promise<Post> {
         let foundPost = await this._dbContext.Posts.findPostById(postId);
         if (foundPost === null) throw new HttpException("Post not found", 404);
 
