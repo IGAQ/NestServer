@@ -274,18 +274,26 @@ export class Neo4jSeedService {
                     }) WHERE postTag.tagName = postTagNameToBeConnected
                         MERGE (p1)-[:${PostToPostTypeRelTypes.HAS_POST_TYPE}]->(postType)
                         MERGE (p1)-[:${PostToPostTagRelTypes.HAS_POST_TAG}]->(postTag)
-                WITH [${postEntity.awards[PostToAwardRelTypes.HAS_AWARD].records
-                    .map(record => `"${record.entity.awardId}"`)
-                    .join(",")}] AS awardIDsToBeConnected       
-                UNWIND awardIDsToBeConnected as awardIdToBeConnected
-                    MATCH (p1:${this.postLabel}) WHERE p1.postId = $postId
-                    MATCH (award:${this.awardLabel}) WHERE award.awardId = awardIdToBeConnected
-                        MERGE (p1)-[:${PostToAwardRelTypes.HAS_AWARD} { awardedBy: "${
-                    (
-                        postEntity.awards[PostToAwardRelTypes.HAS_AWARD].records[0]
-                            .relProps as HasAwardProps
-                    ).awardedBy
-                }" } ]->(award)
+                        ${
+                            postEntity.awards[PostToAwardRelTypes.HAS_AWARD].records.length > 0
+                                ? `WITH [${postEntity.awards[PostToAwardRelTypes.HAS_AWARD].records
+                                      .map(record => `"${record.entity.awardId}"`)
+                                      .join(",")}] AS awardIDsToBeConnected       
+                                    UNWIND awardIDsToBeConnected as awardIdToBeConnected
+                                        MATCH (p1:${this.postLabel}) WHERE p1.postId = $postId
+                                        MATCH (award:${
+                                            this.awardLabel
+                                        }) WHERE award.awardId = awardIdToBeConnected
+                                            MERGE (p1)-[:${
+                                                PostToAwardRelTypes.HAS_AWARD
+                                            } { awardedBy: "${
+                                      (
+                                          postEntity.awards[PostToAwardRelTypes.HAS_AWARD]
+                                              .records[0].relProps as HasAwardProps
+                                      ).awardedBy
+                                  }" } ]->(award)`
+                                : ""
+                        }
                 WITH [${votesUserIds
                     .map(voterUserId => `"${voterUserId}"`)
                     .join(",")}] AS voterUserIdsToBeConnected
