@@ -12,23 +12,23 @@ import {
     ParseUUIDPipe,
     Post,
     UseGuards,
-    UseInterceptors,
+    UseInterceptors
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
-import { DatabaseContext } from "../../database-access-layer/databaseContext";
-import { _$ } from "../../_domain/injectableTokens";
-import { Post as PostModel } from "../models";
-import { Comment } from "../../comments/models";
-import { PostCreationPayloadDto, VotePostPayloadDto } from "../dtos";
-import { IPostsService } from "../services/posts/posts.service.interface";
-import { OptionalJwtAuthGuard } from "../../auth/guards/optionalJwtAuth.guard";
 import { AuthedUser } from "../../auth/decorators/authedUser.param.decorator";
-import { Role, User } from "../../users/models";
 import { Roles } from "../../auth/decorators/roles.decorator";
+import { OptionalJwtAuthGuard } from "../../auth/guards/optionalJwtAuth.guard";
 import { RolesGuard } from "../../auth/guards/roles.guard";
+import { Comment } from "../../comments/models";
+import { DatabaseContext } from "../../database-access-layer/databaseContext";
 import { ModerationPayloadDto } from "../../moderation/dtos/moderatorActions";
 import { IModeratorActionsService } from "../../moderation/services/moderatorActions/moderatorActions.service.interface";
+import { Role, User } from "../../users/models";
+import { _$ } from "../../_domain/injectableTokens";
+import { PostCreationPayloadDto, VotePostPayloadDto } from "../dtos";
+import { Post as PostModel } from "../models";
+import { IPostsService } from "../services/posts/posts.service.interface";
 
 @ApiTags("posts")
 @Controller("posts")
@@ -155,5 +155,10 @@ export class PostsController {
     public async allowPost(@Param("postId", new ParseUUIDPipe()) postId: UUID): Promise<void> {
         await this._moderationActionsService.allowPost(postId);
         throw new Error("Not implemented");
+    }
+
+    @Get(":postId/checkForPin")
+    public async checkForPin(@Param("postId", new ParseUUIDPipe()) postId: UUID): Promise<Comment | null> {
+        return await this._postsService.checkForPinnedComment(postId);
     }
 }

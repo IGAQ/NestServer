@@ -13,16 +13,18 @@ export interface IPostsService {
 
     findAllStories(): Promise<Post[]>;
 
-    findPostById(postId: string): Promise<Post>;
+    findPostById(postId: UUID): Promise<Post>;
 
     findNestedCommentsByPostId(
-        postId: string,
+        postId: UUID,
         topLevelLimit: number,
         nestedLimit: number,
         nestedLevel: number
     ): Promise<Comment[]>;
 
     getNestedComments(comments: Comment[], nestedLevel: number, nestedLimit: number): Promise<void>;
+
+    checkForPinnedComment(postId: UUID): Promise<Comment | null>;
 
     votePost(votePostPayload: VotePostPayloadDto): Promise<void>;
 }
