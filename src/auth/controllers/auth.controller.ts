@@ -1,6 +1,12 @@
 import { Body, Controller, Inject, Post, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
-import { SignInPayloadDto, SignTokenDto, SignUpPayloadDto, ChangePasswordAdminDto } from "../dtos";
+import {
+    SignInPayloadDto,
+    SignTokenDto,
+    SignUpPayloadDto,
+    ChangePasswordAdminDto,
+    ChangePasswordUserDto,
+} from "../dtos";
 import { IAuthService } from "../services/auth.service.interface";
 import { AuthGuard } from "@nestjs/passport";
 import { _$ } from "../../_domain/injectableTokens";
@@ -29,6 +35,16 @@ export class AuthController {
     @UseGuards(AuthGuard("jwt"))
     public async authenticate(@AuthedUser() user: User) {
         return await user.toJSON();
+    }
+
+    @Post("change-password")
+    @UseGuards(AuthGuard("jwt"))
+    public async changePasswordUser(
+        @AuthedUser() user: User,
+        @Body() payload: ChangePasswordUserDto
+    ): Promise<void> {
+        payload.user = user;
+        await this._authService.changePasswordUser(payload);
     }
 
     @Post("change-password-admin")

@@ -8,6 +8,7 @@ import {
     Param,
     ParseUUIDPipe,
     Patch,
+    Put,
     UseGuards,
     UseInterceptors,
 } from "@nestjs/common";
@@ -21,7 +22,8 @@ import { IUsersRepository } from "../repositories/users/users.repository.interfa
 import { ModerationPayloadDto } from "../../moderation/dtos/moderatorActions";
 import { AuthedUser } from "../../auth/decorators/authedUser.param.decorator";
 import { OptionalJwtAuthGuard } from "../../auth/guards/optionalJwtAuth.guard";
-import { PublicUserDto } from "../dtos";
+import { PublicUserDto, SetupProfileDto } from "../dtos";
+import { IProfileSetupService } from "../services/profileSetup/profileSetup.service.interface";
 
 @UseInterceptors(ClassSerializerInterceptor)
 @ApiTags("users")
@@ -29,9 +31,14 @@ import { PublicUserDto } from "../dtos";
 @Controller("users")
 export class UsersController {
     private readonly _usersRepository: IUsersRepository;
+    private readonly _profileSetup: IProfileSetupService;
 
-    constructor(@Inject(_$.IUsersRepository) usersRepository: IUsersRepository) {
+    constructor(
+        @Inject(_$.IUsersRepository) usersRepository: IUsersRepository,
+        @Inject(_$.IProfileSetupService) profileSetupService: IProfileSetupService
+    ) {
         this._usersRepository = usersRepository;
+        this._profileSetup = profileSetupService;
     }
 
     @Get()
@@ -65,7 +72,13 @@ export class UsersController {
         if (authedUser?.userId === user.userId) {
             return await user.toJSON();
         }
-        return PublicUserDto.fromUser(user);
+        return PublicUserDto.fromUser(await user.toJSON());
+    }
+
+    @Put("/profileSetup")
+    @UseGuards(AuthGuard("jwt"))
+    public async profileSetupSubmit(@Body() setupProfileDto: SetupProfileDto): Promise<void> {
+        await this._profileSetup.setupProfile(setupProfileDto);
     }
 
     @Patch("/ban")

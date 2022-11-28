@@ -10,6 +10,7 @@ const injectableTokens = {
     ISexualityRepository: Symbol("ISexualityRepository"),
     IOpennessRepository: Symbol("IOpennessRepository"),
     IGenderRepository: Symbol("IGenderRepository"),
+    IProfileSetupService: Symbol("IProfileSetupService"),
 
     // Posts Module
     IPostsRepository: Symbol("IPostsRepository"),

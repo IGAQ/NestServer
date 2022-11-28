@@ -181,12 +181,15 @@ export class Neo4jSeedService {
                         email: $email,
                         emailVerified: $emailVerified,
                         
+                        bio: $bio,
+                        avatar: $avatar,
+                        
                         level: $level,
                         
                         roles: $roles
-                    })-[:${UserToSexualityRelTypes.HAS_SEXUALITY}]->(s), 
-                        (u)-[:${UserToGenderRelTypes.HAS_GENDER}]->(g),
-                        (u)-[:${UserToOpennessRelTypes.HAS_OPENNESS_LEVEL_OF}]->(o)`,
+                    })-[:${UserToSexualityRelTypes.HAS_SEXUALITY} { isPrivate: $isSexualityPrivate }]->(s), 
+                        (u)-[:${UserToGenderRelTypes.HAS_GENDER} { isPrivate: $isGenderPrivate }]->(g),
+                        (u)-[:${UserToOpennessRelTypes.HAS_OPENNESS_LEVEL_OF} { isPrivate: $isOpennessPrivate }]->(o)`,
                 {
                     userId: userEntity.userId,
                     createdAt: userEntity.createdAt,
@@ -198,12 +201,21 @@ export class Neo4jSeedService {
                     phoneNumberVerified: userEntity.phoneNumberVerified,
                     email: userEntity.email,
                     emailVerified: userEntity.emailVerified,
+
+                    bio: userEntity.bio,
+                    avatar: userEntity.avatar,
+
                     level: userEntity.level,
                     roles: userEntity.roles,
 
                     sexualityId: userEntity.sexuality.sexualityId,
+                    isSexualityPrivate: userEntity.isSexualityPrivate,
+
                     genderId: userEntity.gender.genderId,
+                    isGenderPrivate: userEntity.isGenderPrivate,
+
                     opennessId: userEntity.openness.opennessId,
+                    isOpennessPrivate: userEntity.isOpennessPrivate,
                 }
             );
         }
@@ -262,18 +274,26 @@ export class Neo4jSeedService {
                     }) WHERE postTag.tagName = postTagNameToBeConnected
                         MERGE (p1)-[:${PostToPostTypeRelTypes.HAS_POST_TYPE}]->(postType)
                         MERGE (p1)-[:${PostToPostTagRelTypes.HAS_POST_TAG}]->(postTag)
-                WITH [${postEntity.awards[PostToAwardRelTypes.HAS_AWARD].records
-                    .map(record => `"${record.entity.awardId}"`)
-                    .join(",")}] AS awardIDsToBeConnected       
-                UNWIND awardIDsToBeConnected as awardIdToBeConnected
-                    MATCH (p1:${this.postLabel}) WHERE p1.postId = $postId
-                    MATCH (award:${this.awardLabel}) WHERE award.awardId = awardIdToBeConnected
-                        MERGE (p1)-[:${PostToAwardRelTypes.HAS_AWARD} { awardedBy: "${
-                    (
-                        postEntity.awards[PostToAwardRelTypes.HAS_AWARD].records[0]
-                            .relProps as HasAwardProps
-                    ).awardedBy
-                }" } ]->(award)
+                        ${
+                            postEntity.awards[PostToAwardRelTypes.HAS_AWARD].records.length > 0
+                                ? `WITH [${postEntity.awards[PostToAwardRelTypes.HAS_AWARD].records
+                                      .map(record => `"${record.entity.awardId}"`)
+                                      .join(",")}] AS awardIDsToBeConnected       
+                                    UNWIND awardIDsToBeConnected as awardIdToBeConnected
+                                        MATCH (p1:${this.postLabel}) WHERE p1.postId = $postId
+                                        MATCH (award:${
+                                            this.awardLabel
+                                        }) WHERE award.awardId = awardIdToBeConnected
+                                            MERGE (p1)-[:${
+                                                PostToAwardRelTypes.HAS_AWARD
+                                            } { awardedBy: "${
+                                      (
+                                          postEntity.awards[PostToAwardRelTypes.HAS_AWARD]
+                                              .records[0].relProps as HasAwardProps
+                                      ).awardedBy
+                                  }" } ]->(award)`
+                                : ""
+                        }
                 WITH [${votesUserIds
                     .map(voterUserId => `"${voterUserId}"`)
                     .join(",")}] AS voterUserIdsToBeConnected
@@ -431,6 +451,7 @@ export class Neo4jSeedService {
                 createdAt: new Date().getTime(),
                 updatedAt: new Date().getTime(),
                 avatar: ":^)",
+                bio: "My name is gabriel.",
                 username: "gabriel",
                 normalizedUsername: "GABRIEL",
                 passwordHash: "someotherpassword",
@@ -443,12 +464,15 @@ export class Neo4jSeedService {
                 gender: new Gender({
                     genderId: "d2945763-d1fb-46aa-b896-7f701b4ca699",
                 }),
+                isGenderPrivate: false,
                 sexuality: new Sexuality({
                     sexualityId: "55da84cc-5f17-454a-a653-227458763edb",
                 }),
+                isSexualityPrivate: false,
                 openness: new Openness({
                     opennessId: "c8921055-563f-4a54-8773-b408efcfb7ac",
                 }),
+                isOpennessPrivate: false,
                 posts: {
                     [UserToPostRelTypes.AUTHORED]: {
                         records: (await this.getPosts()).slice(0, 2).map(post => ({
@@ -468,6 +492,7 @@ export class Neo4jSeedService {
                 createdAt: new Date().getTime(),
                 updatedAt: new Date().getTime(),
                 avatar: "^_^",
+                bio: "My name is alphonse.",
                 username: "alphonse",
                 normalizedUsername: "ALPHONSE",
                 passwordHash: "num3r1ca1pa55w0rd",
@@ -480,12 +505,15 @@ export class Neo4jSeedService {
                 gender: new Gender({
                     genderId: "585d31aa-d5b3-4b8d-9690-ffcd57ce2862",
                 }),
+                isGenderPrivate: false,
                 sexuality: new Sexuality({
                     sexualityId: "d2945763-d1fb-46aa-b896-7f701b4ca699",
                 }),
+                isSexualityPrivate: false,
                 openness: new Openness({
                     opennessId: "d5c97584-cd1b-4aa6-82ad-b5ddd3577bee",
                 }),
+                isOpennessPrivate: false,
                 posts: {
                     [UserToPostRelTypes.AUTHORED]: {
                         records: (await this.getPosts()).slice(1, 3).map(post => ({

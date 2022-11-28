@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty } from "class-validator";
-import { Gender, Sexuality, User } from "../models";
-import { AvatarAscii, AvatarUrl } from "../models/user";
+import { Gender, Openness, Sexuality, User } from "../models";
+import { UserAvatar } from "../models/user";
 
 export class PublicUserDto {
     @ApiProperty({ type: String, format: "uuid" })
@@ -10,7 +10,11 @@ export class PublicUserDto {
 
     @ApiProperty({ type: String })
     @IsNotEmpty()
-    avatar: AvatarAscii | AvatarUrl;
+    avatar: UserAvatar;
+
+    @ApiProperty({ type: String })
+    @IsNotEmpty()
+    bio: string;
 
     @ApiProperty({ type: String })
     @IsNotEmpty()
@@ -28,6 +32,10 @@ export class PublicUserDto {
     @IsNotEmpty()
     gender: Nullable<Gender>;
 
+    @ApiProperty({ type: Openness })
+    @IsNotEmpty()
+    openness: Nullable<Openness>;
+
     constructor(partial?: Partial<PublicUserDto>) {
         Object.assign(this, partial);
     }
@@ -37,9 +45,11 @@ export class PublicUserDto {
             userId: user.userId,
             username: user.username,
             avatar: user.avatar || null,
+            bio: user.bio || null,
             level: user.level,
-            sexuality: user.sexuality || null,
-            gender: user.gender || null,
+            sexuality: user.sexuality && !user.isSexualityPrivate ? user.sexuality : null,
+            gender: user.gender && !user.isGenderPrivate ? user.gender : null,
+            openness: user.openness && !user.isOpennessPrivate ? user.openness : null,
         });
     }
 }

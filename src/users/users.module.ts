@@ -3,6 +3,13 @@ import { UsersRepository } from "./repositories/users/users.repository";
 import { UsersController } from "./controllers/users.controller";
 import { _$ } from "../_domain/injectableTokens";
 import { DatabaseAccessLayerModule } from "../database-access-layer/database-access-layer.module";
+import { ProfileSetupService } from "./services/profileSetup/profileSetup.service";
+import { GenderRepository } from "./repositories/gender/gender.repository";
+import { SexualityRepository } from "./repositories/sexuality/sexuality.repository";
+import { OpennessRepository } from "./repositories/openness/openness.repository";
+import { SexualitiesController } from "./controllers/sexualities.controller";
+import { GendersController } from "./controllers/genders.controller";
+import { OpennessController } from "./controllers/openness.controller";
 
 @Module({
     imports: [forwardRef(() => DatabaseAccessLayerModule)],
@@ -11,13 +18,45 @@ import { DatabaseAccessLayerModule } from "../database-access-layer/database-acc
             provide: _$.IUsersRepository,
             useClass: UsersRepository,
         },
+        {
+            provide: _$.IProfileSetupService,
+            useClass: ProfileSetupService,
+        },
+        {
+            provide: _$.IGenderRepository,
+            useClass: GenderRepository,
+        },
+        {
+            provide: _$.ISexualityRepository,
+            useClass: SexualityRepository,
+        },
+        {
+            provide: _$.IOpennessRepository,
+            useClass: OpennessRepository,
+        },
     ],
     exports: [
         {
             provide: _$.IUsersRepository,
             useClass: UsersRepository,
         },
+        {
+            provide: _$.IProfileSetupService,
+            useClass: ProfileSetupService,
+        },
+        {
+            provide: _$.IGenderRepository,
+            useClass: GenderRepository,
+        },
+        {
+            provide: _$.ISexualityRepository,
+            useClass: SexualityRepository,
+        },
+        {
+            provide: _$.IOpennessRepository,
+            useClass: OpennessRepository,
+        },
     ],
-    controllers: [UsersController],
+    controllers: [UsersController, SexualitiesController, GendersController, OpennessController],
 })
 export class UsersModule {}

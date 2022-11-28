@@ -9,6 +9,7 @@ import {
     SignTokenDto,
     SignUpPayloadDto,
     JwtTokenPayloadDto,
+    ChangePasswordUserDto,
 } from "../dtos";
 import { IAuthService } from "./auth.service.interface";
 import { User } from "../../users/models";
@@ -23,8 +24,7 @@ export class AuthService implements IAuthService {
     ) {}
 
     public async signup(signUpPayloadDto: SignUpPayloadDto): Promise<SignTokenDto> {
-        const salt = await bcrypt.genSalt(10);
-        const hash = await bcrypt.hash(signUpPayloadDto.password, salt);
+        const hash = await this.makePasswordHash(signUpPayloadDto.password);
 
         const foundUser = await this._usersRepository.findUserByUsername(signUpPayloadDto.username);
         if (foundUser) {
@@ -60,7 +60,7 @@ export class AuthService implements IAuthService {
         if (!user) {
             throw new HttpException("Authentication failed.", 400);
         }
-        const isMatch = await bcrypt.compare(signInPayloadDto.password, user.passwordHash);
+        const isMatch = await this.verifyPassword(signInPayloadDto.password, user.passwordHash);
         if (!isMatch) {
             throw new HttpException("Authentication failed.", 400);
         }
@@ -86,15 +86,37 @@ export class AuthService implements IAuthService {
         });
     }
 
+    public async changePasswordUser(payload: ChangePasswordUserDto): Promise<void> {
+        const previousPasswordMatch = await this.verifyPassword(
+            payload.previousPassword,
+            payload.user.passwordHash
+        );
+        if (!previousPasswordMatch) {
+            throw new HttpException("Previous password is incorrect", 400);
+        }
+
+        payload.user.passwordHash = await this.makePasswordHash(payload.newPassword);
+
+        await this._usersRepository.updateUser(payload.user);
+    }
+
     public async changePasswordAdmin(payload: ChangePasswordAdminDto): Promise<void> {
         const user = await this._usersRepository.findUserByUsername(payload.username);
         if (!user) {
             throw new HttpException("User not found", 404);
         }
 
-        const salt = await bcrypt.genSalt(10);
-        user.passwordHash = await bcrypt.hash(payload.newPassword, salt);
+        user.passwordHash = await this.makePasswordHash(payload.newPassword);
 
         await this._usersRepository.updateUser(user);
+    }
+
+    private async verifyPassword(password: string, hash: string): Promise<boolean> {
+        return await bcrypt.compare(password, hash);
+    }
+
+    private async makePasswordHash(rawPasswor: string): Promise<string> {
+        const salt = await bcrypt.genSalt(10);
+        return await bcrypt.hash(rawPasswor, salt);
     }
 }
