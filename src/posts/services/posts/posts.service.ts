@@ -66,34 +66,88 @@ export class PostsService implements IPostsService {
         );
     }
 
-    public async getQueeryOfTheDay(): Promise<Post> {
-        const allPosts = await this._dbContext.Posts.findAll();
-        if (allPosts.length === 0)
+    public async getQueeriesOfTheDay(): Promise<Post[]> {
+        let user: User = null;
+        try {
+            user = this.getUserFromRequest();
+        } catch (e) {
+            // do nothing
+        }
+
+        const allQueeries = await this._dbContext.Posts.findPostByPostType("queery");
+        if (allQueeries.length === 0)
             throw new HttpException(
                 "No posts found in the database. Please checkout this application's usage tutorials.",
                 404
             );
 
-        const queeryPosts: Post[] = [];
-        for (const i in allPosts) {
-            if (!allPosts[i].pending) continue;
+        const queeries: Post[] = [];
+        for (const i in allQueeries) {
+            if (allQueeries[i].pending) continue;
 
-            await allPosts[i].getDeletedProps();
-            if (allPosts[i].deletedProps !== null) continue;
+            await allQueeries[i].getDeletedProps();
+            if (allQueeries[i].deletedProps !== null) continue;
 
-            await allPosts[i].getRestricted();
-            if (allPosts[i].restrictedProps !== null) continue;
+            await allQueeries[i].getRestricted();
+            if (allQueeries[i].restrictedProps !== null) continue;
 
-            await allPosts[i].getPostType();
-            if (allPosts[i].postType.postTypeName === "Queery") {
-                queeryPosts.push(allPosts[i]);
-            }
+            allQueeries[i].totalComments = await this.getTotalComments(allQueeries[i]);
+
+            allQueeries[i] = await allQueeries[i].toJSON({
+                authenticatedUserId: user?.userId ?? undefined,
+            });
+
+            queeries.push(allQueeries[i]);
         }
 
-        if (queeryPosts.length === 0) throw new HttpException("No Queery posts found", 404);
+        queeries.sort(
+            (postA, postB) =>
+                postA.totalComments + postA.totalVotes - (postB.totalComments + postB.totalVotes)
+        );
 
-        const queeryOfTheDayIndex = Math.floor(Math.random() * queeryPosts.length);
-        return queeryPosts[queeryOfTheDayIndex];
+        return queeries.slice(0, 5);
+    }
+
+    public async getStoriesOfTheDay(): Promise<Post[]> {
+        let user: User = null;
+        try {
+            user = this.getUserFromRequest();
+        } catch (e) {
+            // do nothing
+        }
+
+        const allStories = await this._dbContext.Posts.findPostByPostType("story");
+        if (allStories.length === 0)
+            throw new HttpException(
+                "No posts found in the database. Please checkout this application's usage tutorials.",
+                404
+            );
+
+        const stories: Post[] = [];
+        for (const i in allStories) {
+            if (allStories[i].pending) continue;
+
+            await allStories[i].getDeletedProps();
+            if (allStories[i].deletedProps !== null) continue;
+
+            await allStories[i].getRestricted();
+            if (allStories[i].restrictedProps !== null) continue;
+
+            allStories[i].totalComments = await this.getTotalComments(allStories[i]);
+
+            allStories[i] = await allStories[i].toJSON({
+                authenticatedUserId: user?.userId ?? undefined,
+            });
+
+            stories.push(allStories[i]);
+        }
+
+        stories.sort(
+            (postA, postB) =>
+                postA.totalComments + postA.totalVotes - (postB.totalComments + postB.totalVotes)
+        );
+
+        return stories.slice(0, 5);
     }
 
     public async findAllQueeries(): Promise<Post[]> {
