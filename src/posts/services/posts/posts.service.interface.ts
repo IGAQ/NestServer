@@ -24,7 +24,5 @@ export interface IPostsService {
 
     getNestedComments(comments: Comment[], nestedLevel: number, nestedLimit: number): Promise<void>;
 
-    checkForPinnedComment(postId: UUID): Promise<Comment | null>;
-
     votePost(votePostPayload: VotePostPayloadDto): Promise<void>;
 }

@@ -156,9 +156,4 @@ export class PostsController {
         await this._moderationActionsService.allowPost(postId);
         throw new Error("Not implemented");
     }
-
-    @Get(":postId/checkForPin")
-    public async checkForPin(@Param("postId", new ParseUUIDPipe()) postId: UUID): Promise<Comment | null> {
-        return await this._postsService.checkForPinnedComment(postId);
-    }
 }
