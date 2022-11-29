@@ -1,21 +1,14 @@
 import { IProfileSetupService } from "./profileSetup.service.interface";
-import {
-    SetupProfileDto,
-    UpdateAvatarDto,
-    UpdateBioDto,
-    UpdateGenderDto,
-    UpdateOpennessDto,
-    UpdateSexualityDto,
-} from "../../dtos";
+import { SetupProfileDto } from "../../dtos";
 import { HttpException, Inject, Injectable, Scope } from "@nestjs/common";
 import { Request } from "express";
 import { REQUEST } from "@nestjs/core";
 import { User } from "../../models";
 import { DatabaseContext } from "../../../database-access-layer/databaseContext";
 import { _$ } from "../../../_domain/injectableTokens";
-import { UserToSexualityRelTypes } from "../../models/toSexuality";
-import { UserToGenderRelTypes } from "../../models/toGender";
-import { UserToOpennessRelTypes } from "../../models/toOpenness";
+import { HasSexualityProps } from "../../models/toSexuality";
+import { HasGenderProps } from "../../models/toGender";
+import { HasOpennessProps } from "../../models/toOpenness";
 
 @Injectable({ scope: Scope.DEFAULT })
 export class ProfileSetupService implements IProfileSetupService {
@@ -38,130 +31,97 @@ export class ProfileSetupService implements IProfileSetupService {
         await this._dbContext.Users.updateUser(user);
 
         const userSexuality = await user.getSexuality();
+        const sexuality = await this._dbContext.Sexualities.findSexualityById(payload.sexualityId);
+        if (!sexuality) throw new HttpException("Sexuality not found.", 404);
         if (userSexuality === null) {
-            const sexuality = await this._dbContext.Sexualities.findSexualityById(
-                payload.sexualityId
-            );
-            if (!sexuality) throw new HttpException("Sexuality not found.", 404);
-
-            await this._dbContext.neo4jService.tryWriteAsync(
-                `
-                MATCH (u:User { userId: $userId }), (s:Sexuality { sexualityId: $sexualityId })
-                    MERGE (u)-[:${UserToSexualityRelTypes.HAS_SEXUALITY} {
-                        isPrivate: $isPrivate
-                    }]->(s)
-                `,
-                {
-                    userId: user.userId,
-                    sexualityId: sexuality.sexualityId,
-                    isPrivate: payload.isSexualityOpen,
-                }
+            await this._dbContext.Users.connectUserWithSexuality(
+                user.userId,
+                sexuality.sexualityId,
+                new HasSexualityProps({ isPrivate: !payload.isSexualityOpen })
             );
         } else {
-            if (payload.isSexualityOpen !== user.isSexualityPrivate) {
-                await this._dbContext.neo4jService.tryWriteAsync(
-                    `
-                    MATCH (u:User { userId: $userId })-[r:${UserToSexualityRelTypes.HAS_SEXUALITY}]->(s:Sexuality)
-                        SET r.isPrivate = $isPrivate
-                    `,
-                    {
-                        userId: user.userId,
-                        isPrivate: payload.isSexualityOpen,
-                    }
+            // If the sexuality is changed, update it. else, skip.
+            if (userSexuality.sexualityId !== payload.sexualityId) {
+                // Delete the relationship first.
+                await this._dbContext.Users.detachUserWithSexuality(user.userId);
+                // Connect with the new one.
+                await this._dbContext.Users.connectUserWithSexuality(
+                    user.userId,
+                    sexuality.sexualityId,
+                    new HasSexualityProps({ isPrivate: !payload.isSexualityOpen })
                 );
+            } else {
+                // If the privacy rule of sexuality of this user has changed, just update the relationship property
+                if (!payload.isSexualityOpen !== user.isSexualityPrivate) {
+                    await this._dbContext.Users.updateRelationshipPropsOfHasSexuality(
+                        user.userId,
+                        new HasSexualityProps({ isPrivate: !payload.isSexualityOpen })
+                    );
+                }
             }
         }
 
         const userGender = await user.getGender();
+        const gender = await this._dbContext.Genders.findGenderById(payload.genderId);
+        if (!gender) throw new HttpException("Gender not found.", 404);
         if (userGender === null) {
-            const gender = await this._dbContext.Genders.findGenderById(payload.genderId);
-            if (!gender) throw new HttpException("Gender not found.", 404);
-
-            await this._dbContext.neo4jService.tryWriteAsync(
-                `
-                MATCH (u:User { userId : $userId }), (g:Gender { genderId: $genderId })
-                    MERGE (u)-[:${UserToGenderRelTypes.HAS_GENDER} {
-                        isPrivate: $isPrivate
-                    }]->(g)
-                    `,
-                {
-                    userId: user.userId,
-                    genderId: gender.genderId,
-                    isPrivate: payload.isGenderPrivate,
-                }
+            await this._dbContext.Users.connectUserWithGender(
+                user.userId,
+                gender.genderId,
+                new HasGenderProps({ isPrivate: payload.isGenderPrivate })
             );
         } else {
-            if (payload.isGenderPrivate !== user.isGenderPrivate) {
-                await this._dbContext.neo4jService.tryWriteAsync(
-                    `
-                    MATCH (u:User { userId: $userId })-[r:${UserToGenderRelTypes.HAS_GENDER}]->(g:Gender)
-                        SET r.isPrivate = $isPrivate
-                    `,
-                    {
-                        userId: user.userId,
-                        isPrivate: payload.isSexualityOpen,
-                    }
+            // If the gender is changed, update it. else, skip.
+            if (userGender.genderId !== payload.genderId) {
+                // Delete the relationship first.
+                await this._dbContext.Users.detachUserWithGender(user.userId);
+                // Connect with the new one.
+                await this._dbContext.Users.connectUserWithGender(
+                    user.userId,
+                    gender.genderId,
+                    new HasGenderProps({ isPrivate: payload.isGenderPrivate })
                 );
+            } else {
+                // If the privacy rule of gender of this user has changed, just update the relationship property
+                if (payload.isGenderPrivate !== user.isGenderPrivate) {
+                    await this._dbContext.Users.updateRelationshipPropsOfHasGender(
+                        user.userId,
+                        new HasGenderProps({ isPrivate: payload.isGenderPrivate })
+                    );
+                }
             }
         }
 
         const userOpenness = await user.getOpenness();
+        const openness = await this._dbContext.Openness.findOpennessById(payload.opennessId);
+        if (!openness) throw new HttpException("Openness not found.", 404);
         if (userOpenness === null) {
-            const openness = await this._dbContext.Openness.findOpennessById(payload.opennessId);
-            if (!openness) throw new HttpException("Openness not found.", 404);
-
-            await this._dbContext.neo4jService.tryWriteAsync(
-                `
-                MATCH (u:User { userId : $userId }), (g:Openness { opennessId: $opennessId })
-                    MERGE (u)-[:${UserToOpennessRelTypes.HAS_OPENNESS_LEVEL_OF} {
-                        isPrivate: $isPrivate
-                    }]->(g)
-                    `,
-                {
-                    userId: user.userId,
-                    opennessId: openness.opennessId,
-                    isPrivate: payload.isGenderPrivate,
-                }
+            await this._dbContext.Users.connectUserWithOpenness(
+                user.userId,
+                openness.opennessId,
+                new HasOpennessProps({ isPrivate: payload.isGenderPrivate })
             );
         } else {
-            if (payload.isOpennessPrivate !== user.isOpennessPrivate) {
-                await this._dbContext.neo4jService.tryWriteAsync(
-                    `
-                    MATCH (u:User { userId: $userId })-[r:${UserToOpennessRelTypes.HAS_OPENNESS_LEVEL_OF}]->(o:Openness)
-                        SET r.isPrivate = $isPrivate
-                    `,
-                    {
-                        userId: user.userId,
-                        isPrivate: payload.isSexualityOpen,
-                    }
+            // If the openness is changed, update it. else, skip.
+            if (userOpenness.opennessId !== payload.opennessId) {
+                // Delete the relationship first.
+                await this._dbContext.Users.detachUserWithOpenness(user.userId);
+                // Connect with the new one.
+                await this._dbContext.Users.connectUserWithOpenness(
+                    user.userId,
+                    openness.opennessId,
+                    new HasOpennessProps({ isPrivate: payload.isGenderPrivate })
                 );
+            } else {
+                // If the privacy rule of openness of this user has changed, just update the relationship property
+                if (payload.isOpennessPrivate !== user.isOpennessPrivate) {
+                    await this._dbContext.Users.updateRelationshipPropsOfHasOpenness(
+                        user.userId,
+                        new HasOpennessProps({ isPrivate: payload.isOpennessPrivate })
+                    );
+                }
             }
         }
-    }
-
-    public async updateBio(payload: UpdateBioDto): Promise<void> {
-        const user: User = this.getUserFromRequest();
-        throw new Error("Method not implemented.");
-    }
-
-    public async updateAvatar(payload: UpdateAvatarDto): Promise<void> {
-        const user: User = this.getUserFromRequest();
-        throw new Error("Method not implemented.");
-    }
-
-    public async updateGender(payload: UpdateGenderDto): Promise<void> {
-        const user: User = this.getUserFromRequest();
-        throw new Error("Method not implemented.");
-    }
-
-    public async updateSexuality(payload: UpdateSexualityDto): Promise<void> {
-        const user: User = this.getUserFromRequest();
-        throw new Error("Method not implemented.");
-    }
-
-    public async updateOpenness(payload: UpdateOpennessDto): Promise<void> {
-        const user: User = this.getUserFromRequest();
-        throw new Error("Method not implemented.");
     }
 
     private getUserFromRequest(): User {

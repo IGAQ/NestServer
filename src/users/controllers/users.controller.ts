@@ -18,26 +18,30 @@ import { Roles } from "../../auth/decorators/roles.decorator";
 import { RolesGuard } from "../../auth/guards/roles.guard";
 import { _$ } from "../../_domain/injectableTokens";
 import { Role, User } from "../models";
-import { IUsersRepository } from "../repositories/users/users.repository.interface";
 import { ModerationPayloadDto } from "../../moderation/dtos/moderatorActions";
 import { AuthedUser } from "../../auth/decorators/authedUser.param.decorator";
 import { OptionalJwtAuthGuard } from "../../auth/guards/optionalJwtAuth.guard";
 import { PublicUserDto, SetupProfileDto } from "../dtos";
 import { IProfileSetupService } from "../services/profileSetup/profileSetup.service.interface";
+import { DatabaseContext } from "../../database-access-layer/databaseContext";
+import { IUserHistoryService } from "../services/userHistory/userHistory.service.interface";
 
 @UseInterceptors(ClassSerializerInterceptor)
 @ApiTags("users")
 @ApiBearerAuth()
 @Controller("users")
 export class UsersController {
-    private readonly _usersRepository: IUsersRepository;
+    private readonly _dbContext: DatabaseContext;
+    private readonly _userHistoryService: IUserHistoryService;
     private readonly _profileSetup: IProfileSetupService;
 
     constructor(
-        @Inject(_$.IUsersRepository) usersRepository: IUsersRepository,
+        @Inject(_$.IDatabaseContext) dbContext: DatabaseContext,
+        @Inject(_$.IUserHistoryService) userHistoryService: IUserHistoryService,
         @Inject(_$.IProfileSetupService) profileSetupService: IProfileSetupService
     ) {
-        this._usersRepository = usersRepository;
+        this._dbContext = dbContext;
+        this._userHistoryService = userHistoryService;
         this._profileSetup = profileSetupService;
     }
 
@@ -45,7 +49,7 @@ export class UsersController {
     @Roles(Role.ADMIN)
     @UseGuards(AuthGuard("jwt"), RolesGuard)
     public async index(): Promise<User[]> {
-        const users = await this._usersRepository.findAll();
+        const users = await this._dbContext.Users.findAll();
         const decoratedUsers = users.map(user => user.toJSON());
         return await Promise.all(decoratedUsers);
     }
@@ -54,7 +58,7 @@ export class UsersController {
     @Roles(Role.ADMIN)
     @UseGuards(AuthGuard("jwt"), RolesGuard)
     public async getUserById(@Param("userId", new ParseUUIDPipe()) userId: string): Promise<User> {
-        const user = await this._usersRepository.findUserById(userId);
+        const user = await this._dbContext.Users.findUserById(userId);
         if (user === undefined) throw new HttpException("User not found", 404);
         return user;
     }
@@ -65,7 +69,7 @@ export class UsersController {
         @Param("username") username: string,
         @AuthedUser() authedUser?: User
     ): Promise<PublicUserDto | User> {
-        const user = await this._usersRepository.findUserByUsername(username);
+        const user = await this._dbContext.Users.findUserByUsername(username);
         if (user === undefined) throw new HttpException("User not found", 404);
 
         // if the found user is the same as the authed user, return the full user object
@@ -73,6 +77,19 @@ export class UsersController {
             return await user.toJSON();
         }
         return PublicUserDto.fromUser(await user.toJSON());
+    }
+
+    @Get("/:username/history/posts")
+    @UseGuards(OptionalJwtAuthGuard)
+    public async getPostHistoryOfUserByUsername(
+        @Param("username") username: string,
+        @AuthedUser() authedUser?: User
+    ) {
+        const posts = await this._userHistoryService.getPostsHistoryByUsername(username);
+        const decoratedPosts = posts.map(post =>
+            post.toJSON({ authenticatedUserId: authedUser?.userId ?? undefined })
+        );
+        return await Promise.all(decoratedPosts);
     }
 
     @Put("/profileSetup")

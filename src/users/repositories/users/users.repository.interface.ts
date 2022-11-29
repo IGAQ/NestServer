@@ -1,4 +1,7 @@
 import { User } from "../../models";
+import { HasGenderProps } from "../../models/toGender";
+import { HasOpennessProps } from "../../models/toOpenness";
+import { HasSexualityProps } from "../../models/toSexuality";
 
 export interface IUsersRepository {
     findAll(): Promise<User[]>;
@@ -14,4 +17,34 @@ export interface IUsersRepository {
     updateUser(user: User): Promise<void>;
 
     deleteUser(userId: UUID): Promise<void>;
+
+    connectUserWithSexuality(
+        userId: UUID,
+        sexualityId: UUID,
+        hasSexualityProps: HasSexualityProps
+    ): Promise<void>;
+    detachUserWithSexuality(userId: UUID): Promise<void>;
+    updateRelationshipPropsOfHasSexuality(
+        userId: UUID,
+        hasSexualityProps: HasSexualityProps
+    ): Promise<void>;
+
+    connectUserWithGender(
+        userId: UUID,
+        genderId: UUID,
+        hasGenderProps: HasGenderProps
+    ): Promise<void>;
+    detachUserWithGender(userId: UUID): Promise<void>;
+    updateRelationshipPropsOfHasGender(userId: UUID, hasGenderProps: HasGenderProps): Promise<void>;
+
+    connectUserWithOpenness(
+        userId: UUID,
+        opennessId: UUID,
+        hasOpennessProps: HasOpennessProps
+    ): Promise<void>;
+    detachUserWithOpenness(userId: UUID): Promise<void>;
+    updateRelationshipPropsOfHasOpenness(
+        userId: UUID,
+        hasGenderProps: HasGenderProps
+    ): Promise<void>;
 }

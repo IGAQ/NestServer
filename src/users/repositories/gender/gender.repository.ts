@@ -20,7 +20,7 @@ export class GenderRepository implements IGenderRepository {
             { genderId: genderId }
         );
         if (gender.records.length === 0) return undefined;
-        return new Gender(gender.records[0].get("s").properties);
+        return new Gender(gender.records[0].get("g").properties);
     }
 
     public async addGender(gender: Gender): Promise<Gender> {
@@ -46,9 +46,7 @@ export class GenderRepository implements IGenderRepository {
             }
         );
 
-        const addedGender = await this.findGenderById(gender.genderId ?? genderId);
-
-        return addedGender;
+        return await this.findGenderById(gender.genderId ?? genderId);
     }
 
     public async updateGender(gender: Gender): Promise<void> {

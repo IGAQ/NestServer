@@ -10,6 +10,7 @@ import { OpennessRepository } from "./repositories/openness/openness.repository"
 import { SexualitiesController } from "./controllers/sexualities.controller";
 import { GendersController } from "./controllers/genders.controller";
 import { OpennessController } from "./controllers/openness.controller";
+import { UserHistoryService } from "./services/userHistory/userHistory.service";
 
 @Module({
     imports: [forwardRef(() => DatabaseAccessLayerModule)],
@@ -21,6 +22,10 @@ import { OpennessController } from "./controllers/openness.controller";
         {
             provide: _$.IProfileSetupService,
             useClass: ProfileSetupService,
+        },
+        {
+            provide: _$.IUserHistoryService,
+            useClass: UserHistoryService,
         },
         {
             provide: _$.IGenderRepository,
@@ -43,6 +48,10 @@ import { OpennessController } from "./controllers/openness.controller";
         {
             provide: _$.IProfileSetupService,
             useClass: ProfileSetupService,
+        },
+        {
+            provide: _$.IUserHistoryService,
+            useClass: UserHistoryService,
         },
         {
             provide: _$.IGenderRepository,

@@ -8,6 +8,8 @@ export interface IPostsRepository {
 
     findPostById(postId: string): Promise<Post | undefined>;
 
+    getPostHistoryByUserId(userId: UUID): Promise<Post[]>;
+
     addPost(post: Post, anonymous: boolean): Promise<Post>;
 
     updatePost(post: Post): Promise<void>;
