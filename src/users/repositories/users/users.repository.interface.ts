@@ -2,6 +2,7 @@ import { User } from "../../models";
 import { HasGenderProps } from "../../models/toGender";
 import { HasOpennessProps } from "../../models/toOpenness";
 import { HasSexualityProps } from "../../models/toSexuality";
+import { GotBannedProps } from "src/users/models/toSelf";
 
 export interface IUsersRepository {
     findAll(): Promise<User[]>;
@@ -47,4 +48,10 @@ export interface IUsersRepository {
         userId: UUID,
         hasGenderProps: HasGenderProps
     ): Promise<void>;
+
+    banUser(userId: UUID, banProps: GotBannedProps): Promise<void>;
+
+    unbanUser(userId: UUID): Promise<void>;
+
+    addPreviouslyBanned(userId: UUID, banProps: GotBannedProps): Promise<void>;
 }

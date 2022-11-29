@@ -2,9 +2,10 @@ import { Inject, Injectable } from "@nestjs/common";
 import { Role, User } from "../../models";
 import { IUsersRepository } from "./users.repository.interface";
 import { Neo4jService } from "../../../neo4j/services/neo4j.service";
-import { HasSexualityProps, UserToSexualityRelTypes } from "../../models/toSexuality";
-import { HasGenderProps, UserToGenderRelTypes } from "../../models/toGender";
-import { HasOpennessProps, UserToOpennessRelTypes } from "../../models/toOpenness";
+import { UserToSexualityRelTypes, HasSexualityProps } from "../../models/toSexuality";
+import { UserToGenderRelTypes, HasGenderProps } from "../../models/toGender";
+import { UserToOpennessRelTypes, HasOpennessProps } from "../../models/toOpenness";
+import { UserToSelfRelTypes, GotBannedProps } from "../../models/toSelf";
 
 @Injectable()
 export class UsersRepository implements IUsersRepository {
@@ -230,6 +231,20 @@ export class UsersRepository implements IUsersRepository {
             }
         );
     }
+    
+    public async banUser(userId: UUID, banProps: GotBannedProps): Promise<void> {
+        await this._neo4jService.tryWriteAsync(
+            `MATCH (u:User {userId: $userId})
+            CREATE (u)-[:${UserToSelfRelTypes.GOT_BANNED} {bannedAt: $bannedAt, moderatorId: $moderatorId, reason: $reason}]->(u)
+            `,
+            {
+                userId: userId,
+                bannedAt: banProps.bannedAt,
+                moderatorId: banProps.moderatorId,
+                reason: banProps.reason,
+            }
+        );
+    }
 
     public async connectUserWithGender(
         userId: UUID,
@@ -276,6 +291,14 @@ export class UsersRepository implements IUsersRepository {
             }
         );
     }
+    public async unbanUser(userId: UUID): Promise<void> {
+        await this._neo4jService.tryWriteAsync(
+            `MATCH (u:User {userId: $userId})-[r:${UserToSelfRelTypes.GOT_BANNED}]->(u) DELETE r`,
+            {
+                userId: userId,
+            }
+        );
+    }
 
     public async connectUserWithOpenness(
         userId: UUID,
@@ -319,6 +342,20 @@ export class UsersRepository implements IUsersRepository {
             {
                 userId,
                 isPrivate: hasOpennessProps.isPrivate,
+            }
+        );
+    }
+    
+    public async addPreviouslyBanned(userId: UUID, banProps: GotBannedProps): Promise<void> {
+        await this._neo4jService.tryWriteAsync(
+            `MATCH (u:User {userId: $userId})
+            CREATE (u)-[:${UserToSelfRelTypes.PREVIOUSLY_BANNED} {bannedAt: $bannedAt, moderatorId: $moderatorId, reason: $reason}]->(u)
+            `,
+            {
+                userId: userId,
+                bannedAt: banProps.bannedAt,
+                moderatorId: banProps.moderatorId,
+                reason: banProps.reason,
             }
         );
     }

@@ -25,6 +25,7 @@ import { PublicUserDto, SetupProfileDto } from "../dtos";
 import { IProfileSetupService } from "../services/profileSetup/profileSetup.service.interface";
 import { DatabaseContext } from "../../database-access-layer/databaseContext";
 import { IUserHistoryService } from "../services/userHistory/userHistory.service.interface";
+import { IModeratorActionsService } from "src/moderation/services/moderatorActions/moderatorActions.service.interface";
 
 @UseInterceptors(ClassSerializerInterceptor)
 @ApiTags("users")
@@ -34,15 +35,18 @@ export class UsersController {
     private readonly _dbContext: DatabaseContext;
     private readonly _userHistoryService: IUserHistoryService;
     private readonly _profileSetup: IProfileSetupService;
+    private readonly _moderationActions: IModeratorActionsService;
 
     constructor(
         @Inject(_$.IDatabaseContext) dbContext: DatabaseContext,
         @Inject(_$.IUserHistoryService) userHistoryService: IUserHistoryService,
-        @Inject(_$.IProfileSetupService) profileSetupService: IProfileSetupService
+        @Inject(_$.IProfileSetupService) profileSetupService: IProfileSetupService,
+        @Inject(_$.IModeratorActionsService) moderatorActionsService: IModeratorActionsService
     ) {
         this._dbContext = dbContext;
         this._userHistoryService = userHistoryService;
         this._profileSetup = profileSetupService;
+        this._moderationActions = moderatorActionsService;
     }
 
     @Get()
@@ -104,9 +108,9 @@ export class UsersController {
     public async banUser(
         @AuthedUser() authedUser: User,
         @Body() moderationPayloadDto: ModerationPayloadDto
-    ): Promise<User> {
+    ): Promise<void> {
         moderationPayloadDto.moderatorId = authedUser.userId;
-        throw new HttpException("Not implemented", 501);
+        await this._moderationActions.banUser(moderationPayloadDto);
     }
 
     @Patch("/unban/:userId")
@@ -114,9 +118,8 @@ export class UsersController {
     @UseGuards(AuthGuard("jwt"), RolesGuard)
     public async unbanUser(
         @AuthedUser() authedUser: User,
-        @Body() moderationPayloadDto: ModerationPayloadDto
-    ): Promise<User> {
-        moderationPayloadDto.moderatorId = authedUser.userId;
-        throw new HttpException("Not implemented", 501);
+        @Param("userId") userId: string
+    ): Promise<void> {
+        await this._moderationActions.unbanUser(userId);
     }
 }
