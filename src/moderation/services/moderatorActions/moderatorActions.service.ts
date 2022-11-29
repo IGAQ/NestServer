@@ -1,12 +1,12 @@
 import { IModeratorActionsService } from "./moderatorActions.service.interface";
-import { HttpException, Inject } from "@nestjs/common";
+import { HttpException, Inject, Injectable, Scope } from "@nestjs/common";
 import { _$ } from "../../../_domain/injectableTokens";
 import { DatabaseContext } from "../../../database-access-layer/databaseContext";
 import { DeletedProps, RestrictedProps } from "../../../_domain/models/toSelf";
 import { Comment } from "../../../comments/models";
 import { Post } from "../../../posts/models";
 import { ModerationPayloadDto } from "../../dtos/moderatorActions";
-import { GotBannedProps } from "src/users/models/toSelf";
+import { GotBannedProps } from "../../../users/models/toSelf";
 
 /**
  * This service is responsible for moderating posts and comments.
@@ -15,6 +15,7 @@ import { GotBannedProps } from "src/users/models/toSelf";
  * - This service is not responsible to check if the user is a moderator. This is done by the guards used by controllers.
  * @see src/moderation/controllers/moderatorActions/moderatorActions.controller.ts
  */
+@Injectable({ scope: Scope.DEFAULT })
 export class ModeratorActionsService implements IModeratorActionsService {
     private readonly _dbContext: DatabaseContext;
 

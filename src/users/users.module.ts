@@ -11,9 +11,10 @@ import { SexualitiesController } from "./controllers/sexualities.controller";
 import { GendersController } from "./controllers/genders.controller";
 import { OpennessController } from "./controllers/openness.controller";
 import { UserHistoryService } from "./services/userHistory/userHistory.service";
+import { ModerationModule } from "../moderation/moderation.module";
 
 @Module({
-    imports: [forwardRef(() => DatabaseAccessLayerModule)],
+    imports: [forwardRef(() => DatabaseAccessLayerModule), ModerationModule],
     providers: [
         {
             provide: _$.IUsersRepository,
