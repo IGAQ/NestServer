@@ -188,7 +188,7 @@ export class PostsService implements IPostsService {
 
     public async findPostById(postId: UUID): Promise<Post> {
         let foundPost = await this._dbContext.Posts.findPostById(postId);
-        if (foundPost === null) throw new HttpException("Post not found", 404);
+        if (!foundPost) throw new HttpException("Post not found", 404);
 
         if (foundPost.pending)
             throw new HttpException(
@@ -208,7 +208,7 @@ export class PostsService implements IPostsService {
         nestedLevel: number
     ): Promise<Comment[]> {
         const foundPost = await this._dbContext.Posts.findPostById(postId);
-        if (foundPost === null) throw new HttpException("Post not found", 404);
+        if (!foundPost) throw new HttpException("Post not found", 404);
 
         // level 0 means no nesting
         const comments = await foundPost.getComments(topLevelLimit);
@@ -253,7 +253,7 @@ export class PostsService implements IPostsService {
         const user = this.getUserFromRequest();
 
         const post = await this._dbContext.Posts.findPostById(votePostPayload.postId);
-        if (post === undefined) throw new HttpException("Post not found", 404);
+        if (!post) throw new HttpException("Post not found", 404);
 
         const queryResult = await this._dbContext.neo4jService.tryReadAsync(
             `

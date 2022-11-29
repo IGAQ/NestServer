@@ -26,7 +26,7 @@ export class PostsReportService implements IPostsReportService {
         const user = this.getUserFromRequest();
 
         const post = await this._dbContext.Posts.findPostById(reportPostPayload.postId);
-        if (post === undefined) throw new Error("Post not found");
+        if (!post) throw new Error("Post not found");
 
         if (post.pending || post.restrictedProps !== null) {
             throw new HttpException(
