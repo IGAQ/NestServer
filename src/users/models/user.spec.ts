@@ -43,7 +43,7 @@ describe("Post Model Unit Test", () => {
 
     describe("given a post instance", () => {
         beforeAll(async () => {
-            user = await usersRepository.findUserById("5c0f145b-ffad-4881-8ee6-7647c3c1b695");
+            user = await usersRepository.findUserById("a59437f4-ea62-4a15-a4e6-621b04af74d6");
         });
 
         it("instance must exist", async () => {
@@ -52,7 +52,7 @@ describe("Post Model Unit Test", () => {
 
         describe("given user.getAuthoredPosts() called", () => {
             beforeEach(async () => {
-                user = await usersRepository.findUserById("5c0f145b-ffad-4881-8ee6-7647c3c1b695");
+                user = await usersRepository.findUserById("a59437f4-ea62-4a15-a4e6-621b04af74d6");
             });
 
             it("should return an array", async () => {
@@ -72,7 +72,7 @@ describe("Post Model Unit Test", () => {
 
         describe("given user.getFavoritePosts() called", () => {
             beforeEach(async () => {
-                user = await usersRepository.findUserById("5c0f145b-ffad-4881-8ee6-7647c3c1b695");
+                user = await usersRepository.findUserById("a59437f4-ea62-4a15-a4e6-621b04af74d6");
             });
 
             it("should return an array of proper objects", async () => {
@@ -94,7 +94,7 @@ describe("Post Model Unit Test", () => {
 
         describe("given user.getSexuality() called", () => {
             beforeEach(async () => {
-                user = await usersRepository.findUserById("5c0f145b-ffad-4881-8ee6-7647c3c1b695");
+                user = await usersRepository.findUserById("a59437f4-ea62-4a15-a4e6-621b04af74d6");
             });
 
             it("should return an object with proper props", async () => {
@@ -108,7 +108,7 @@ describe("Post Model Unit Test", () => {
 
         describe("given user.getGender() called", () => {
             beforeEach(async () => {
-                user = await usersRepository.findUserById("5c0f145b-ffad-4881-8ee6-7647c3c1b695");
+                user = await usersRepository.findUserById("a59437f4-ea62-4a15-a4e6-621b04af74d6");
             });
 
             it("should return an object with proper props", async () => {
@@ -123,7 +123,7 @@ describe("Post Model Unit Test", () => {
 
         describe("given user.getOpenness() called", () => {
             beforeEach(async () => {
-                user = await usersRepository.findUserById("5c0f145b-ffad-4881-8ee6-7647c3c1b695");
+                user = await usersRepository.findUserById("a59437f4-ea62-4a15-a4e6-621b04af74d6");
             });
 
             it("should return an object with proper props", async () => {

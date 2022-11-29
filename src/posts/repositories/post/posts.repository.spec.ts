@@ -88,7 +88,7 @@ describe("PostsRepository", () => {
         let post: Post;
 
         beforeAll(async () => {
-            post = await postsRepository.findPostById("b73edbf4-ba84-4b11-a91c-e1d8b1366974");
+            post = await postsRepository.findPostById("bcddeb57-939d-441b-b4ea-71e1d2055f32");
         });
 
         it("should return a post", async () => {
@@ -107,16 +107,17 @@ describe("PostsRepository", () => {
 
     describe(".addPost() and .deletePost()", () => {
         const samplePostId = "64f5ef93-31ac-4c61-b98a-79268d282fc7";
-        const sampleAuthorId = "3109f9e2-a262-4aef-b648-90d86d6fbf6c";
-        const sampleAwardedByUserId = "5c0f145b-ffad-4881-8ee6-7647c3c1b695";
+        const sampleAuthorId = "a59437f4-ea62-4a15-a4e6-621b04af74d6";
+        const sampleAwardedByUserId = "0daef999-7291-4f0c-a41a-078a6f28aa5e";
         beforeAll(async () => {
+            const postTags = await neo4jSeedService.getPostTags();
             const postToAdd = new Post({
                 postId: samplePostId,
                 postTitle: "Test Post Title",
                 postContent: "This is a test post. will be removed",
-                updatedAt: 1665770000,
-                postType: (await neo4jSeedService.getPostTypes())[0],
-                postTags: (await neo4jSeedService.getPostTags()).slice(0, 2),
+                updatedAt: new Date("2020-05-20").getTime(),
+                postType: (await neo4jSeedService.getPostTypes()).queery,
+                postTags: [postTags.Serious, postTags.Casual],
                 restrictedProps: null,
                 authorUser: new User({ userId: sampleAuthorId }),
                 pending: false,
@@ -151,14 +152,14 @@ describe("PostsRepository", () => {
 
     describe(".restrictPost() and .unrestrictPost()", () => {
         let post: Post;
-        const postId = "b73edbf4-ba84-4b11-a91c-e1d8b1366974";
+        const postId = "bcddeb57-939d-441b-b4ea-71e1d2055f32";
 
         beforeAll(async () => {
             await postsRepository.restrictPost(
                 postId,
                 new RestrictedProps({
                     restrictedAt: new Date().getTime(),
-                    moderatorId: "5c0f145b-ffad-4881-8ee6-7647c3c1b695",
+                    moderatorId: "0daef999-7291-4f0c-a41a-078a6f28aa5e",
                     reason: "Test",
                 })
             );
