@@ -999,7 +999,7 @@ export class Neo4jSeedService {
             new Gender({
                 genderId: "16c10474-9fa6-4eac-aac2-a63423edb757",
                 genderName: "Non-binary",
-                genderPronouns: "Ze/Zir",
+                genderPronouns: "Ze/Zie",
                 genderFlagSvg: "<svg></svg>",
             })
         );
