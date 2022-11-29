@@ -2,11 +2,10 @@ import { Inject, Injectable } from "@nestjs/common";
 import { Role, User } from "../../models";
 import { IUsersRepository } from "./users.repository.interface";
 import { Neo4jService } from "../../../neo4j/services/neo4j.service";
-import { UserToSexualityRelTypes } from "../../models/toSexuality";
-import { UserToGenderRelTypes } from "../../models/toGender";
-import { UserToOpennessRelTypes } from "../../models/toOpenness";
-import { UserToSelfRelTypes } from "../../models/toSelf";
-import { GotBannedProps } from "src/users/models/toSelf";
+import { UserToSexualityRelTypes, HasSexualityProps } from "../../models/toSexuality";
+import { UserToGenderRelTypes, HasGenderProps } from "../../models/toGender";
+import { UserToOpennessRelTypes, HasOpennessProps } from "../../models/toOpenness";
+import { UserToSelfRelTypes, GotBannedProps } from "../../models/toSelf";
 
 @Injectable()
 export class UsersRepository implements IUsersRepository {
@@ -153,6 +152,8 @@ export class UsersRepository implements IUsersRepository {
 			u.phoneNumber = $phoneNumber,
 			u.phoneNumberVerified = $phoneNumberVerified,
 			u.username = $username,
+			u.bio = $bio,
+			u.avatar = $avatar,
 			u.normalizedUsername = $normalizedUsername,
 			u.email = $email,
 			u.emailVerified = $emailVerified,
@@ -166,6 +167,8 @@ export class UsersRepository implements IUsersRepository {
                 phoneNumber: user.phoneNumber ?? "",
                 phoneNumberVerified: user.phoneNumberVerified,
                 username: user.username,
+                bio: user.bio ?? "",
+                avatar: user.avatar ?? "",
                 normalizedUsername: user.username.toUpperCase(),
                 email: user.email,
                 emailVerified: user.emailVerified,
@@ -183,6 +186,52 @@ export class UsersRepository implements IUsersRepository {
         });
     }
 
+    public async connectUserWithSexuality(
+        userId: UUID,
+        sexualityId: UUID,
+        hasSexualityProps: HasSexualityProps
+    ): Promise<void> {
+        await this._neo4jService.tryWriteAsync(
+            `
+                MATCH (u:User { userId : $userId }), (s:Sexuality { sexualityId: $sexualityId })
+                    MERGE (u)-[:${UserToSexualityRelTypes.HAS_SEXUALITY} {
+                        isPrivate: $isPrivate
+                    }]->(s)
+                    `,
+            {
+                userId,
+                sexualityId,
+                isPrivate: hasSexualityProps.isPrivate,
+            }
+        );
+    }
+    public async detachUserWithSexuality(userId: UUID): Promise<void> {
+        await this._neo4jService.tryWriteAsync(
+            `
+                MATCH (u:User { userId: $userId })-[r:${UserToSexualityRelTypes.HAS_SEXUALITY}]->(s:Sexuality)
+                    DELETE r
+                `,
+            {
+                userId,
+            }
+        );
+    }
+    public async updateRelationshipPropsOfHasSexuality(
+        userId: UUID,
+        hasSexualityProps: HasSexualityProps
+    ): Promise<void> {
+        await this._neo4jService.tryWriteAsync(
+            `
+                    MATCH (u:User { userId: $userId })-[r:${UserToSexualityRelTypes.HAS_SEXUALITY}]->(s:Sexuality)
+                        SET r.isPrivate = $isPrivate
+                    `,
+            {
+                userId,
+                isPrivate: hasSexualityProps.isPrivate,
+            }
+        );
+    }
+    
     public async banUser(userId: UUID, banProps: GotBannedProps): Promise<void> {
         await this._neo4jService.tryWriteAsync(
             `MATCH (u:User {userId: $userId})
@@ -197,6 +246,51 @@ export class UsersRepository implements IUsersRepository {
         );
     }
 
+    public async connectUserWithGender(
+        userId: UUID,
+        genderId: UUID,
+        hasGenderProps: HasGenderProps
+    ): Promise<void> {
+        await this._neo4jService.tryWriteAsync(
+            `
+                MATCH (u:User { userId : $userId }), (g:Gender { genderId: $genderId })
+                    MERGE (u)-[:${UserToGenderRelTypes.HAS_GENDER} {
+                        isPrivate: $isPrivate
+                    }]->(g)
+                    `,
+            {
+                userId,
+                genderId,
+                isPrivate: hasGenderProps.isPrivate,
+            }
+        );
+    }
+    public async detachUserWithGender(userId: UUID): Promise<void> {
+        await this._neo4jService.tryWriteAsync(
+            `
+                MATCH (u:User { userId: $userId })-[r:${UserToGenderRelTypes.HAS_GENDER}]->(g:Gender)
+                    DELETE r
+                `,
+            {
+                userId,
+            }
+        );
+    }
+    public async updateRelationshipPropsOfHasGender(
+        userId: UUID,
+        hasGenderProps: HasGenderProps
+    ): Promise<void> {
+        await this._neo4jService.tryWriteAsync(
+            `
+                    MATCH (u:User { userId: $userId })-[r:${UserToGenderRelTypes.HAS_GENDER}]->(g:Gender)
+                        SET r.isPrivate = $isPrivate
+                    `,
+            {
+                userId,
+                isPrivate: hasGenderProps.isPrivate,
+            }
+        );
+    }
     public async unbanUser(userId: UUID): Promise<void> {
         await this._neo4jService.tryWriteAsync(
             `MATCH (u:User {userId: $userId})-[r:${UserToSelfRelTypes.GOT_BANNED}]->(u) DELETE r`,
@@ -206,6 +300,52 @@ export class UsersRepository implements IUsersRepository {
         );
     }
 
+    public async connectUserWithOpenness(
+        userId: UUID,
+        opennessId: UUID,
+        hasOpennessProps: HasOpennessProps
+    ): Promise<void> {
+        await this._neo4jService.tryWriteAsync(
+            `
+                MATCH (u:User { userId : $userId }), (o:Openness { opennessId: $opennessId })
+                    MERGE (u)-[:${UserToOpennessRelTypes.HAS_OPENNESS_LEVEL_OF} {
+                        isPrivate: $isPrivate
+                    }]->(o)
+                    `,
+            {
+                userId,
+                opennessId,
+                isPrivate: hasOpennessProps.isPrivate,
+            }
+        );
+    }
+    public async detachUserWithOpenness(userId: UUID): Promise<void> {
+        await this._neo4jService.tryWriteAsync(
+            `
+                MATCH (u:User { userId: $userId })-[r:${UserToOpennessRelTypes.HAS_OPENNESS_LEVEL_OF}]->(o:Openness)
+                    DELETE r
+                `,
+            {
+                userId,
+            }
+        );
+    }
+    public async updateRelationshipPropsOfHasOpenness(
+        userId: UUID,
+        hasOpennessProps: HasOpennessProps
+    ): Promise<void> {
+        await this._neo4jService.tryWriteAsync(
+            `
+                    MATCH (u:User { userId: $userId })-[r:${UserToOpennessRelTypes.HAS_OPENNESS_LEVEL_OF}]->(o:Openness)
+                        SET r.isPrivate = $isPrivate
+                    `,
+            {
+                userId,
+                isPrivate: hasOpennessProps.isPrivate,
+            }
+        );
+    }
+    
     public async addPreviouslyBanned(userId: UUID, banProps: GotBannedProps): Promise<void> {
         await this._neo4jService.tryWriteAsync(
             `MATCH (u:User {userId: $userId})

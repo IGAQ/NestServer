@@ -1,7 +1,6 @@
 import { Post } from "../../../posts/models";
 import { Comment } from "../../../comments/models";
 import { ModerationPayloadDto } from "../../dtos/moderatorActions";
-import { User } from "../../../users/models";
 
 export interface IModeratorActionsService {
     /**

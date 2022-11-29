@@ -40,6 +40,20 @@ export class PostsRepository implements IPostsRepository {
         return new Post(post.records[0].get("p").properties, this._neo4jService);
     }
 
+    public async getPostHistoryByUserId(userId: UUID): Promise<Post[]> {
+        const userPosts = await this._neo4jService.tryReadAsync(
+            `MATCH (u:User { userId: $userId })-[:${UserToPostRelTypes.AUTHORED}]->(p:Post)
+                RETURN p`,
+            {
+                userId,
+            }
+        );
+        if (userPosts.records.length === 0) return [];
+        return userPosts.records.map(
+            record => new Post(record.get("p").properties, this._neo4jService)
+        );
+    }
+
     public async addPost(post: Post, anonymous: boolean): Promise<Post> {
         if (post.postId === undefined) {
             post.postId = this._neo4jService.generateId();

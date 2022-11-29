@@ -1,3 +1,5 @@
+import { IUserHistoryService } from "../users/services/userHistory/userHistory.service.interface";
+
 const injectableTokens = {
     // Database Context
     IDatabaseContext: Symbol.for("IDatabaseContext"),
@@ -11,6 +13,7 @@ const injectableTokens = {
     IOpennessRepository: Symbol("IOpennessRepository"),
     IGenderRepository: Symbol("IGenderRepository"),
     IProfileSetupService: Symbol("IProfileSetupService"),
+    IUserHistoryService: Symbol("IUserHistoryService"),
 
     // Posts Module
     IPostsRepository: Symbol("IPostsRepository"),

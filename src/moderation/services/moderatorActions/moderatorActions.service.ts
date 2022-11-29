@@ -6,7 +6,6 @@ import { DeletedProps, RestrictedProps } from "../../../_domain/models/toSelf";
 import { Comment } from "../../../comments/models";
 import { Post } from "../../../posts/models";
 import { ModerationPayloadDto } from "../../dtos/moderatorActions";
-import { User } from "../../../users/models";
 import { GotBannedProps } from "src/users/models/toSelf";
 
 /**
