@@ -488,7 +488,7 @@ export class Neo4jSeedService {
                 },
             }),
             new User({
-                userId: "3109f9e2-a262-4aef-b648-90d86d6fbf6c",
+                userId: "dc83daa3-d26b-4063-87b1-2b719069654e",
                 createdAt: new Date().getTime(),
                 updatedAt: new Date().getTime(),
                 avatar: "^_^",
@@ -580,11 +580,11 @@ export class Neo4jSeedService {
                 postTags: (await this.getPostTags()).slice(0, 1),
                 restrictedProps: new RestrictedProps({
                     restrictedAt: 1665780000,
-                    moderatorId: "3109f9e2-a262-4aef-b648-90d86d6fbf6c",
+                    moderatorId: "8f0c1ecf-6853-4642-9199-6e8244b89312",
                     reason: "The moderator thinks there is profanity in this post",
                 }),
                 authorUser: new User({
-                    userId: "3109f9e2-a262-4aef-b648-90d86d6fbf6c",
+                    userId: "dc83daa3-d26b-4063-87b1-2b719069654e",
                 }),
                 pending: true,
                 totalVotes: 3,
@@ -640,7 +640,7 @@ export class Neo4jSeedService {
                         createdAt: 1666990000,
                         updatedAt: 1666990000,
                         authorUser: new User({
-                            userId: "3109f9e2-a262-4aef-b648-90d86d6fbf6c",
+                            userId: "dc83daa3-d26b-4063-87b1-2b719069654e",
                         }),
                         pinned: false,
                         pending: true,
@@ -659,7 +659,7 @@ export class Neo4jSeedService {
                                 pending: true,
                                 restrictedProps: new RestrictedProps({
                                     restrictedAt: 1667000001,
-                                    moderatorId: "3109f9e2-a262-4aef-b648-90d86d6fbf6c",
+                                    moderatorId: "8f0c1ecf-6853-4642-9199-6e8244b89312",
                                     reason: "The moderator died of cringe",
                                 }),
                                 childComments: [],
