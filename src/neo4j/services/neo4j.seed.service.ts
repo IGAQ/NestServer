@@ -447,14 +447,96 @@ export class Neo4jSeedService {
 
         return new Array<User>(
             new User({
-                userId: "c612c987-6825-473c-882f-129f17d906b4",
+                userId: "71120d45-7a75-43fd-b79c-54b06e7868af",
+                createdAt: new Date().getTime(),
+                updatedAt: new Date().getTime(),
+                avatar: "(づ￣ 3￣)づ",
+                bio: "My name is Wesley.",
+                username: "wesley",
+                normalizedUsername: "WESLEY",
+                passwordHash: "",
+                phoneNumber: null,
+                phoneNumberVerified: false,
+                email: "wesley@domain.com",
+                emailVerified: false,
+                level: 0,
+                roles: [Role.USER],
+                gender: new Gender({
+                    genderId: "585d31aa-d5b3-4b8d-9690-ffcd57ce2862",
+                }),
+                isGenderPrivate: false,
+                sexuality: new Sexuality({
+                    sexualityId: "9164d89b-8d71-4fd1-af61-155d1d7ffe53",
+                }),
+                isSexualityPrivate: false,
+                openness: new Openness({
+                    opennessId: "db27c417-a8a5-4703-9b35-9dc76e98fc95",
+                }),
+                isOpennessPrivate: false,
+                posts: {
+                    [UserToPostRelTypes.AUTHORED]: {
+                        records: (await this.getPosts()).slice(2, 3).map(post => ({
+                            entity: post,
+                            relProps: new AuthoredProps({
+                                authoredAt: new Date("2022-09-13").getTime(),
+                                anonymously: false,
+                            }),
+                        })),
+                        relType: UserToPostRelTypes.AUTHORED,
+                    },
+                    ...onlyAuthoredPosts,
+                },
+            }),
+            new User({
+                userId: "5e520efd-f78e-4cb0-8903-5c99197d4b8e",
+                createdAt: new Date().getTime(),
+                updatedAt: new Date().getTime(),
+                avatar: "...(*￣０￣)ノ",
+                bio: "My name is Gaius.",
+                username: "gaius",
+                normalizedUsername: "GAIUS",
+                passwordHash: "",
+                phoneNumber: null,
+                phoneNumberVerified: false,
+                email: "gaius@rome.it",
+                emailVerified: false,
+                level: 0,
+                roles: [Role.USER],
+                gender: new Gender({
+                    genderId: "3af72545-99d4-4715-812b-c935fbf57f22",
+                }),
+                isGenderPrivate: false,
+                sexuality: new Sexuality({
+                    sexualityId: "5bc9535e-cc50-4112-91ad-717dc2de9492",
+                }),
+                isSexualityPrivate: false,
+                openness: new Openness({
+                    opennessId: "842b5bd7-1da1-4a95-9564-1fc3b97b3655",
+                }),
+                isOpennessPrivate: false,
+                posts: {
+                    [UserToPostRelTypes.AUTHORED]: {
+                        records: (await this.getPosts()).slice(3, 4).map(post => ({
+                            entity: post,
+                            relProps: new AuthoredProps({
+                                authoredAt: new Date("10/26/2022").getTime(),
+                                anonymously: false,
+                            }),
+                        })),
+                        relType: UserToPostRelTypes.AUTHORED,
+                    },
+                    ...onlyAuthoredPosts,
+                },
+            }),
+            new User({
+                userId: "a59437f4-ea62-4a15-a4e6-621b04af74d6",
                 createdAt: new Date().getTime(),
                 updatedAt: new Date().getTime(),
                 avatar: ":^)",
                 bio: "My name is gabriel.",
                 username: "gabriel",
                 normalizedUsername: "GABRIEL",
-                passwordHash: "someotherpassword",
+                passwordHash: "",
                 phoneNumber: null,
                 phoneNumberVerified: false,
                 email: "email@domain.com",
@@ -475,7 +557,7 @@ export class Neo4jSeedService {
                 isOpennessPrivate: false,
                 posts: {
                     [UserToPostRelTypes.AUTHORED]: {
-                        records: (await this.getPosts()).slice(0, 2).map(post => ({
+                        records: (await this.getPosts()).slice(0, 1).map(post => ({
                             entity: post,
                             relProps: new AuthoredProps({
                                 authoredAt: new Date("10/11/2022").getTime(),
@@ -495,7 +577,7 @@ export class Neo4jSeedService {
                 bio: "My name is alphonse.",
                 username: "alphonse",
                 normalizedUsername: "ALPHONSE",
-                passwordHash: "num3r1ca1pa55w0rd",
+                passwordHash: "",
                 phoneNumber: null,
                 phoneNumberVerified: false,
                 email: "admin@domain.com",
@@ -516,10 +598,10 @@ export class Neo4jSeedService {
                 isOpennessPrivate: false,
                 posts: {
                     [UserToPostRelTypes.AUTHORED]: {
-                        records: (await this.getPosts()).slice(1, 3).map(post => ({
+                        records: (await this.getPosts()).slice(1, 2).map(post => ({
                             entity: post,
                             relProps: new AuthoredProps({
-                                authoredAt: new Date("09/6/2022").getTime(),
+                                authoredAt: new Date("2022-09-06").getTime(),
                                 anonymously: false,
                             }),
                         })),
@@ -545,7 +627,7 @@ export class Neo4jSeedService {
                 postTags: (await this.getPostTags()).slice(-1),
                 restrictedProps: null,
                 authorUser: new User({
-                    userId: "c612c987-6825-473c-882f-129f17d906b4",
+                    userId: "a59437f4-ea62-4a15-a4e6-621b04af74d6",
                 }),
                 pending: false,
                 totalVotes: 0,
@@ -599,6 +681,63 @@ export class Neo4jSeedService {
                         relType: PostToAwardRelTypes.HAS_AWARD,
                     },
                 },
+            }),
+            new Post({
+                postId: "806ca5f3-f80c-47fc-9e4d-00434dd18358",
+                postTitle: "Coming out to my brother",
+                postContent: `When I was 17 my girlfriend was over my house and my brother was home from college. 
+                                She asks me "does your brother know we're dating?"I say "good question." Then I yell to the other 
+                                side of the house "[Brother]! Did you know that I'm dating [girlfriend]?" I think he said 
+                                something like "I do now!"`,
+                updatedAt: 1663095600,
+                postType: (await this.getPostTypes())[1],
+                postTags: (await this.getPostTags()).slice(-1),
+                restrictedProps: null,
+                authorUser: new User({
+                    userId: "71120d45-7a75-43fd-b79c-54b06e7868af",
+                }),
+                pending: false,
+                totalVotes: 0,
+                awards: {
+                    [PostToAwardRelTypes.HAS_AWARD]: {
+                        records: [],
+                        relType: PostToAwardRelTypes.HAS_AWARD,
+                    },
+                },
+            }),
+            new Post({
+                postId: "6326079f-fd2f-4b81-83fe-487daee459bc",
+                postTitle: "Coming out as GNC on my birthday",
+                postContent: `This is the uncomfortable story of how I came out to my mom and younger brother (with whom I live). 
+                                \n\nLeading up to my birthday last year I had realized I'm gnc (gender nonconforming) and had been starting to feel 
+                                very uncomfortable with masculine pronouns. I was already looking for a replacement name at the time and knew I 
+                                needed to do something about the way I was being referred to for my sanity. I've never been particularly fond of 
+                                holidays (my birthday especially) because something always seems to go awry when family is involved. None the less 
+                                I decided to take control of the situation and hope for the best. \n\nI custom ordered my cake and bought all the 
+                                ingredients for the meal and cooked it myself. I even did my makeup. Not something I do often, but it was my birthday 
+                                and I wanted to feel pretty. Before unveiling the cake (decorated with a nonbinary flag) I went through the whole 
+                                spiel about being nb and what that meant for me, as well as explaining pronouns and what not. \n\nWhen I finished they 
+                                were silent for a minute or two. My brother spoke first, saying something to the tune of: My dad says gnc people go 
+                                to hell. Obviously not the first thing you want to hear after such a tense interaction. Long story short dinner resolved 
+                                peacefully but it didn't seem I got through to them as the next couple weeks were filled with pronoun related arguments. 
+                                \n\nMuch headbutting later they've come around on my pronouns and the name I've chosen. As you can imagine though, for a 
+                                time I felt extremely unwelcome in the home, and after all the effort I put in I was pretty devastated my coming out 
+                                transpired so poorly.`,
+                updatedAt: 1666810800,
+                postType: (await this.getPostTypes())[1],
+                postTags: (await this.getPostTags()).slice(0, 1),
+                restrictedProps: null,
+                authorUser: new User({
+                    userId: "5e520efd-f78e-4cb0-8903-5c99197d4b8e",
+                }),
+                pending: false,
+                totalVotes: 0,
+                awards: {
+                    [PostToAwardRelTypes.HAS_AWARD]: {
+                        records: [],
+                        relType: PostToAwardRelTypes.HAS_AWARD,
+                    },
+                },
             })
         );
     }
@@ -635,7 +774,7 @@ export class Neo4jSeedService {
                 childComments: [
                     new Comment({
                         commentId: "3ee2801a-998d-437a-a49e-3974919f35c1",
-                        parentId: "be9ab5e4-eb7c-469b-a1e3-592dca2a00d0",
+                        parentId: "806ca5f3-f80c-47fc-9e4d-00434dd18358",
                         commentContent: `Wow that's so scummy of your cousin to do that to you! I would have never forgiven her.`,
                         createdAt: 1666990000,
                         updatedAt: 1666990000,
@@ -667,6 +806,64 @@ export class Neo4jSeedService {
                         ],
                     }),
                 ],
+            }),
+            new Comment({
+                commentId: "5a11c2af-7716-4b67-b00f-e23df9f0c740",
+                parentId: "806ca5f3-f80c-47fc-9e4d-00434dd18358",
+                commentContent: `That story is so funny! What a supportive brother.`,
+                createdAt: 1666890000,
+                updatedAt: 1666890000,
+                authorUser: new User({
+                    userId: "6bd7b8a2-bf8c-49e6-9c28-ee3d89be2453",
+                }),
+                pinned: false,
+                pending: true,
+                restrictedProps: null,
+                childComments: [
+                    new Comment({
+                        commentId: "9e55090e-2ebf-4679-a912-6542e78f4905",
+                        parentId: "5a11c2af-7716-4b67-b00f-e23df9f0c740",
+                        commentContent: `Same! I wish my brother was like that.`,
+                        createdAt: 1666990000,
+                        updatedAt: 1666990000,
+                        authorUser: new User({
+                            userId: "dc83daa3-d26b-4063-87b1-2b719069654e",
+                        }),
+                        pinned: false,
+                        pending: true,
+                        restrictedProps: null,
+                        childComments: [],
+                    }),
+                ],
+            }),
+            new Comment({
+                commentId: "773c1b6d-9d0a-43cb-94e5-2da1bac633c0",
+                parentId: "6326079f-fd2f-4b81-83fe-487daee459bc",
+                commentContent:
+                    "Wow I can't even imagine how hard that must have been. Thankfully your family now understands what you're going through.",
+                createdAt: 1666990000,
+                updatedAt: 1666990000,
+                authorUser: new User({
+                    userId: "71120d45-7a75-43fd-b79c-54b06e7868af",
+                }),
+                pinned: false,
+                pending: false,
+                restrictedProps: null,
+                childComments: [],
+            }),
+            new Comment({
+                commentId: "84213582-a148-46b7-878d-c30a9cd02231",
+                parentId: "6326079f-fd2f-4b81-83fe-487daee459bc",
+                commentContent: "You dad sounds exhausting. I'm glad you're doing better now.",
+                createdAt: 1666990000,
+                updatedAt: 1666990000,
+                authorUser: new User({
+                    userId: "dc83daa3-d26b-4063-87b1-2b719069654e",
+                }),
+                pinned: false,
+                pending: false,
+                restrictedProps: null,
+                childComments: [],
             })
         );
     }
@@ -751,6 +948,11 @@ export class Neo4jSeedService {
             new Sexuality({
                 sexualityId: "2d32c4d3-4aca-4b03-bf68-ba104656183f",
                 sexualityName: "Asexual",
+                sexualityFlagSvg: "<svg></svg>",
+            }),
+            new Sexuality({
+                sexualityId: "5bc9535e-cc50-4112-91ad-717dc2de9492",
+                sexualityName: "Bisexual",
                 sexualityFlagSvg: "<svg></svg>",
             })
         );
