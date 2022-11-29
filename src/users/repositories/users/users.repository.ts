@@ -5,6 +5,8 @@ import { Neo4jService } from "../../../neo4j/services/neo4j.service";
 import { UserToSexualityRelTypes } from "../../models/toSexuality";
 import { UserToGenderRelTypes } from "../../models/toGender";
 import { UserToOpennessRelTypes } from "../../models/toOpenness";
+import { UserToSelfRelTypes } from "../../models/toSelf";
+import { GotBannedProps } from "src/users/models/toSelf";
 
 @Injectable()
 export class UsersRepository implements IUsersRepository {
@@ -179,5 +181,42 @@ export class UsersRepository implements IUsersRepository {
         await this._neo4jService.tryWriteAsync(`MATCH (u:User {userId: $userId}) DETACH DELETE u`, {
             userId: userId,
         });
+    }
+
+    public async banUser(userId: UUID, banProps: GotBannedProps): Promise<void> {
+        await this._neo4jService.tryWriteAsync(
+            `MATCH (u:User {userId: $userId})
+            CREATE (u)-[:${UserToSelfRelTypes.GOT_BANNED} {bannedAt: $bannedAt, moderatorId: $moderatorId, reason: $reason}]->(u)
+            `,
+            {
+                userId: userId,
+                bannedAt: banProps.bannedAt,
+                moderatorId: banProps.moderatorId,
+                reason: banProps.reason,
+            }
+        );
+    }
+
+    public async unbanUser(userId: UUID): Promise<void> {
+        await this._neo4jService.tryWriteAsync(
+            `MATCH (u:User {userId: $userId})-[r:${UserToSelfRelTypes.GOT_BANNED}]->(u) DELETE r`,
+            {
+                userId: userId,
+            }
+        );
+    }
+
+    public async addPreviouslyBanned(userId: UUID, banProps: GotBannedProps): Promise<void> {
+        await this._neo4jService.tryWriteAsync(
+            `MATCH (u:User {userId: $userId})
+            CREATE (u)-[:${UserToSelfRelTypes.PREVIOUSLY_BANNED} {bannedAt: $bannedAt, moderatorId: $moderatorId, reason: $reason}]->(u)
+            `,
+            {
+                userId: userId,
+                bannedAt: banProps.bannedAt,
+                moderatorId: banProps.moderatorId,
+                reason: banProps.reason,
+            }
+        );
     }
 }

@@ -76,7 +76,7 @@ export interface IModeratorActionsService {
      *   - This will be a stretch goal. For now, we will just ban the user by adding a self relationship to the user node.
      * @param payload
      */
-    banUser(payload: ModerationPayloadDto): Promise<User>;
+    banUser(payload: ModerationPayloadDto): Promise<void>;
     /**
      * Unbans a user.
      * TODO:
@@ -85,5 +85,5 @@ export interface IModeratorActionsService {
      *   - This will be a stretch goal. For now, we will just unban the user by removing the self relationship to the user node.
      * @param userId
      */
-    unbanUser(userId: UUID): Promise<User>;
+    unbanUser(userId: UUID): Promise<void>;
 }

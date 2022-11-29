@@ -7,6 +7,7 @@ import { Comment } from "../../../comments/models";
 import { Post } from "../../../posts/models";
 import { ModerationPayloadDto } from "../../dtos/moderatorActions";
 import { User } from "../../../users/models";
+import { GotBannedProps } from "src/users/models/toSelf";
 
 /**
  * This service is responsible for moderating posts and comments.
@@ -22,11 +23,31 @@ export class ModeratorActionsService implements IModeratorActionsService {
         this._dbContext = dbContext;
     }
 
-    public async banUser(payload: ModerationPayloadDto): Promise<User> {
-        throw new Error("Method not implemented.");
+    public async banUser(payload: ModerationPayloadDto): Promise<void> {
+        const banProps = new GotBannedProps({
+            bannedAt: Date.now(),
+            moderatorId: payload.moderatorId,
+            reason: payload.reason,
+        });
+        await this._dbContext.Users.banUser(payload.id, banProps);
+        return;
     }
-    public async unbanUser(userId: UUID): Promise<User> {
-        throw new Error("Method not implemented.");
+
+    public async unbanUser(userId: UUID): Promise<void> {
+        const user = await this._dbContext.Users.findUserById(userId);
+        if (!user) {
+            throw new HttpException("User not found", 404);
+        }
+
+        await user.getGotBannedProps();
+        if (!user.gotBannedProps) {
+            throw new HttpException("User is not banned", 400);
+        }
+
+        await this._dbContext.Users.addPreviouslyBanned(userId, user.gotBannedProps);
+
+        await this._dbContext.Users.unbanUser(userId);
+        return;
     }
 
     public async unrestrictComment(commentId: UUID): Promise<Comment> {

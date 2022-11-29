@@ -24,6 +24,7 @@ import { AuthedUser } from "../../auth/decorators/authedUser.param.decorator";
 import { OptionalJwtAuthGuard } from "../../auth/guards/optionalJwtAuth.guard";
 import { PublicUserDto, SetupProfileDto } from "../dtos";
 import { IProfileSetupService } from "../services/profileSetup/profileSetup.service.interface";
+import { IModeratorActionsService } from "src/moderation/services/moderatorActions/moderatorActions.service.interface";
 
 @UseInterceptors(ClassSerializerInterceptor)
 @ApiTags("users")
@@ -32,13 +33,16 @@ import { IProfileSetupService } from "../services/profileSetup/profileSetup.serv
 export class UsersController {
     private readonly _usersRepository: IUsersRepository;
     private readonly _profileSetup: IProfileSetupService;
+    private readonly _moderationActions: IModeratorActionsService;
 
     constructor(
         @Inject(_$.IUsersRepository) usersRepository: IUsersRepository,
-        @Inject(_$.IProfileSetupService) profileSetupService: IProfileSetupService
+        @Inject(_$.IProfileSetupService) profileSetupService: IProfileSetupService,
+        @Inject(_$.IModeratorActionsService) moderatorActionsService: IModeratorActionsService
     ) {
         this._usersRepository = usersRepository;
         this._profileSetup = profileSetupService;
+        this._moderationActions = moderatorActionsService;
     }
 
     @Get()
@@ -87,9 +91,9 @@ export class UsersController {
     public async banUser(
         @AuthedUser() authedUser: User,
         @Body() moderationPayloadDto: ModerationPayloadDto
-    ): Promise<User> {
+    ): Promise<void> {
         moderationPayloadDto.moderatorId = authedUser.userId;
-        throw new HttpException("Not implemented", 501);
+        await this._moderationActions.banUser(moderationPayloadDto);
     }
 
     @Patch("/unban/:userId")
@@ -97,9 +101,8 @@ export class UsersController {
     @UseGuards(AuthGuard("jwt"), RolesGuard)
     public async unbanUser(
         @AuthedUser() authedUser: User,
-        @Body() moderationPayloadDto: ModerationPayloadDto
-    ): Promise<User> {
-        moderationPayloadDto.moderatorId = authedUser.userId;
-        throw new HttpException("Not implemented", 501);
+        @Param("userId") userId: string
+    ): Promise<void> {
+        await this._moderationActions.unbanUser(userId);
     }
 }
