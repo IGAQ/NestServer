@@ -2,7 +2,7 @@ import { User } from "../../models";
 import { HasGenderProps } from "../../models/toGender";
 import { HasOpennessProps } from "../../models/toOpenness";
 import { HasSexualityProps } from "../../models/toSexuality";
-import { GotBannedProps } from "src/users/models/toSelf";
+import { GotBannedProps } from "../../models/toSelf";
 
 export interface IUsersRepository {
     findAll(): Promise<User[]>;
