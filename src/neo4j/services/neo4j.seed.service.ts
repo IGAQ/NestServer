@@ -991,13 +991,13 @@ export class Neo4jSeedService {
                 genderFlagSvg: "<svg></svg>",
             }),
             new Gender({
-                genderId: "23907da4-c3f2-4e96-a73d-423e64f18a21",
+                genderId: "6d67e992-c6d1-45be-8316-7a839894bf36",
                 genderName: "Non-binary",
                 genderPronouns: "Xe/Xem",
                 genderFlagSvg: "<svg></svg>",
             }),
             new Gender({
-                genderId: "23907da4-c3f2-4e96-a73d-423e64f18a21",
+                genderId: "16c10474-9fa6-4eac-aac2-a63423edb757",
                 genderName: "Non-binary",
                 genderPronouns: "Ze/Zir",
                 genderFlagSvg: "<svg></svg>",
