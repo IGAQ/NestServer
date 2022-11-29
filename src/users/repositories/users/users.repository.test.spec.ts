@@ -11,6 +11,8 @@ import { Neo4jService } from "../../../neo4j/services/neo4j.service";
 import { v4 as uuidv4 } from "uuid";
 import { _$ } from "../../../_domain/injectableTokens";
 
+const userIdToFind = "a59437f4-ea62-4a15-a4e6-621b04af74d6";
+
 describe("UsersRepository", () => {
     let usersRepository: IUsersRepository;
     let neo4jSeedService: Neo4jSeedService;
@@ -103,7 +105,7 @@ describe("UsersRepository", () => {
         let user: User;
 
         beforeAll(async () => {
-            user = await usersRepository.findUserById("3109f9e2-a262-4aef-b648-90d86d6fbf6c");
+            user = await usersRepository.findUserById(userIdToFind);
         });
 
         it("should return a user", async () => {
