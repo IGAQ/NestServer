@@ -4,7 +4,6 @@ import { Request } from "express";
 import { Comment } from "../../../comments/models";
 import { DatabaseContext } from "../../../database-access-layer/databaseContext";
 import { IAutoModerationService } from "../../../moderation/services/autoModeration/autoModeration.service.interface";
-import { PostToCommentRelTypes } from "../../../posts/models/toComment";
 import { User } from "../../../users/models";
 import { UserToPostRelTypes, VoteProps } from "../../../users/models/toPost";
 import { _$ } from "../../../_domain/injectableTokens";

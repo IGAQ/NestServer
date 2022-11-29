@@ -11,7 +11,6 @@ import { UserToCommentRelTypes } from "../../../users/models/toComment";
 import { VoteProps } from "../../../users/models/toPost";
 import { _$ } from "../../../_domain/injectableTokens";
 import { VoteType } from "../../../_domain/models/enums";
-import { DeletedProps } from "../../../_domain/models/toSelf";
 import { CommentCreationPayloadDto, VoteCommentPayloadDto } from "../../dtos";
 import { Comment } from "../../models";
 import { CommentToSelfRelTypes } from "../../models/toSelf";
