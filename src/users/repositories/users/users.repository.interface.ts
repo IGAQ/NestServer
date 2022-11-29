@@ -1,4 +1,5 @@
 import { User } from "../../models";
+import { GotBannedProps } from "src/users/models/toSelf";
 
 export interface IUsersRepository {
     findAll(): Promise<User[]>;
@@ -14,4 +15,10 @@ export interface IUsersRepository {
     updateUser(user: User): Promise<void>;
 
     deleteUser(userId: UUID): Promise<void>;
+
+    banUser(userId: UUID, banProps: GotBannedProps): Promise<void>;
+
+    unbanUser(userId: UUID): Promise<void>;
+
+    addPreviouslyBanned(userId: UUID, banProps: GotBannedProps): Promise<void>;
 }
