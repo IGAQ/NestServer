@@ -21,7 +21,7 @@ import { Roles } from "../../auth/decorators/roles.decorator";
 import { OptionalJwtAuthGuard } from "../../auth/guards/optionalJwtAuth.guard";
 import { RolesGuard } from "../../auth/guards/roles.guard";
 import { DatabaseContext } from "../../database-access-layer/databaseContext";
-import { ModerationPayloadDto } from "../../moderation/dtos/moderatorActions";
+import { ModerationPayloadDto } from "../../moderation/dtos";
 import { IModeratorActionsService } from "../../moderation/services/moderatorActions/moderatorActions.service.interface";
 import { Role, User } from "../../users/models";
 import { _$ } from "../../_domain/injectableTokens";
@@ -29,6 +29,7 @@ import { CommentCreationPayloadDto, ReportCommentPayloadDto, VoteCommentPayloadD
 import { Comment as CommentModel } from "../models";
 import { ICommentsService } from "../services/comments/comments.service.interface";
 import { ICommentsReportService } from "../services/commentReport/commentsReport.service.interface";
+import { CaptchaGuard } from "../../google-cloud-recaptcha-enterprise/captcha.guard";
 
 @ApiTags("comments")
 @Controller("comments")
@@ -110,6 +111,7 @@ export class CommentsController {
     }
 
     @Post("create")
+    @UseGuards(CaptchaGuard)
     @UseGuards(AuthGuard("jwt"))
     public async createComment(
         @Body() commentPayload: CommentCreationPayloadDto

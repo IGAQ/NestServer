@@ -14,6 +14,7 @@ import { AuthedUser } from "../decorators/authedUser.param.decorator";
 import { Role, User } from "../../users/models";
 import { Roles } from "../decorators/roles.decorator";
 import { RolesGuard } from "../guards/roles.guard";
+import { CaptchaGuard } from "../../google-cloud-recaptcha-enterprise/captcha.guard";
 
 @ApiTags("authentication")
 @ApiBearerAuth()
@@ -22,11 +23,13 @@ export class AuthController {
     constructor(@Inject(_$.IAuthService) private _authService: IAuthService) {}
 
     @Post("signup")
+    @UseGuards(CaptchaGuard)
     public signup(@Body() signUpPayloadDto: SignUpPayloadDto): Promise<SignTokenDto> {
         return this._authService.signup(signUpPayloadDto);
     }
 
     @Post("signin")
+    @UseGuards(CaptchaGuard)
     public signin(@Body() signInPayloadDto: SignInPayloadDto): Promise<SignTokenDto> {
         return this._authService.signIn(signInPayloadDto);
     }

@@ -12,9 +12,14 @@ import { GendersController } from "./controllers/genders.controller";
 import { OpennessController } from "./controllers/openness.controller";
 import { UserHistoryService } from "./services/userHistory/userHistory.service";
 import { ModerationModule } from "../moderation/moderation.module";
+import { GoogleCloudRecaptchaEnterpriseModule } from "../google-cloud-recaptcha-enterprise/google-cloud-recaptcha-enterprise.module";
 
 @Module({
-    imports: [forwardRef(() => DatabaseAccessLayerModule), ModerationModule],
+    imports: [
+        forwardRef(() => DatabaseAccessLayerModule),
+        ModerationModule,
+        GoogleCloudRecaptchaEnterpriseModule,
+    ],
     providers: [
         {
             provide: _$.IUsersRepository,

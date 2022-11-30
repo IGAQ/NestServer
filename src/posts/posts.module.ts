@@ -12,9 +12,15 @@ import { PostAwardRepository } from "./repositories/postAward/postAward.reposito
 import { PostTypesController } from "./controllers/postTypes.controller";
 import { ModerationModule } from "../moderation/moderation.module";
 import { PostsReportService } from "./services/postReport/postsReport.service";
+import { GoogleCloudRecaptchaEnterpriseModule } from "../google-cloud-recaptcha-enterprise/google-cloud-recaptcha-enterprise.module";
 
 @Module({
-    imports: [forwardRef(() => DatabaseAccessLayerModule), HttpModule, ModerationModule],
+    imports: [
+        forwardRef(() => DatabaseAccessLayerModule),
+        HttpModule,
+        ModerationModule,
+        GoogleCloudRecaptchaEnterpriseModule,
+    ],
     providers: [
         {
             provide: _$.IPostsRepository,
