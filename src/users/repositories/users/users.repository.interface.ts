@@ -49,9 +49,5 @@ export interface IUsersRepository {
         hasGenderProps: HasGenderProps
     ): Promise<void>;
 
-    banUser(userId: UUID, banProps: GotBannedProps): Promise<void>;
-
-    unbanUser(userId: UUID): Promise<void>;
-
     addPreviouslyBanned(userId: UUID, banProps: GotBannedProps): Promise<void>;
 }

@@ -231,20 +231,6 @@ export class UsersRepository implements IUsersRepository {
             }
         );
     }
-    
-    public async banUser(userId: UUID, banProps: GotBannedProps): Promise<void> {
-        await this._neo4jService.tryWriteAsync(
-            `MATCH (u:User {userId: $userId})
-            CREATE (u)-[:${UserToSelfRelTypes.GOT_BANNED} {bannedAt: $bannedAt, moderatorId: $moderatorId, reason: $reason}]->(u)
-            `,
-            {
-                userId: userId,
-                bannedAt: banProps.bannedAt,
-                moderatorId: banProps.moderatorId,
-                reason: banProps.reason,
-            }
-        );
-    }
 
     public async connectUserWithGender(
         userId: UUID,
@@ -288,14 +274,6 @@ export class UsersRepository implements IUsersRepository {
             {
                 userId,
                 isPrivate: hasGenderProps.isPrivate,
-            }
-        );
-    }
-    public async unbanUser(userId: UUID): Promise<void> {
-        await this._neo4jService.tryWriteAsync(
-            `MATCH (u:User {userId: $userId})-[r:${UserToSelfRelTypes.GOT_BANNED}]->(u) DELETE r`,
-            {
-                userId: userId,
             }
         );
     }
@@ -345,7 +323,7 @@ export class UsersRepository implements IUsersRepository {
             }
         );
     }
-    
+
     public async addPreviouslyBanned(userId: UUID, banProps: GotBannedProps): Promise<void> {
         await this._neo4jService.tryWriteAsync(
             `MATCH (u:User {userId: $userId})
