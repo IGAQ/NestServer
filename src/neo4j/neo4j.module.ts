@@ -1,12 +1,14 @@
-import { DynamicModule, Module, Provider } from "@nestjs/common";
+import { DynamicModule, forwardRef, Module, Provider } from "@nestjs/common";
 import { Neo4jService } from "./services/neo4j.service";
 import { NEO4J_DRIVER, NEO4J_OPTIONS } from "./neo4j.constants";
 import { createDriver } from "./neo4j.utils";
 import { Neo4jConfig } from "./neo4jConfig.interface";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { Neo4jSeedService } from "./services/neo4j.seed.service";
+import { DatabaseAccessLayerModule } from "../database-access-layer/database-access-layer.module";
 
 @Module({
+    imports: [forwardRef(() => DatabaseAccessLayerModule)],
     providers: [Neo4jService, Neo4jSeedService],
 })
 export class Neo4jModule {

@@ -14,10 +14,15 @@ import { UserToSexualityRelTypes } from "../../users/models/toSexuality";
 import { RestrictedProps, _ToSelfRelTypes } from "../../_domain/models/toSelf";
 import { LABELS_DECORATOR_KEY } from "../neo4j.constants";
 import { Neo4jService } from "./neo4j.service";
+import { _$ } from "../../_domain/injectableTokens";
+import { DatabaseContext } from "../../database-access-layer/databaseContext";
 
 @Injectable()
 export class Neo4jSeedService {
-    constructor(@Inject(Neo4jService) private _neo4jService: Neo4jService) {}
+    constructor(
+        @Inject(Neo4jService) private _neo4jService: Neo4jService,
+        @Inject(_$.IDatabaseContext) private _dbContext: DatabaseContext
+    ) {}
 
     private postTypeLabel = Reflect.get(PostType, LABELS_DECORATOR_KEY)[0];
     private postTagLabel = Reflect.get(PostTag, LABELS_DECORATOR_KEY)[0];
@@ -132,28 +137,42 @@ export class Neo4jSeedService {
         // Populate genders
         const genders = await this.getGenders();
         for (const genderEntity of genders) {
-            await this._neo4jService.tryWriteAsync(
-                `CREATE (n:${this.genderLabel} { 
-                genderId: $genderId,
-                genderName: $genderName,
-                genderPronouns: $genderPronouns,
-                genderFlagSvg: $genderFlagSvg
-             })`,
-                genderEntity
+            const foundGenderEntity = await this._dbContext.Genders.findGenderById(
+                genderEntity.genderId
             );
+            if (!foundGenderEntity) {
+                await this._neo4jService.tryWriteAsync(
+                    `CREATE (n:${this.genderLabel} { 
+                    genderId: $genderId,
+                    genderName: $genderName,
+                    genderPronouns: $genderPronouns,
+                    genderFlagSvg: $genderFlagSvg
+                    })`,
+                    genderEntity
+                );
+            } else {
+                await this._dbContext.Genders.updateGender(genderEntity);
+            }
         }
 
         // Populate genders
         const opennessRecords = await this.getOpennessRecords();
         for (const opennessEntity of opennessRecords) {
-            await this._neo4jService.tryWriteAsync(
-                `CREATE (n:${this.opennessLabel} { 
-                opennessId: $opennessId,
-                opennessLevel: $opennessLevel,
-                opennessDescription: $opennessDescription
-             })`,
-                opennessEntity
+            const foundOpennessEntity = await this._dbContext.Openness.findOpennessById(
+                opennessEntity.opennessId
             );
+            if (!foundOpennessEntity) {
+                await this._neo4jService.tryWriteAsync(
+                    `CREATE (n:${this.opennessLabel} { 
+                    opennessId: $opennessId,
+                    opennessLevel: $opennessLevel,
+                    opennessDescription: $opennessDescription
+                })`,
+                    opennessEntity
+                );
+            } else {
+                await this._dbContext.Openness.updateOpenness(opennessEntity);
+            }
         }
 
         // Populate users
@@ -609,7 +628,7 @@ export class Neo4jSeedService {
                     "I was on a camping trip and my sister caught me staring at someone across the site with his \n" +
                     " shirt off, for the the rest of the day she wouldn't stop asking me, even getting the other members \n" +
                     " who came with us to join in, I eventually gave in, she was super kind about it and came out as Bisexual the following months",
-                updatedAt: new Date("202-11-17").getTime(), // verified - NOTE: will be counted as `authoredAt` value.
+                updatedAt: new Date("2022-11-17").getTime(), // verified - NOTE: will be counted as `authoredAt` value.
                 postType: postTypes.story, // verified - story
                 postTags: [postTags.Casual, postTags.General, postTags.Trigger], // verified
                 restrictedProps: null,
@@ -648,7 +667,7 @@ export class Neo4jSeedService {
                 postType: postTypes.story, // verified - story
                 postTags: [postTags.Serious], // verified - Serious
                 restrictedProps: new RestrictedProps({
-                    restrictedAt: new Date("202-11-22").getTime(),
+                    restrictedAt: new Date("2022-11-22").getTime(),
                     moderatorId: "71120d45-7a75-43fd-b79c-54b06e7868af", // verified - moderator - wesley
                     reason: "The moderator thinks there is profanity in this post",
                 }),
@@ -735,7 +754,7 @@ export class Neo4jSeedService {
                 commentId: "f8959b32-5b68-4f68-97bc-59afdc0d09cb", // verified - no children
                 parentId: "bcddeb57-939d-441b-b4ea-71e1d2055f32", // verified - Title: Sister caught me checking out a guy on a camping trip.
                 commentContent: "Wow that's so nice to hear!",
-                updatedAt: new Date("2020-11-18").getTime(), // verified - a day after Post authored
+                updatedAt: new Date("2022-11-18").getTime(), // verified - a day after Post authored
                 authorUser: new User({
                     userId: "0daef999-7291-4f0c-a41a-078a6f28aa5e", // verified - moderator - christopher
                 }),
@@ -859,32 +878,55 @@ export class Neo4jSeedService {
     }
 
     public async getPostTags(): Promise<
-        Record<"Serious" | "Advice" | "Discussion" | "Trigger" | "General" | "Casual", PostTag>
+        Record<
+            | "Serious"
+            | "Advice"
+            | "Discussion"
+            | "Trigger"
+            | "General"
+            | "Casual"
+            | "Inspiring"
+            | "Vent"
+            | "Drama",
+            PostTag
+        >
     > {
         return {
             Serious: new PostTag({
-                tagName: "Serious",
-                tagColor: "#FF758C",
+                tagName: "serious",
+                tagColor: "#E02947",
             }),
             Advice: new PostTag({
-                tagName: "Advice",
-                tagColor: "#FF758C",
+                tagName: "advice",
+                tagColor: "#FFB6C3",
             }),
             Discussion: new PostTag({
-                tagName: "Discussion",
-                tagColor: "#FF758C",
+                tagName: "discussion",
+                tagColor: "#FFB6C3",
             }),
             Trigger: new PostTag({
-                tagName: "Trigger",
-                tagColor: "#FF758C",
+                tagName: "trigger",
+                tagColor: "#C2ADFF",
             }),
             General: new PostTag({
-                tagName: "General",
-                tagColor: "#FF758C",
+                tagName: "general",
+                tagColor: "#FFB6C3",
             }),
             Casual: new PostTag({
-                tagName: "Casual",
-                tagColor: "#FF758C",
+                tagName: "casual",
+                tagColor: "#FFEAD4",
+            }),
+            Inspiring: new PostTag({
+                tagName: "inspiring",
+                tagColor: "#C2ADFF",
+            }),
+            Vent: new PostTag({
+                tagName: "vent",
+                tagColor: "#C2ADFF",
+            }),
+            Drama: new PostTag({
+                tagName: "drama",
+                tagColor: "#C2ADFF",
             }),
         };
     }
