@@ -81,7 +81,7 @@ export class AuthService implements IAuthService {
         const secret = this._configService.get("JWT_SECRET") || "secret";
 
         return await this._jwtService.signAsync(payload, {
-            expiresIn: "15m",
+            expiresIn: "6h",
             secret: secret,
         });
     }
