@@ -11,6 +11,7 @@ import { PostTypesRepository } from "./repositories/postType/postTypes.repositor
 import { PostAwardRepository } from "./repositories/postAward/postAward.repository";
 import { PostTypesController } from "./controllers/postTypes.controller";
 import { ModerationModule } from "../moderation/moderation.module";
+import { PostsReportService } from "./services/postReport/postsReport.service";
 
 @Module({
     imports: [forwardRef(() => DatabaseAccessLayerModule), HttpModule, ModerationModule],
@@ -35,6 +36,10 @@ import { ModerationModule } from "../moderation/moderation.module";
             provide: _$.IPostAwardRepository,
             useClass: PostAwardRepository,
         },
+        {
+            provide: _$.IPostsReportService,
+            useClass: PostsReportService,
+        },
     ],
     exports: [
         {
@@ -56,6 +61,10 @@ import { ModerationModule } from "../moderation/moderation.module";
         {
             provide: _$.IPostAwardRepository,
             useClass: PostAwardRepository,
+        },
+        {
+            provide: _$.IPostsReportService,
+            useClass: PostsReportService,
         },
     ],
     controllers: [PostsController, PostTagsController, PostTypesController],

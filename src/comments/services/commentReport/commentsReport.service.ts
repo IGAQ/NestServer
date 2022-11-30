@@ -1,16 +1,16 @@
-import { ReportPostPayloadDto } from "../../dtos";
+import { ReportCommentPayloadDto } from "../../dtos";
 import { User } from "../../../users/models";
 import { HttpException, Inject, Injectable, Logger, Scope } from "@nestjs/common";
 import { DatabaseContext } from "../../../database-access-layer/databaseContext";
 import { REQUEST } from "@nestjs/core";
 import { Request } from "express";
 import { _$ } from "../../../_domain/injectableTokens";
-import { ReportedProps, UserToPostRelTypes } from "../../../users/models/toPost";
-import { IPostsReportService } from "./postsReport.service.interface";
+import { ReportedProps, UserToCommentRelTypes } from "../../../users/models/toComment";
+import { ICommentsReportService } from "./commentsReport.service.interface";
 
 @Injectable({ scope: Scope.REQUEST })
-export class PostsReportService implements IPostsReportService {
-    private readonly _logger = new Logger(PostsReportService.name);
+export class CommentsReportService implements ICommentsReportService {
+    private readonly _logger = new Logger(CommentsReportService.name);
     private readonly _request: Request;
     private readonly _dbContext: DatabaseContext;
 
@@ -22,50 +22,53 @@ export class PostsReportService implements IPostsReportService {
         this._dbContext = databaseContext;
     }
 
-    public async reportPost(reportPostPayload: ReportPostPayloadDto): Promise<void> {
+    public async reportComment(reportCommentPayload: ReportCommentPayloadDto): Promise<void> {
         const user = this.getUserFromRequest();
-        const post = await this._dbContext.Posts.findPostById(reportPostPayload.postId);
-        if (!post) throw new Error("Post not found");
 
-        if (post.pending || post.restrictedProps !== null) {
+        const comment = await this._dbContext.Comments.findCommentById(
+            reportCommentPayload.commentId
+        );
+        if (!comment) throw new Error("Comment not found");
+
+        if (comment.pending || comment.restrictedProps !== null) {
             throw new HttpException(
-                "Post cannot be reported due to being pending or restricted",
+                "Comment cannot be reported due to being pending or restricted",
                 400
             );
         }
 
-        const report = await this.checkIfUserReportedPost(post.postId, user.userId);
+        const report = await this.checkIfUserReportedComment(comment.commentId, user.userId);
 
         if (report === true) {
             throw new HttpException("You have already reported this post", 400);
         }
 
-        await post.getAuthorUser();
-        if (post.authorUser.userId === user.userId) {
-            throw new HttpException("Post cannot be reported by post author", 400);
+        await comment.getAuthorUser();
+        if (comment.authorUser.userId === user.userId) {
+            throw new HttpException("Comment cannot be reported by comment author", 400);
         }
 
         await this._dbContext.neo4jService.tryWriteAsync(
             `
-			MATCH (p:Post { postId: $postId }), (u:User { userId: $userId })
-				MERGE (u)-[r:${UserToPostRelTypes.REPORTED}{reportedAt: $reportedAt, reason: $reason}]->(p)
+			MATCH (c:Comment { commentId: $commentId }), (u:User { userId: $userId })
+				MERGE (u)-[r:${UserToCommentRelTypes.REPORTED}{reportedAt: $reportedAt, reason: $reason}]->(c)
 			`,
             {
                 reportedAt: Date.now(),
-                reason: reportPostPayload.reason,
-                postId: post.postId,
+                reason: reportCommentPayload.reason,
+                commentId: comment.commentId,
                 userId: user.userId,
             }
         );
     }
 
-    public async getReportsForPost(postId: UUID): Promise<ReportedProps[]> {
+    public async getReportsForComment(commentId: UUID): Promise<ReportedProps[]> {
         const queryResult = await this._dbContext.neo4jService.tryReadAsync(
             `
-			MATCH (p:Post { postId: $postId })<-[r:${UserToPostRelTypes.REPORTED}]-(u:User)
+			MATCH (c:Comment { commentId: $commentId })<-[r:${UserToCommentRelTypes.REPORTED}]-(u:User)
             RETURN r, u`,
             {
-                postId: postId,
+                commentId: commentId,
             }
         );
         return queryResult.records.map(record => {
@@ -74,14 +77,14 @@ export class PostsReportService implements IPostsReportService {
         });
     }
 
-    private async checkIfUserReportedPost(postId: UUID, userId: UUID): Promise<Boolean> {
+    private async checkIfUserReportedComment(commentId: UUID, userId: UUID): Promise<Boolean> {
         const queryResult = await this._dbContext.neo4jService.tryReadAsync(
             `
-            MATCH (p:Post { postId: $postId })<-[r:${UserToPostRelTypes.REPORTED}]-(u:User { userId: $userId })
+            MATCH (p:Comment { commentId: $commentId })<-[r:${UserToCommentRelTypes.REPORTED}]-(u:User { userId: $userId })
             RETURN r
             `,
             {
-                postId: postId,
+                commentId: commentId,
                 userId: userId,
             }
         );
@@ -97,4 +100,3 @@ export class PostsReportService implements IPostsReportService {
         return user;
     }
 }
-

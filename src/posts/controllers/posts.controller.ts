@@ -25,9 +25,10 @@ import { ModerationPayloadDto } from "../../moderation/dtos/moderatorActions";
 import { IModeratorActionsService } from "../../moderation/services/moderatorActions/moderatorActions.service.interface";
 import { Role, User } from "../../users/models";
 import { _$ } from "../../_domain/injectableTokens";
-import { PostCreationPayloadDto, VotePostPayloadDto } from "../dtos";
+import { PostCreationPayloadDto, ReportPostPayloadDto, VotePostPayloadDto } from "../dtos";
 import { Post as PostModel } from "../models";
 import { IPostsService } from "../services/posts/posts.service.interface";
+import { IPostsReportService } from "../services/postReport/postsReport.service.interface";
 
 @ApiTags("posts")
 @Controller("posts")
@@ -37,15 +38,18 @@ export class PostsController {
     private readonly _dbContext: DatabaseContext;
     private readonly _postsService: IPostsService;
     private readonly _moderationActionsService: IModeratorActionsService;
+    private readonly _postsReportService: IPostsReportService;
 
     constructor(
         @Inject(_$.IDatabaseContext) dbContext: DatabaseContext,
         @Inject(_$.IPostsService) postsService: IPostsService,
-        @Inject(_$.IModeratorActionsService) moderationActionsService: IModeratorActionsService
+        @Inject(_$.IModeratorActionsService) moderationActionsService: IModeratorActionsService,
+        @Inject(_$.IPostsReportService) postsReportService: IPostsReportService
     ) {
         this._dbContext = dbContext;
         this._postsService = postsService;
         this._moderationActionsService = moderationActionsService;
+        this._postsReportService = postsReportService;
     }
 
     @Get()
@@ -156,19 +160,7 @@ export class PostsController {
 
     @Post("/report")
     @UseGuards(AuthGuard("jwt"))
-    public async reportPost(
-        @AuthedUser() user: User,
-        @Body() reportPayload: ModerationPayloadDto
-    ): Promise<void> {
-        reportPayload.moderatorId = user.userId;
-        throw new Error("Not implemented");
-    }
-
-    @Post("/allow/:postId")
-    @Roles(Role.MODERATOR)
-    @UseGuards(AuthGuard("jwt"), RolesGuard)
-    public async allowPost(@Param("postId", new ParseUUIDPipe()) postId: UUID): Promise<void> {
-        await this._moderationActionsService.allowPost(postId);
-        throw new Error("Not implemented");
+    public async reportPost(@Body() reportPostPayload: ReportPostPayloadDto): Promise<void> {
+        await this._postsReportService.reportPost(reportPostPayload);
     }
 }

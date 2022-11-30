@@ -1,16 +1,16 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsUUID, IsString } from "class-validator";
 
-export class ReportPostPayloadDto {
+export class ReportCommentPayloadDto {
     @ApiProperty({ type: String, format: "uuid" })
     @IsUUID()
-    postId: UUID;
+    commentId: UUID;
 
     @ApiProperty({ type: String, minLength: 5, maxLength: 500 })
     @IsString()
     reason: string;
 
-    constructor(partial?: Partial<ReportPostPayloadDto>) {
+    constructor(partial?: Partial<ReportCommentPayloadDto>) {
         Object.assign(this, partial);
     }
 }

@@ -4,6 +4,7 @@ import { ModeratorActionsService } from "./services/moderatorActions/moderatorAc
 import { _$ } from "../_domain/injectableTokens";
 import { HttpModule } from "@nestjs/axios";
 import { DatabaseAccessLayerModule } from "../database-access-layer/database-access-layer.module";
+import { ModerationController } from "./controllers/moderation.controller";
 
 @Module({
     imports: [HttpModule, forwardRef(() => DatabaseAccessLayerModule)],
@@ -27,5 +28,6 @@ import { DatabaseAccessLayerModule } from "../database-access-layer/database-acc
             useClass: ModeratorActionsService,
         },
     ],
+    controllers: [ModerationController],
 })
 export class ModerationModule {}

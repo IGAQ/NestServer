@@ -7,6 +7,7 @@ import { Comment } from "../../../comments/models";
 import { Post } from "../../../posts/models";
 import { ModerationPayloadDto } from "../../dtos/moderatorActions";
 import { GotBannedProps } from "../../../users/models/toSelf";
+import { Role } from "../../../users/models";
 
 /**
  * This service is responsible for moderating posts and comments.
@@ -24,6 +25,10 @@ export class ModeratorActionsService implements IModeratorActionsService {
     }
 
     public async banUser(payload: ModerationPayloadDto): Promise<void> {
+        const user = await this._dbContext.Users.findUserById(payload.id);
+        if (user.roles.some(role => role === Role.ADMIN || role === Role.MODERATOR)) {
+            throw new HttpException("Unable to ban this user, permission level too high", 400);
+        }
         const banProps = new GotBannedProps({
             bannedAt: Date.now(),
             moderatorId: payload.moderatorId,
@@ -146,7 +151,7 @@ export class ModeratorActionsService implements IModeratorActionsService {
         const restrictedProps = new RestrictedProps({
             restrictedAt: Date.now(),
             moderatorId: payload.moderatorId,
-            reason: payload.moderatorId,
+            reason: payload.reason,
         });
         await this._dbContext.Posts.restrictPost(payload.id, restrictedProps);
         post.restrictedProps = restrictedProps;
@@ -154,7 +159,7 @@ export class ModeratorActionsService implements IModeratorActionsService {
         return post;
     }
 
-    public async undeleteComment(commentId: UUID): Promise<Comment> {
+    public async restoreComment(commentId: UUID): Promise<Comment> {
         const comment = await this.acquireComment(commentId);
 
         await comment.getDeletedProps();
@@ -168,7 +173,7 @@ export class ModeratorActionsService implements IModeratorActionsService {
         return comment;
     }
 
-    public async undeletePost(postId: UUID): Promise<Post> {
+    public async restorePost(postId: UUID): Promise<Post> {
         const post = await this.acquirePost(postId);
 
         await post.getDeletedProps();

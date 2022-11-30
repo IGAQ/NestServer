@@ -7,6 +7,7 @@ import { forwardRef, Module } from "@nestjs/common";
 import { HttpModule } from "@nestjs/axios";
 import { ModerationModule } from "../moderation/moderation.module";
 import { PostsModule } from "../posts/posts.module";
+import { CommentsReportService } from "./services/commentReport/commentsReport.service";
 
 @Module({
     controllers: [CommentsController],
@@ -25,6 +26,10 @@ import { PostsModule } from "../posts/posts.module";
             provide: _$.ICommentsRepository,
             useClass: CommentsRepository,
         },
+        {
+            provide: _$.ICommentsReportService,
+            useClass: CommentsReportService,
+        },
     ],
     exports: [
         {
@@ -34,6 +39,10 @@ import { PostsModule } from "../posts/posts.module";
         {
             provide: _$.ICommentsRepository,
             useClass: CommentsRepository,
+        },
+        {
+            provide: _$.ICommentsReportService,
+            useClass: CommentsReportService,
         },
     ],
 })

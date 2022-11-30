@@ -101,25 +101,4 @@ export class UsersController {
     public async profileSetupSubmit(@Body() setupProfileDto: SetupProfileDto): Promise<void> {
         await this._profileSetup.setupProfile(setupProfileDto);
     }
-
-    @Patch("/ban")
-    @Roles(Role.MODERATOR)
-    @UseGuards(AuthGuard("jwt"), RolesGuard)
-    public async banUser(
-        @AuthedUser() authedUser: User,
-        @Body() moderationPayloadDto: ModerationPayloadDto
-    ): Promise<void> {
-        moderationPayloadDto.moderatorId = authedUser.userId;
-        await this._moderationActions.banUser(moderationPayloadDto);
-    }
-
-    @Patch("/unban/:userId")
-    @Roles(Role.MODERATOR)
-    @UseGuards(AuthGuard("jwt"), RolesGuard)
-    public async unbanUser(
-        @AuthedUser() authedUser: User,
-        @Param("userId") userId: string
-    ): Promise<void> {
-        await this._moderationActions.unbanUser(userId);
-    }
 }

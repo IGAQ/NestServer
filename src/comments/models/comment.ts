@@ -7,7 +7,7 @@ import {
     IsNumber,
     IsOptional,
     IsString,
-    IsUUID
+    IsUUID,
 } from "class-validator";
 import neo4j from "neo4j-driver";
 import { Labels, NodeProperty } from "../../neo4j/neo4j.decorators";
@@ -118,8 +118,9 @@ export class Comment extends Model {
     public async getChildrenComments(limit = 0): Promise<Comment[]> {
         const queryResult = await this.neo4jService.tryReadAsync(
             `
-            MATCH (c:Comment)-[:${CommentToSelfRelTypes.REPLIED
-            }]->(p:Comment) WHERE p.commentId = $parentId 
+            MATCH (c:Comment)-[:${
+                CommentToSelfRelTypes.REPLIED
+            }]->(p:Comment) WHERE c.commentId = $parentId 
             RETURN c
             ${limit > 0 ? `LIMIT $limit` : ""}
             `,

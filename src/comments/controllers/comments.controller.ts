@@ -25,9 +25,10 @@ import { ModerationPayloadDto } from "../../moderation/dtos/moderatorActions";
 import { IModeratorActionsService } from "../../moderation/services/moderatorActions/moderatorActions.service.interface";
 import { Role, User } from "../../users/models";
 import { _$ } from "../../_domain/injectableTokens";
-import { CommentCreationPayloadDto, VoteCommentPayloadDto } from "../dtos";
+import { CommentCreationPayloadDto, ReportCommentPayloadDto, VoteCommentPayloadDto } from "../dtos";
 import { Comment as CommentModel } from "../models";
 import { ICommentsService } from "../services/comments/comments.service.interface";
+import { ICommentsReportService } from "../services/commentReport/commentsReport.service.interface";
 
 @ApiTags("comments")
 @Controller("comments")
@@ -37,15 +38,18 @@ export class CommentsController {
     private readonly _dbContext: DatabaseContext;
     private readonly _commentsService: ICommentsService;
     private readonly _moderatorActionsService: IModeratorActionsService;
+    private readonly _commentsReportService: ICommentsReportService;
 
     constructor(
         @Inject(_$.IDatabaseContext) dbContext: DatabaseContext,
         @Inject(_$.ICommentsService) commentsService: ICommentsService,
-        @Inject(_$.IModeratorActionsService) moderatorActionsService: IModeratorActionsService
+        @Inject(_$.IModeratorActionsService) moderatorActionsService: IModeratorActionsService,
+        @Inject(_$.ICommentsReportService) commentsReportService: ICommentsReportService
     ) {
         this._dbContext = dbContext;
         this._commentsService = commentsService;
         this._moderatorActionsService = moderatorActionsService;
+        this._commentsReportService = commentsReportService;
     }
 
     @Get()
@@ -133,16 +137,9 @@ export class CommentsController {
 
     @Post("/report")
     @UseGuards(AuthGuard("jwt"))
-    public async reportComment(@Body() reportCommentPayload: VoteCommentPayloadDto): Promise<void> {
-        throw new Error("Method not implemented.");
-    }
-
-    @Post("/allow/:commentId")
-    @Roles(Role.MODERATOR)
-    @UseGuards(AuthGuard("jwt"), RolesGuard)
-    public async allowComment(
-        @Param("commentId", new ParseUUIDPipe()) commentId: UUID
+    public async reportComment(
+        @Body() reportCommentPayload: ReportCommentPayloadDto
     ): Promise<void> {
-        await this._moderatorActionsService.allowComment(commentId);
+        await this._commentsReportService.reportComment(reportCommentPayload);
     }
 }

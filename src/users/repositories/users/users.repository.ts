@@ -43,7 +43,7 @@ export class UsersRepository implements IUsersRepository {
     }
 
     public async findUserById(userId: UUID): Promise<User | undefined> {
-        const queryResult = await this._neo4jService.read(
+        const queryResult = await this._neo4jService.tryReadAsync(
             `MATCH (u:User {userId: $userId}) RETURN u`,
             {
                 userId: userId,
@@ -231,7 +231,7 @@ export class UsersRepository implements IUsersRepository {
             }
         );
     }
-    
+
     public async banUser(userId: UUID, banProps: GotBannedProps): Promise<void> {
         await this._neo4jService.tryWriteAsync(
             `MATCH (u:User {userId: $userId})
@@ -345,7 +345,7 @@ export class UsersRepository implements IUsersRepository {
             }
         );
     }
-    
+
     public async addPreviouslyBanned(userId: UUID, banProps: GotBannedProps): Promise<void> {
         await this._neo4jService.tryWriteAsync(
             `MATCH (u:User {userId: $userId})
