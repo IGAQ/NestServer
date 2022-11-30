@@ -13,7 +13,7 @@ export class PostsRepository implements IPostsRepository {
     constructor(@Inject(Neo4jService) private _neo4jService: Neo4jService) {}
 
     public async findAll(): Promise<Post[]> {
-        const allPosts = await this._neo4jService.read(`MATCH (p:Post) RETURN p`, {});
+        const allPosts = await this._neo4jService.tryReadAsync(`MATCH (p:Post) RETURN p`, {});
         const records = allPosts.records;
         if (records.length === 0) return [];
         return records.map(record => new Post(record.get("p").properties, this._neo4jService));
@@ -203,7 +203,7 @@ export class PostsRepository implements IPostsRepository {
 
     public async restrictPost(postId: string, restrictedProps: RestrictedProps): Promise<void> {
         await this._neo4jService.tryWriteAsync(
-            `MATCH (p:Post) WHERE p.postId = $postId 
+            `MATCH (p:Post { postId: $postId }) 
             CREATE (p)-[r:${_ToSelfRelTypes.RESTRICTED} {
                 restrictedAt: $restrictedAt,
                 moderatorId: $moderatorId,
