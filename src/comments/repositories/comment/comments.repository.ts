@@ -12,14 +12,14 @@ export class CommentsRepository implements ICommentsRepository {
     constructor(@Inject(Neo4jService) private _neo4jService: Neo4jService) {}
 
     public async findAll(): Promise<Comment[]> {
-        const allComments = await this._neo4jService.read(`MATCH (c:Comment) RETURN c`, {});
+        const allComments = await this._neo4jService.tryReadAsync(`MATCH (c:Comment) RETURN c`, {});
         const records = allComments.records;
         if (records.length === 0) return [];
         return records.map(record => new Comment(record.get("c").properties, this._neo4jService));
     }
 
     public async findCommentById(commentId: string): Promise<Comment | undefined> {
-        const comment = await this._neo4jService.read(
+        const comment = await this._neo4jService.tryReadAsync(
             `MATCH (c:Comment) WHERE c.commentId = $commentId RETURN c`,
             { commentId: commentId }
         );

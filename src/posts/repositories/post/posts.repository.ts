@@ -32,7 +32,7 @@ export class PostsRepository implements IPostsRepository {
     }
 
     public async findPostById(postId: string): Promise<Post | undefined> {
-        const post = await this._neo4jService.read(
+        const post = await this._neo4jService.tryReadAsync(
             `MATCH (p:Post) WHERE p.postId = $postId RETURN p`,
             { postId: postId }
         );

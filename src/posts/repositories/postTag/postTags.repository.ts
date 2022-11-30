@@ -8,7 +8,7 @@ export class PostTagsRepository implements IPostTagsRepository {
     constructor(@Inject(Neo4jService) private _neo4jService: Neo4jService) {}
 
     public async findAll(): Promise<PostTag[]> {
-        const allPostTags = await this._neo4jService.read(`MATCH (t:PostTag) RETURN t`, {});
+        const allPostTags = await this._neo4jService.tryReadAsync(`MATCH (t:PostTag) RETURN t`, {});
         const records = allPostTags.records;
         if (records.length === 0) return [];
         return records.map(record => new PostTag(record.get("t").properties));

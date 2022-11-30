@@ -8,7 +8,10 @@ export class PostTypesRepository implements IPostTypesRepository {
     constructor(@Inject(Neo4jService) private _neo4jService: Neo4jService) {}
 
     public async findAll(): Promise<PostType[]> {
-        const allPostTypes = await this._neo4jService.read(`MATCH (t:PostType) RETURN t`, {});
+        const allPostTypes = await this._neo4jService.tryReadAsync(
+            `MATCH (t:PostType) RETURN t`,
+            {}
+        );
         const records = allPostTypes.records;
         if (records.length === 0) return [];
         return records.map(record => new PostType(record.get("t").properties));

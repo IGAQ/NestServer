@@ -9,14 +9,14 @@ export class PostAwardRepository implements IPostAwardRepository {
     constructor(@Inject(Neo4jService) private _neo4jService: Neo4jService) {}
 
     public async findAll(): Promise<Award[]> {
-        const allAwards = await this._neo4jService.read(`MATCH (a:Award) RETURN a`, {});
+        const allAwards = await this._neo4jService.tryReadAsync(`MATCH (a:Award) RETURN a`, {});
         const records = allAwards.records;
         if (records.length === 0) return [];
         return records.map(record => new Award(record.get("a").properties));
     }
 
     public async findAwardById(awardId: string): Promise<Award | undefined> {
-        const award = await this._neo4jService.read(
+        const award = await this._neo4jService.tryReadAsync(
             `MATCH (a:Award) WHERE a.awardId = $awardId RETURN a`,
             { awardId: awardId }
         );

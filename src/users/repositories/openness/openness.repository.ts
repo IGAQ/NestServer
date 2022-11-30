@@ -8,14 +8,17 @@ export class OpennessRepository implements IOpennessRepository {
     constructor(@Inject(Neo4jService) private _neo4jService: Neo4jService) {}
 
     public async findAll(): Promise<Openness[]> {
-        const allOpenness = await this._neo4jService.read(`MATCH (o:Openness) RETURN o`, {});
+        const allOpenness = await this._neo4jService.tryReadAsync(
+            `MATCH (o:Openness) RETURN o`,
+            {}
+        );
         const records = allOpenness.records;
         if (records.length === 0) return [];
         return records.map(record => new Openness(record.get("o").properties));
     }
 
     public async findOpennessById(opennessId: UUID): Promise<Openness | undefined> {
-        const openness = await this._neo4jService.read(
+        const openness = await this._neo4jService.tryReadAsync(
             `MATCH (o:Openness) WHERE o.opennessId = $opennessId RETURN o`,
             { opennessId: opennessId }
         );
