@@ -1,5 +1,5 @@
-import { ReportCommentPayloadDto } from "../../../dtos/userActions";
-import { ReportedProps } from "../../../../users/models/toComment";
+import { ReportCommentPayloadDto } from "../../../moderation/dtos/userActions";
+import { ReportedProps } from "../../../users/models/toComment";
 
 export interface ICommentsReportService {
     reportComment(reportCommentPayload: ReportCommentPayloadDto): Promise<void>;
