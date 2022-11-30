@@ -29,6 +29,7 @@ import { PostCreationPayloadDto, ReportPostPayloadDto, VotePostPayloadDto } from
 import { Post as PostModel } from "../models";
 import { IPostsService } from "../services/posts/posts.service.interface";
 import { IPostsReportService } from "../services/postReport/postsReport.service.interface";
+import { CaptchaGuard } from "../../google-cloud-recaptcha-enterprise/captcha.guard";
 
 @ApiTags("posts")
 @Controller("posts")
@@ -134,6 +135,7 @@ export class PostsController {
     }
 
     @Post("/create")
+    @UseGuards(CaptchaGuard)
     @UseGuards(AuthGuard("jwt"))
     public async createPost(@Body() postPayload: PostCreationPayloadDto): Promise<PostModel> {
         const post = await this._postsService.authorNewPost(postPayload);
@@ -159,6 +161,7 @@ export class PostsController {
     }
 
     @Post("/report")
+    @UseGuards(CaptchaGuard)
     @UseGuards(AuthGuard("jwt"))
     public async reportPost(@Body() reportPostPayload: ReportPostPayloadDto): Promise<void> {
         await this._postsReportService.reportPost(reportPostPayload);

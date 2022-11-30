@@ -8,6 +8,7 @@ import { HttpModule } from "@nestjs/axios";
 import { ModerationModule } from "../moderation/moderation.module";
 import { PostsModule } from "../posts/posts.module";
 import { CommentsReportService } from "./services/commentReport/commentsReport.service";
+import { GoogleCloudRecaptchaEnterpriseModule } from "../google-cloud-recaptcha-enterprise/google-cloud-recaptcha-enterprise.module";
 
 @Module({
     controllers: [CommentsController],
@@ -16,6 +17,7 @@ import { CommentsReportService } from "./services/commentReport/commentsReport.s
         HttpModule,
         ModerationModule,
         PostsModule,
+        GoogleCloudRecaptchaEnterpriseModule,
     ],
     providers: [
         {

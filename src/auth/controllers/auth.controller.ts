@@ -23,6 +23,7 @@ export class AuthController {
     constructor(@Inject(_$.IAuthService) private _authService: IAuthService) {}
 
     @Post("signup")
+    @UseGuards(CaptchaGuard)
     public signup(@Body() signUpPayloadDto: SignUpPayloadDto): Promise<SignTokenDto> {
         return this._authService.signup(signUpPayloadDto);
     }
