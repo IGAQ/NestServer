@@ -14,6 +14,7 @@ import { ModerationModule } from "./moderation/moderation.module";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { APP_GUARD } from "@nestjs/core";
 import { GoogleCloudRecaptchaEnterpriseModule } from './google-cloud-recaptcha-enterprise/google-cloud-recaptcha-enterprise.module';
+import { PusherModule } from './pusher/pusher.module';
 
 @Module({
     imports: [
@@ -46,6 +47,7 @@ import { GoogleCloudRecaptchaEnterpriseModule } from './google-cloud-recaptcha-e
         DatabaseAccessLayerModule,
         ModerationModule,
         GoogleCloudRecaptchaEnterpriseModule,
+        PusherModule,
     ],
     providers: [
         {
