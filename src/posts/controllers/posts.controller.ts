@@ -153,4 +153,22 @@ export class PostsController {
         await this._postsService.votePost(votePostPayload);
         return;
     }
+
+    @Post("/report")
+    @UseGuards(AuthGuard("jwt"))
+    public async reportPost(
+        @AuthedUser() user: User,
+        @Body() reportPayload: ModerationPayloadDto
+    ): Promise<void> {
+        reportPayload.moderatorId = user.userId;
+        throw new Error("Not implemented");
+    }
+
+    @Post("/allow/:postId")
+    @Roles(Role.MODERATOR)
+    @UseGuards(AuthGuard("jwt"), RolesGuard)
+    public async allowPost(@Param("postId", new ParseUUIDPipe()) postId: UUID): Promise<void> {
+        await this._moderationActionsService.allowPost(postId);
+        throw new Error("Not implemented");
+    }
 }

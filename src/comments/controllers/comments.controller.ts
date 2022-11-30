@@ -130,4 +130,19 @@ export class CommentsController {
     public async voteComment(@Body() voteCommentPayload: VoteCommentPayloadDto): Promise<void> {
         await this._commentsService.voteComment(voteCommentPayload);
     }
+
+    @Post("/report")
+    @UseGuards(AuthGuard("jwt"))
+    public async reportComment(@Body() reportCommentPayload: VoteCommentPayloadDto): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+
+    @Post("/allow/:commentId")
+    @Roles(Role.MODERATOR)
+    @UseGuards(AuthGuard("jwt"), RolesGuard)
+    public async allowComment(
+        @Param("commentId", new ParseUUIDPipe()) commentId: UUID
+    ): Promise<void> {
+        await this._moderatorActionsService.allowComment(commentId);
+    }
 }
