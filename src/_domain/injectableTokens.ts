@@ -21,10 +21,12 @@ const injectableTokens = {
     IPostTagsRepository: Symbol("IPostTagsRepository"),
     IPostsService: Symbol("IPostsService"),
     IPostAwardRepository: Symbol("IPostAwardRepository"),
+    IPostsReportService: Symbol("IPostsReportService"),
 
     // Comments Module
     ICommentsRepository: Symbol("ICommentsRepository"),
     ICommentsService: Symbol("ICommentsService"),
+    ICommentsReportService: Symbol("ICommentsReportService"),
 
     // Neo4j Module
     INeo4jService: Symbol("INeo4jService"),

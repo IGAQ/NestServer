@@ -37,10 +37,10 @@ export class CommentsReportService implements ICommentsReportService {
             );
         }
 
-        const reports = await this.getReportsForComment(comment.commentId);
+        const report = await this.checkIfUserReportedComment(comment.commentId, user.userId);
 
-        if (reports.some(r => r.userId === user.userId)) {
-            throw new HttpException("Comment already reported", 400);
+        if (report === true) {
+            throw new HttpException("You have already reported this post", 400);
         }
 
         await comment.getAuthorUser();
@@ -51,9 +51,11 @@ export class CommentsReportService implements ICommentsReportService {
         await this._dbContext.neo4jService.tryWriteAsync(
             `
 			MATCH (c:Comment { commentId: $commentId }), (u:User { userId: $userId })
-				MERGE (u)-[r:${UserToCommentRelTypes.REPORTED}]->(c)
+				MERGE (u)-[r:${UserToCommentRelTypes.REPORTED}{reportedAt: $reportedAt, reason: $reason}]->(c)
 			`,
             {
+                reportedAt: Date.now(),
+                reason: reportCommentPayload.reason,
                 commentId: comment.commentId,
                 userId: user.userId,
             }
@@ -63,16 +65,33 @@ export class CommentsReportService implements ICommentsReportService {
     public async getReportsForComment(commentId: UUID): Promise<ReportedProps[]> {
         const queryResult = await this._dbContext.neo4jService.tryReadAsync(
             `
-			MATHC (c:Comment { commentId: $commentId })<-[r:${UserToCommentRelTypes.REPORTED}]-(u:User)`,
+			MATCH (c:Comment { commentId: $commentId })<-[r:${UserToCommentRelTypes.REPORTED}]-(u:User)
+            RETURN r, u`,
             {
                 commentId: commentId,
             }
         );
         return queryResult.records.map(record => {
             const reportedProps = new ReportedProps(record.get("r").properties);
-            reportedProps.userId = record.get("u").properties.userId;
             return reportedProps;
         });
+    }
+
+    private async checkIfUserReportedComment(commentId: UUID, userId: UUID): Promise<Boolean> {
+        const queryResult = await this._dbContext.neo4jService.tryReadAsync(
+            `
+            MATCH (p:Comment { commentId: $commentId })<-[r:${UserToCommentRelTypes.REPORTED}]-(u:User { userId: $userId })
+            RETURN r
+            `,
+            {
+                commentId: commentId,
+                userId: userId,
+            }
+        );
+        if (queryResult.records.length > 0) {
+            return true;
+        }
+        return false;
     }
 
     private getUserFromRequest(): User {
