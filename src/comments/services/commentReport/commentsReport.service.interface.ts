@@ -1,4 +1,4 @@
-import { ReportCommentPayloadDto } from "../../../moderation/dtos/userActions";
+import { ReportCommentPayloadDto } from "../../dtos";
 import { ReportedProps } from "../../../users/models/toComment";
 
 export interface ICommentsReportService {

@@ -1,11 +1,11 @@
-import { ReportCommentPayloadDto } from "../../../dtos/userActions";
-import { User } from "../../../../users/models";
+import { ReportCommentPayloadDto } from "../../dtos";
+import { User } from "../../../users/models";
 import { HttpException, Inject, Injectable, Logger, Scope } from "@nestjs/common";
-import { DatabaseContext } from "../../../../database-access-layer/databaseContext";
+import { DatabaseContext } from "../../../database-access-layer/databaseContext";
 import { REQUEST } from "@nestjs/core";
 import { Request } from "express";
-import { _$ } from "../../../../_domain/injectableTokens";
-import { ReportedProps, UserToCommentRelTypes } from "../../../../users/models/toComment";
+import { _$ } from "../../../_domain/injectableTokens";
+import { ReportedProps, UserToCommentRelTypes } from "../../../users/models/toComment";
 import { ICommentsReportService } from "./commentsReport.service.interface";
 
 @Injectable({ scope: Scope.REQUEST })
