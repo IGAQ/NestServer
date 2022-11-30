@@ -38,7 +38,7 @@ export class ModerationController {
     }
 
     @Patch("/post/:postId/allow")
-    @Roles(Role.MODERATOR)
+    @Roles(Role.MODERATOR, Role.ADMIN)
     @UseGuards(AuthGuard("jwt"), RolesGuard)
     public async allowPost(@Param("postId", ParseUUIDPipe) postId: UUID): Promise<void> {
         await this._moderationActionsService.allowPost(postId);

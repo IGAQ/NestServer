@@ -7,7 +7,6 @@ import { Comment } from "../../../comments/models";
 import { Post } from "../../../posts/models";
 import { ModerationPayloadDto } from "../../dtos/moderatorActions";
 import { GotBannedProps } from "../../../users/models/toSelf";
-import { Role } from "../../../users/models";
 
 /**
  * This service is responsible for moderating posts and comments.
@@ -26,8 +25,11 @@ export class ModeratorActionsService implements IModeratorActionsService {
 
     public async banUser(payload: ModerationPayloadDto): Promise<void> {
         const user = await this._dbContext.Users.findUserById(payload.id);
-        if (user.roles.some(role => role === Role.ADMIN || role === Role.MODERATOR)) {
-            throw new HttpException("Unable to ban this user, permission level too high", 400);
+        const moderator = await this._dbContext.Users.findUserById(payload.moderatorId);
+
+        // If the moderator role's permissions are higher than the user's role's permissions, the moderator can ban the user.
+        if (Math.max(...moderator.roles) <= Math.max(...user.roles)) {
+            throw new HttpException("You cannot ban this user.", 403);
         }
         const banProps = new GotBannedProps({
             bannedAt: Date.now(),
