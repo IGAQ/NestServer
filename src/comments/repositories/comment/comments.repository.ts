@@ -75,7 +75,7 @@ export class CommentsRepository implements ICommentsRepository {
                     commentContent: $commentContent,
                     pending: $pending
                 })${restrictedQueryString}<-[:${UserToCommentRelTypes.AUTHORED} {
-                    authoredAt: $authoredAt
+                    authoredAt: $authoredProps_authoredAt
                 }]-(u),
                 (c)-[:${CommentToSelfRelTypes.REPLIED}]->(commentParent) 
             `,
@@ -84,7 +84,6 @@ export class CommentsRepository implements ICommentsRepository {
                 commentId: comment.commentId,
                 updatedAt: comment.updatedAt,
                 commentContent: comment.commentContent,
-                authoredAt: authoredProps.authoredAt,
 
                 // Parent
                 parentId: comment.parentId,
@@ -134,7 +133,7 @@ export class CommentsRepository implements ICommentsRepository {
                     commentContent: $commentContent,
                     pending: $pending
                 })${restrictedQueryString}<-[:${UserToCommentRelTypes.AUTHORED} {
-                    authoredAt: $authoredAt
+                    authoredAt: $authoredProps_authoredAt
                 }]-(u),
                 (c)<-[:${PostToCommentRelTypes.HAS_COMMENT}]-(parentPost)
             `,
@@ -143,7 +142,6 @@ export class CommentsRepository implements ICommentsRepository {
                 commentId: comment.commentId,
                 updatedAt: comment.updatedAt,
                 commentContent: comment.commentContent,
-                authoredAt: authoredProps.authoredAt,
 
                 pending: comment.pending,
 
