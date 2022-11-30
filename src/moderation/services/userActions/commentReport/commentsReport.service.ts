@@ -39,7 +39,7 @@ export class CommentsReportService implements ICommentsReportService {
 
         const reports = await this.getReportsForComment(comment.commentId);
 
-        if (reports.some(r => r.moderatorId === user.userId)) {
+        if (reports.some(r => r.userId === user.userId)) {
             throw new HttpException("Comment already reported", 400);
         }
 
@@ -70,7 +70,7 @@ export class CommentsReportService implements ICommentsReportService {
         );
         return queryResult.records.map(record => {
             const reportedProps = new ReportedProps(record.get("r").properties);
-            reportedProps.moderatorId = record.get("u").properties.userId;
+            reportedProps.userId = record.get("u").properties.userId;
             return reportedProps;
         });
     }

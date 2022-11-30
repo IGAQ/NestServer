@@ -154,7 +154,7 @@ export class ModeratorActionsService implements IModeratorActionsService {
         return post;
     }
 
-    public async undeleteComment(commentId: UUID): Promise<Comment> {
+    public async restoreComment(commentId: UUID): Promise<Comment> {
         const comment = await this.acquireComment(commentId);
 
         await comment.getDeletedProps();
@@ -168,7 +168,7 @@ export class ModeratorActionsService implements IModeratorActionsService {
         return comment;
     }
 
-    public async undeletePost(postId: UUID): Promise<Post> {
+    public async restorePost(postId: UUID): Promise<Post> {
         const post = await this.acquirePost(postId);
 
         await post.getDeletedProps();

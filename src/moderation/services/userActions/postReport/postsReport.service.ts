@@ -37,7 +37,7 @@ export class PostsReportService implements IPostsReportService {
 
         const reports = await this.getReportsForPost(post.postId);
 
-        if (reports.some(r => r.moderatorId === user.userId)) {
+        if (reports.some(r => r.userId === user.userId)) {
             throw new HttpException("Post already reported", 400);
         }
 
@@ -68,7 +68,7 @@ export class PostsReportService implements IPostsReportService {
         );
         return queryResult.records.map(record => {
             const reportedProps = new ReportedProps(record.get("r").properties);
-            reportedProps.moderatorId = record.get("u").properties.userId;
+            reportedProps.userId = record.get("u").properties.userId;
             return reportedProps;
         });
     }

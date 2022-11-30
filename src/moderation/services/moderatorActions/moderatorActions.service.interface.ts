@@ -54,7 +54,7 @@ export interface IModeratorActionsService {
      * Removes the mark of "deleted" from the post.
      * @param postId
      */
-    undeletePost(postId: UUID): Promise<Post>;
+    restorePost(postId: UUID): Promise<Post>;
 
     /**
      * Adds the mark of "deleted" to the comment.
@@ -65,7 +65,7 @@ export interface IModeratorActionsService {
      * Removes the mark of deleted from a comment.
      * @param commentId
      */
-    undeleteComment(commentId: UUID): Promise<Comment>;
+    restoreComment(commentId: UUID): Promise<Comment>;
 
     /**
      * Bans a user. A banned user cannot post, comment, or vote.
