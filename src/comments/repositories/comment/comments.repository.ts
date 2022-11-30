@@ -32,8 +32,8 @@ export class CommentsRepository implements ICommentsRepository {
             `
                 MATCH (c:Comment) WHERE c.commentId = $commentId
                 SET c.updatedAt = $updatedAt,
-                    p.commentContent = $commentContent,
-                    p.pending = $pending
+                    c.commentContent = $commentContent,
+                    c.pending = $pending
             `,
             {
                 commentId: comment.commentId,
