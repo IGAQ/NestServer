@@ -89,7 +89,6 @@ export class CommentsService implements ICommentsService {
                 parentId: commentPayload.parentId,
             })
         );
-        await foundParentComment.getAuthorUser();
         this._eventEmitter.emit(
             EventTypes.NewCommentOnComment,
             new NewCommentEvent({
