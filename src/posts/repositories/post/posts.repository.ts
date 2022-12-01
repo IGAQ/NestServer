@@ -226,4 +226,19 @@ export class PostsRepository implements IPostsRepository {
             }
         );
     }
+
+    public async getPendingPosts(): Promise<Post[]> {
+        const queryResult = await this._neo4jService.tryReadAsync(
+            `
+            MATCH (p:Post { pending: $pending })
+            RETURN p
+            `,
+            {
+                pending: true,
+            }
+        );
+        const records = queryResult.records;
+        if (records.length === 0) return [];
+        return records.map(record => new Post(record.get("p").properties, this._neo4jService));
+    }
 }

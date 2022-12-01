@@ -85,4 +85,6 @@ export interface IModeratorActionsService {
      * @param userId
      */
     unbanUser(userId: UUID): Promise<void>;
+
+    getPendingPosts(): Promise<Post[]>;
 }

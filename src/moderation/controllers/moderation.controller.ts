@@ -142,5 +142,13 @@ export class ModerationController {
         moderationPayload.moderatorId = user.userId;
         await this._moderationActionsService.banUser(moderationPayload);
     }
-}
 
+    @Get("/pendingPosts")
+    @Roles(Role.MODERATOR)
+    @UseGuards(AuthGuard("jwt"), RolesGuard)
+    public async getPendingPosts() {
+        const posts = await this._moderationActionsService.getPendingPosts();
+        const decoratedPosts = posts.map(post => post.toJSON());
+        return await Promise.all(decoratedPosts);
+    }
+}
