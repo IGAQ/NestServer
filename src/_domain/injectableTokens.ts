@@ -1,5 +1,6 @@
 import { IUserHistoryService } from "../users/services/userHistory/userHistory.service.interface";
 import { IGoogleCloudRecaptchaEnterpriseService } from "../google-cloud-recaptcha-enterprise/google-cloud-recaptcha-enterprise.service.interface";
+import { IPusherUserPoolService } from "../pusher/services/pusherUserPoolServer/pusherUserPool.service.interface";
 
 const injectableTokens = {
     // Database Context
@@ -38,5 +39,9 @@ const injectableTokens = {
 
     // Google Cloud reCAPTCHA Enterprise Module
     IGoogleCloudRecaptchaEnterpriseService: Symbol("IGoogleCloudRecaptchaEnterpriseService"),
+
+    // Pusher
+    IPusherService: Symbol("IPusherService"),
+    IPusherUserPoolService: Symbol("IPusherUserPoolService"),
 };
 export { injectableTokens as _$ };
