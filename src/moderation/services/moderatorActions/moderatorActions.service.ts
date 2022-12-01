@@ -1,12 +1,14 @@
 import { IModeratorActionsService } from "./moderatorActions.service.interface";
-import { HttpException, Inject, Injectable, Scope } from "@nestjs/common";
+import { HttpException, Inject, Injectable, Logger, Scope } from "@nestjs/common";
 import { _$ } from "../../../_domain/injectableTokens";
 import { DatabaseContext } from "../../../database-access-layer/databaseContext";
 import { DeletedProps, RestrictedProps } from "../../../_domain/models/toSelf";
 import { Comment } from "../../../comments/models";
 import { Post } from "../../../posts/models";
-import { ModerationPayloadDto } from "../../dtos/moderatorActions";
+import { ModerationPayloadDto } from "../../dtos";
 import { GotBannedProps } from "../../../users/models/toSelf";
+import { IPusherService } from "../../../pusher/services/pusher/pusher.service.interface";
+import { ChannelTypesEnum, EventTypes } from "../../../pusher/pusher.types";
 
 /**
  * This service is responsible for moderating posts and comments.
@@ -17,10 +19,16 @@ import { GotBannedProps } from "../../../users/models/toSelf";
  */
 @Injectable({ scope: Scope.DEFAULT })
 export class ModeratorActionsService implements IModeratorActionsService {
+    private readonly _logger = new Logger(ModeratorActionsService.name);
     private readonly _dbContext: DatabaseContext;
+    private readonly _pusherService: IPusherService;
 
-    constructor(@Inject(_$.IDatabaseContext) dbContext: DatabaseContext) {
+    constructor(
+        @Inject(_$.IDatabaseContext) dbContext: DatabaseContext,
+        @Inject(_$.IPusherService) pusherService: IPusherService
+    ) {
         this._dbContext = dbContext;
+        this._pusherService = pusherService;
     }
 
     public async banUser(payload: ModerationPayloadDto): Promise<void> {
@@ -134,10 +142,32 @@ export class ModeratorActionsService implements IModeratorActionsService {
         const restrictedProps = new RestrictedProps({
             restrictedAt: Date.now(),
             moderatorId: payload.moderatorId,
-            reason: payload.moderatorId,
+            reason: payload.reason,
         });
         await this._dbContext.Comments.restrictComment(payload.id, restrictedProps);
         comment.restrictedProps = restrictedProps;
+
+        await comment.getAuthorUser();
+        this._pusherService
+            .triggerUser(
+                ChannelTypesEnum.IGAQ_Notification,
+                EventTypes.CommentGotRestricted,
+                comment.authorUser.userId,
+                {
+                    commentId: comment.commentId,
+                    reason: payload.reason,
+                    username: comment.authorUser.username,
+                    avatar: comment.authorUser.avatar,
+                }
+            )
+            .then(() =>
+                this._logger.verbose(
+                    `Event ${EventTypes.CommentGotRestricted} got pushed to ${comment.authorUser.username}`
+                )
+            )
+            .catch(e =>
+                this._logger.error(`Event ${EventTypes.CommentGotRestricted} ERRORED: `, e)
+            );
 
         return comment;
     }
@@ -157,6 +187,26 @@ export class ModeratorActionsService implements IModeratorActionsService {
         });
         await this._dbContext.Posts.restrictPost(payload.id, restrictedProps);
         post.restrictedProps = restrictedProps;
+
+        await post.getAuthorUser();
+        this._pusherService
+            .triggerUser(
+                ChannelTypesEnum.IGAQ_Notification,
+                EventTypes.PostGotRestricted,
+                post.authorUser.userId,
+                {
+                    postId: post.postId,
+                    reason: payload.reason,
+                    username: post.authorUser.username,
+                    avatar: post.authorUser.avatar,
+                }
+            )
+            .then(() =>
+                this._logger.verbose(
+                    `Event ${EventTypes.PostGotRestricted} got pushed to ${post.authorUser.username}`
+                )
+            )
+            .catch(e => this._logger.error(`Event ${EventTypes.PostGotRestricted} ERRORED: `, e));
 
         return post;
     }
@@ -199,6 +249,27 @@ export class ModeratorActionsService implements IModeratorActionsService {
         comment.pending = false;
         await this._dbContext.Comments.updateComment(comment);
 
+        await comment.getAuthorUser();
+        this._pusherService
+            .triggerUser(
+                ChannelTypesEnum.IGAQ_Notification,
+                EventTypes.PostGotApprovedByModerator,
+                comment.authorUser.userId,
+                {
+                    commentId: comment.commentId,
+                    username: comment.authorUser.username,
+                    avatar: comment.authorUser.avatar,
+                }
+            )
+            .then(() =>
+                this._logger.verbose(
+                    `Event ${EventTypes.CommentGotApprovedByModerator} got pushed to ${comment.authorUser.username}`
+                )
+            )
+            .catch(e =>
+                this._logger.error(`Event ${EventTypes.CommentGotApprovedByModerator} ERRORED: `, e)
+            );
+
         return comment;
     }
 
@@ -219,6 +290,27 @@ export class ModeratorActionsService implements IModeratorActionsService {
             }
         );
         post.pending = false;
+
+        await post.getAuthorUser();
+        this._pusherService
+            .triggerUser(
+                ChannelTypesEnum.IGAQ_Notification,
+                EventTypes.PostGotApprovedByModerator,
+                post.authorUser.userId,
+                {
+                    postId: post.postId,
+                    username: post.authorUser.username,
+                    avatar: post.authorUser.avatar,
+                }
+            )
+            .then(() =>
+                this._logger.verbose(
+                    `Event ${EventTypes.PostGotApprovedByModerator} got pushed to ${post.authorUser.username}`
+                )
+            )
+            .catch(e =>
+                this._logger.error(`Event ${EventTypes.PostGotApprovedByModerator} ERRORED: `, e)
+            );
 
         return post;
     }

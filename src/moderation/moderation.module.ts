@@ -5,9 +5,10 @@ import { _$ } from "../_domain/injectableTokens";
 import { HttpModule } from "@nestjs/axios";
 import { DatabaseAccessLayerModule } from "../database-access-layer/database-access-layer.module";
 import { ModerationController } from "./controllers/moderation.controller";
+import { PusherModule } from "../pusher/pusher.module";
 
 @Module({
-    imports: [HttpModule, forwardRef(() => DatabaseAccessLayerModule)],
+    imports: [HttpModule, forwardRef(() => DatabaseAccessLayerModule), PusherModule],
     providers: [
         {
             provide: _$.IAutoModerationService,

@@ -1,4 +1,4 @@
-import { HttpException, Inject, Injectable, Scope } from "@nestjs/common";
+import { HttpException, Inject, Injectable, Logger, Scope } from "@nestjs/common";
 import { REQUEST } from "@nestjs/core";
 import { Request } from "express";
 import { DatabaseContext } from "../../../database-access-layer/databaseContext";
@@ -15,24 +15,31 @@ import { CommentCreationPayloadDto, VoteCommentPayloadDto } from "../../dtos";
 import { Comment } from "../../models";
 import { CommentToSelfRelTypes } from "../../models/toSelf";
 import { ICommentsService } from "./comments.service.interface";
+import { IPusherService } from "../../../pusher/services/pusher/pusher.service.interface";
+import { ChannelTypesEnum, EventTypes } from "../../../pusher/pusher.types";
 
 @Injectable({ scope: Scope.REQUEST })
 export class CommentsService implements ICommentsService {
+    private readonly _logger = new Logger(CommentsService.name);
+
     private readonly _request: Request;
     private readonly _dbContext: DatabaseContext;
     private readonly _autoModerationService: IAutoModerationService;
     private readonly _postService: IPostsService;
+    private readonly _pusherService: IPusherService;
 
     constructor(
         @Inject(REQUEST) request: Request,
         @Inject(_$.IDatabaseContext) databaseContext: DatabaseContext,
         @Inject(_$.IAutoModerationService) autoModerationService: IAutoModerationService,
-        @Inject(_$.IPostsService) postsService: IPostsService
+        @Inject(_$.IPostsService) postsService: IPostsService,
+        @Inject(_$.IPusherService) pusherService: IPusherService
     ) {
         this._request = request;
         this._dbContext = databaseContext;
         this._autoModerationService = autoModerationService;
         this._postService = postsService;
+        this._pusherService = pusherService;
     }
 
     public async authorNewComment(commentPayload: CommentCreationPayloadDto): Promise<Comment> {
@@ -45,18 +52,43 @@ export class CommentsService implements ICommentsService {
 
         // if moderation passed, create comment and return it.
         if (commentPayload.isPost) {
-            return await this._dbContext.Comments.addCommentToPost(
+            const foundPost = await this._postService.findPostById(commentPayload.parentId);
+            const createdComment = await this._dbContext.Comments.addCommentToPost(
                 new Comment({
                     commentContent: commentPayload.commentContent,
                     authorUser: user,
                     pending: wasOffending,
                     updatedAt: new Date().getTime(),
-                    parentId: commentPayload.parentId,
+                    parentId: foundPost.postId,
                 })
             );
+            await foundPost.getAuthorUser();
+            await foundPost.getPostType();
+            this._pusherService
+                .triggerUser(
+                    ChannelTypesEnum.IGAQ_Notification,
+                    EventTypes.NewCommentOnPost,
+                    foundPost.authorUser.userId,
+                    {
+                        username: user.username,
+                        avatar: user.avatar,
+                        commentContent: createdComment.commentContent,
+                        postTypeName: foundPost.postType.postTypeName,
+                    }
+                )
+                .then(() =>
+                    this._logger.verbose(
+                        `Event ${EventTypes.NewCommentOnPost} got pushed to ${user.username}`
+                    )
+                )
+                .catch(e =>
+                    this._logger.error(`Event ${EventTypes.NewCommentOnPost} ERRORED: `, e)
+                );
+            return createdComment;
         }
 
-        return await this._dbContext.Comments.addCommentToComment(
+        const foundParentComment = await this.findCommentById(commentPayload.parentId);
+        const createdComment = await this._dbContext.Comments.addCommentToComment(
             new Comment({
                 commentContent: commentPayload.commentContent,
                 authorUser: user,
@@ -65,6 +97,24 @@ export class CommentsService implements ICommentsService {
                 parentId: commentPayload.parentId,
             })
         );
+        await foundParentComment.getAuthorUser();
+        this._pusherService
+            .triggerUser(
+                ChannelTypesEnum.IGAQ_Notification,
+                EventTypes.NewCommentOnComment,
+                foundParentComment.authorUser.userId,
+                {
+                    username: user.username,
+                    avatar: user.avatar,
+                    commentContent: createdComment.commentContent,
+                }
+            )
+            .then(() =>
+                this._logger.verbose(
+                    `Event ${EventTypes.NewCommentOnComment} got pushed to ${user.username}`
+                )
+            )
+            .catch(e => this._logger.error(`Event ${EventTypes.NewCommentOnComment} ERRORED: `, e));
     }
 
     public async findCommentById(commentId: UUID): Promise<Comment> {
@@ -170,6 +220,20 @@ export class CommentsService implements ICommentsService {
                 votedAt: voteProps.votedAt,
             }
         );
+
+        const eventType =
+            voteCommentPayload.voteType === VoteType.UPVOTES
+                ? EventTypes.CommentGotUpVote
+                : EventTypes.CommentGotDownVote;
+
+        this._pusherService
+            .triggerUser(ChannelTypesEnum.IGAQ_Notification, eventType, user.userId, {
+                commentId: comment.commentId,
+                username: user.username,
+                avatar: user.avatar,
+            })
+            .then(() => this._logger.verbose(`Event ${eventType} got pushed to ${user.username}`))
+            .catch(e => this._logger.error(`Event ${eventType} ERRORED: `, e));
     }
 
     public async markAsPinned(commentId: UUID): Promise<void> {
@@ -200,6 +264,27 @@ export class CommentsService implements ICommentsService {
                 commentId: commentId,
             }
         );
+
+        this._pusherService
+            .triggerUser(
+                ChannelTypesEnum.IGAQ_Notification,
+                EventTypes.CommentGotPinnedByAuthor,
+                user.userId,
+                {
+                    commentId,
+                    postId: parentPost.postId,
+                    username: user.username,
+                    avatar: user.avatar,
+                }
+            )
+            .then(() =>
+                this._logger.verbose(
+                    `Event ${EventTypes.CommentGotPinnedByAuthor} got pushed to ${user.username}`
+                )
+            )
+            .catch(e =>
+                this._logger.error(`Event ${EventTypes.CommentGotPinnedByAuthor} ERRORED: `, e)
+            );
     }
 
     public async markAsUnpinned(commentId: UUID): Promise<void> {
