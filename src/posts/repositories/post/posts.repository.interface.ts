@@ -23,4 +23,6 @@ export interface IPostsRepository {
     restrictPost(postId: string, restrictedProps: RestrictedProps): Promise<void>;
 
     unrestrictPost(postId: string): Promise<void>;
+
+    getPendingPosts(): Promise<Post[]>;
 }
