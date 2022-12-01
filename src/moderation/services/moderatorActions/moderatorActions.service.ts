@@ -7,8 +7,10 @@ import { Comment } from "../../../comments/models";
 import { Post } from "../../../posts/models";
 import { ModerationPayloadDto } from "../../dtos";
 import { GotBannedProps } from "../../../users/models/toSelf";
-import { IPusherService } from "../../../pusher/services/pusher/pusher.service.interface";
-import { ChannelTypesEnum, EventTypes } from "../../../pusher/pusher.types";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { PostGotApprovedByModeratorEvent, PostGotRestrictedEvent } from "../../events";
+import { CommentGotApprovedByModeratorEvent, CommentGotRestrictedEvent } from "../../events";
+import { EventTypes } from "../../../_domain/eventTypes";
 
 /**
  * This service is responsible for moderating posts and comments.
@@ -17,18 +19,17 @@ import { ChannelTypesEnum, EventTypes } from "../../../pusher/pusher.types";
  * - This service is not responsible to check if the user is a moderator. This is done by the guards used by controllers.
  * @see src/moderation/controllers/moderatorActions/moderatorActions.controller.ts
  */
-@Injectable({ scope: Scope.DEFAULT })
+@Injectable({ scope: Scope.REQUEST })
 export class ModeratorActionsService implements IModeratorActionsService {
-    private readonly _logger = new Logger(ModeratorActionsService.name);
+    private readonly _eventEmitter: EventEmitter2;
     private readonly _dbContext: DatabaseContext;
-    private readonly _pusherService: IPusherService;
 
     constructor(
-        @Inject(_$.IDatabaseContext) dbContext: DatabaseContext,
-        @Inject(_$.IPusherService) pusherService: IPusherService
+        eventEmitter: EventEmitter2,
+        @Inject(_$.IDatabaseContext) dbContext: DatabaseContext
     ) {
+        this._eventEmitter = eventEmitter;
         this._dbContext = dbContext;
-        this._pusherService = pusherService;
     }
 
     public async banUser(payload: ModerationPayloadDto): Promise<void> {
@@ -148,26 +149,16 @@ export class ModeratorActionsService implements IModeratorActionsService {
         comment.restrictedProps = restrictedProps;
 
         await comment.getAuthorUser();
-        this._pusherService
-            .triggerUser(
-                ChannelTypesEnum.IGAQ_Notification,
-                EventTypes.CommentGotRestricted,
-                comment.authorUser.userId,
-                {
-                    commentId: comment.commentId,
-                    reason: payload.reason,
-                    username: comment.authorUser.username,
-                    avatar: comment.authorUser.avatar,
-                }
-            )
-            .then(() =>
-                this._logger.verbose(
-                    `Event ${EventTypes.CommentGotRestricted} got pushed to ${comment.authorUser.username}`
-                )
-            )
-            .catch(e =>
-                this._logger.error(`Event ${EventTypes.CommentGotRestricted} ERRORED: `, e)
-            );
+        this._eventEmitter.emit(
+            EventTypes.CommentGotRestricted,
+            new CommentGotRestrictedEvent({
+                subscriberUserId: comment.authorUser.userId,
+                commentContent: comment.commentContent,
+                reason: payload.reason,
+                username: comment.authorUser.username,
+                avatar: comment.authorUser.avatar,
+            })
+        );
 
         return comment;
     }
@@ -189,24 +180,16 @@ export class ModeratorActionsService implements IModeratorActionsService {
         post.restrictedProps = restrictedProps;
 
         await post.getAuthorUser();
-        this._pusherService
-            .triggerUser(
-                ChannelTypesEnum.IGAQ_Notification,
-                EventTypes.PostGotRestricted,
-                post.authorUser.userId,
-                {
-                    postId: post.postId,
-                    reason: payload.reason,
-                    username: post.authorUser.username,
-                    avatar: post.authorUser.avatar,
-                }
-            )
-            .then(() =>
-                this._logger.verbose(
-                    `Event ${EventTypes.PostGotRestricted} got pushed to ${post.authorUser.username}`
-                )
-            )
-            .catch(e => this._logger.error(`Event ${EventTypes.PostGotRestricted} ERRORED: `, e));
+        this._eventEmitter.emit(
+            EventTypes.PostGotRestricted,
+            new PostGotRestrictedEvent({
+                subscriberId: post.authorUser.userId,
+                postTitle: post.postTitle,
+                reason: payload.reason,
+                username: post.authorUser.username,
+                avatar: post.authorUser.avatar,
+            })
+        );
 
         return post;
     }
@@ -249,26 +232,21 @@ export class ModeratorActionsService implements IModeratorActionsService {
         comment.pending = false;
         await this._dbContext.Comments.updateComment(comment);
 
-        await comment.getAuthorUser();
-        this._pusherService
-            .triggerUser(
-                ChannelTypesEnum.IGAQ_Notification,
-                EventTypes.PostGotApprovedByModerator,
-                comment.authorUser.userId,
-                {
+        // don't wait
+        setTimeout(async () => {
+            await comment.getAuthorUser();
+            const post = await this._dbContext.Comments.findParentPost(comment.commentId);
+            this._eventEmitter.emit(
+                EventTypes.CommentGotApprovedByModerator,
+                new CommentGotApprovedByModeratorEvent({
+                    subscriberId: comment.authorUser.userId,
                     commentId: comment.commentId,
+                    postId: post.postId,
                     username: comment.authorUser.username,
                     avatar: comment.authorUser.avatar,
-                }
-            )
-            .then(() =>
-                this._logger.verbose(
-                    `Event ${EventTypes.CommentGotApprovedByModerator} got pushed to ${comment.authorUser.username}`
-                )
-            )
-            .catch(e =>
-                this._logger.error(`Event ${EventTypes.CommentGotApprovedByModerator} ERRORED: `, e)
+                })
             );
+        });
 
         return comment;
     }
@@ -292,25 +270,15 @@ export class ModeratorActionsService implements IModeratorActionsService {
         post.pending = false;
 
         await post.getAuthorUser();
-        this._pusherService
-            .triggerUser(
-                ChannelTypesEnum.IGAQ_Notification,
-                EventTypes.PostGotApprovedByModerator,
-                post.authorUser.userId,
-                {
-                    postId: post.postId,
-                    username: post.authorUser.username,
-                    avatar: post.authorUser.avatar,
-                }
-            )
-            .then(() =>
-                this._logger.verbose(
-                    `Event ${EventTypes.PostGotApprovedByModerator} got pushed to ${post.authorUser.username}`
-                )
-            )
-            .catch(e =>
-                this._logger.error(`Event ${EventTypes.PostGotApprovedByModerator} ERRORED: `, e)
-            );
+        this._eventEmitter.emit(
+            EventTypes.PostGotApprovedByModerator,
+            new PostGotApprovedByModeratorEvent({
+                subscriberId: post.authorUser.userId,
+                postId: post.postId,
+                username: post.authorUser.username,
+                avatar: post.authorUser.avatar,
+            })
+        );
 
         return post;
     }

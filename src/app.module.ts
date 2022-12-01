@@ -15,9 +15,11 @@ import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { APP_GUARD } from "@nestjs/core";
 import { GoogleCloudRecaptchaEnterpriseModule } from "./google-cloud-recaptcha-enterprise/google-cloud-recaptcha-enterprise.module";
 import { PusherModule } from "./pusher/pusher.module";
+import { EventEmitterModule } from "@nestjs/event-emitter";
 
 @Module({
     imports: [
+        EventEmitterModule.forRoot(),
         ThrottlerModule.forRoot({
             ttl: 69,
             limit: 42,

@@ -1,4 +1,4 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { Neo4jService } from "../../../neo4j/services/neo4j.service";
 import { AuthoredProps, UserToCommentRelTypes } from "../../../users/models/toComment";
 import { RestrictedProps, _ToSelfRelTypes, DeletedProps } from "../../../_domain/models/toSelf";
@@ -6,6 +6,7 @@ import { Comment } from "../../models";
 import { CommentToSelfRelTypes } from "../../models/toSelf";
 import { ICommentsRepository } from "./comments.repository.interface";
 import { PostToCommentRelTypes } from "../../../posts/models/toComment";
+import { Post } from "../../../posts/models";
 
 @Injectable()
 export class CommentsRepository implements ICommentsRepository {
@@ -216,5 +217,22 @@ export class CommentsRepository implements ICommentsRepository {
                 commentId,
             }
         );
+    }
+    // throw new HttpException("Post not found", 404);
+    public async findParentPost(commentId: UUID): Promise<Post | undefined> {
+        const parentPost = await this._neo4jService.tryReadAsync(
+            `
+            MATCH (p:Post)-[:${PostToCommentRelTypes.HAS_COMMENT}]->(c:Comment { commentId: $commentId })
+            RETURN p
+            `,
+            {
+                commentId,
+            }
+        );
+
+        if (parentPost.records.length === 0) {
+            return undefined;
+        }
+        return new Post(parentPost.records[0].get("p").properties, this._neo4jService);
     }
 }

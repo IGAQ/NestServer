@@ -1,6 +1,4 @@
-import { IUserHistoryService } from "../users/services/userHistory/userHistory.service.interface";
-import { IGoogleCloudRecaptchaEnterpriseService } from "../google-cloud-recaptcha-enterprise/google-cloud-recaptcha-enterprise.service.interface";
-import { IPusherUserPoolService } from "../pusher/services/pusherUserPoolServer/pusherUserPool.service.interface";
+import { INotificationMessageMakerService } from "../pusher/services/notificationMessageMaker/notificationMessageMaker.service.interface";
 
 const injectableTokens = {
     // Database Context
@@ -43,5 +41,7 @@ const injectableTokens = {
     // Pusher
     IPusherService: Symbol("IPusherService"),
     IPusherUserPoolService: Symbol("IPusherUserPoolService"),
+    INotificationStashPoolService: Symbol("INotificationStashPoolService"),
+    INotificationMessageMakerService: Symbol("INotificationMessageMakerService"),
 };
 export { injectableTokens as _$ };

@@ -9,7 +9,6 @@ import { ModerationModule } from "../moderation/moderation.module";
 import { PostsModule } from "../posts/posts.module";
 import { CommentsReportService } from "./services/commentReport/commentsReport.service";
 import { GoogleCloudRecaptchaEnterpriseModule } from "../google-cloud-recaptcha-enterprise/google-cloud-recaptcha-enterprise.module";
-import { PusherModule } from "../pusher/pusher.module";
 
 @Module({
     controllers: [CommentsController],
@@ -19,7 +18,6 @@ import { PusherModule } from "../pusher/pusher.module";
         ModerationModule,
         PostsModule,
         GoogleCloudRecaptchaEnterpriseModule,
-        PusherModule,
     ],
     providers: [
         {

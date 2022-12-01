@@ -1,5 +1,6 @@
 import { DeletedProps, RestrictedProps } from "../../../_domain/models/toSelf";
 import { Comment } from "../../models";
+import { Post } from "../../../posts/models";
 
 export interface ICommentsRepository {
     findAll(): Promise<Comment[]>;
@@ -20,4 +21,6 @@ export interface ICommentsRepository {
 
     markAsDeleted(commentId: UUID, deletedProps: DeletedProps): Promise<void>;
     removeDeletedMark(commentId: UUID): Promise<void>;
+
+    findParentPost(commentId: UUID): Promise<Post | undefined>;
 }
