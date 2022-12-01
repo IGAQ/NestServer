@@ -50,7 +50,7 @@ export class UsersController {
     }
 
     @Get()
-    @Roles(Role.ADMIN)
+    @Roles(Role.MODERATOR)
     @UseGuards(AuthGuard("jwt"), RolesGuard)
     public async index(): Promise<User[]> {
         const users = await this._dbContext.Users.findAll();
@@ -59,7 +59,7 @@ export class UsersController {
     }
 
     @Get(":userId")
-    @Roles(Role.ADMIN)
+    @Roles(Role.MODERATOR)
     @UseGuards(AuthGuard("jwt"), RolesGuard)
     public async getUserById(@Param("userId", new ParseUUIDPipe()) userId: string): Promise<User> {
         const user = await this._dbContext.Users.findUserById(userId);
