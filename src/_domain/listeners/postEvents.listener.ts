@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from "@nestjs/common";
+import { Inject, Injectable, Logger, Scope } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
 import { ChannelTypesEnum, PusherEvents } from "../../pusher/pusher.types";
 import { PostGotVoteEvent } from "../../posts/events";
@@ -9,7 +9,7 @@ import { INotificationMessageMakerService } from "../../pusher/services/notifica
 import { EventTypes } from "../eventTypes";
 import { INotificationStashPoolService } from "../../pusher/services/notificationStashPool/notificationStashPool.service.interface";
 
-@Injectable()
+@Injectable({ scope: Scope.DEFAULT })
 export class PostEventsListener {
     private readonly _logger = new Logger(PostEventsListener.name);
 
@@ -29,8 +29,9 @@ export class PostEventsListener {
         this._notificationStashPoolService = notificationStashPoolService;
     }
 
-    @OnEvent(EventTypes.PostGotUpVote)
+    @OnEvent(EventTypes.PostGotUpVote, { async: true })
     public async handlePostGotUpVote(event: PostGotVoteEvent): Promise<void> {
+        console.log("event listener emitted");
         const message = this._notificationMessageMakerService.makeForPostGotUpVote({
             username: event.username,
             postId: event.postId,
@@ -45,8 +46,10 @@ export class PostEventsListener {
         );
     }
 
-    @OnEvent(EventTypes.PostGotDownVote)
+    @OnEvent(EventTypes.PostGotDownVote, { async: true })
     public async handlePostGotDownVote(event: PostGotVoteEvent): Promise<void> {
+        console.log("event listener emitted");
+
         const message = this._notificationMessageMakerService.makeForPostGotDownVote({
             username: event.username,
             postId: event.postId,
@@ -61,7 +64,7 @@ export class PostEventsListener {
         );
     }
 
-    @OnEvent(EventTypes.PostGotApprovedByModerator)
+    @OnEvent(EventTypes.PostGotApprovedByModerator, { async: true })
     public async handlePostGotApprovedByModerator(
         event: PostGotApprovedByModeratorEvent
     ): Promise<void> {
@@ -79,7 +82,7 @@ export class PostEventsListener {
         );
     }
 
-    @OnEvent(EventTypes.PostGotRestricted)
+    @OnEvent(EventTypes.PostGotRestricted, { async: true })
     public async handlePostGotRestricted(event: PostGotRestrictedEvent): Promise<void> {
         const message = this._notificationMessageMakerService.makeForPostGotRestricted({
             postTitle: event.postTitle,

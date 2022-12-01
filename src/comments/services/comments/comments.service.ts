@@ -216,7 +216,7 @@ export class CommentsService implements ICommentsService {
             this._eventEmitter.emit(
                 eventType,
                 new CommentGotVoteEvent({
-                    subscriberId: user.userId,
+                    subscriberId: parentPost.authorUser.userId,
                     postId: parentPost.postId,
                     commentId: comment.commentId,
                     username: user.username,
@@ -255,10 +255,11 @@ export class CommentsService implements ICommentsService {
             }
         );
 
+        await comment.getAuthorUser();
         this._eventEmitter.emit(
             EventTypes.CommentGotPinnedByAuthor,
             new CommentGotPinnedByAuthorEvent({
-                subscriberId: user.userId,
+                subscriberId: comment.authorUser.userId,
                 commentId,
                 commentContent: comment.commentContent,
                 postId: parentPost.postId,
