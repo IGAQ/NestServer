@@ -226,14 +226,21 @@ export class CommentsService implements ICommentsService {
                 ? EventTypes.CommentGotUpVote
                 : EventTypes.CommentGotDownVote;
 
-        this._pusherService
-            .triggerUser(ChannelTypesEnum.IGAQ_Notification, eventType, user.userId, {
-                commentId: comment.commentId,
-                username: user.username,
-                avatar: user.avatar,
-            })
-            .then(() => this._logger.verbose(`Event ${eventType} got pushed to ${user.username}`))
-            .catch(e => this._logger.error(`Event ${eventType} ERRORED: `, e));
+        // don't wait for the push notification.
+        setTimeout(async () => {
+            const parentPost = await this.findParentPost(comment.commentId);
+            this._pusherService
+                .triggerUser(ChannelTypesEnum.IGAQ_Notification, eventType, user.userId, {
+                    postId: parentPost.postId,
+                    commentId: comment.commentId,
+                    username: user.username,
+                    avatar: user.avatar,
+                })
+                .then(() =>
+                    this._logger.verbose(`Event ${eventType} got pushed to ${user.username}`)
+                )
+                .catch(e => this._logger.error(`Event ${eventType} ERRORED: `, e));
+        });
     }
 
     public async markAsPinned(commentId: UUID): Promise<void> {
