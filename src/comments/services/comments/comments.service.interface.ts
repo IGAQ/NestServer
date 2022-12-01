@@ -1,5 +1,6 @@
 import { CommentCreationPayloadDto, VoteCommentPayloadDto } from "../../dtos";
 import { Comment } from "../../models";
+import { Post } from "../../../posts/models";
 
 export interface ICommentsService {
     authorNewComment(commentPayload: CommentCreationPayloadDto): Promise<Comment>;

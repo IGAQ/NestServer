@@ -15,31 +15,32 @@ import { CommentCreationPayloadDto, VoteCommentPayloadDto } from "../../dtos";
 import { Comment } from "../../models";
 import { CommentToSelfRelTypes } from "../../models/toSelf";
 import { ICommentsService } from "./comments.service.interface";
-import { IPusherService } from "../../../pusher/services/pusher/pusher.service.interface";
-import { ChannelTypesEnum, EventTypes } from "../../../pusher/pusher.types";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { CommentGotPinnedByAuthorEvent, CommentGotVoteEvent, NewCommentEvent } from "../../events";
+import { EventTypes } from "../../../_domain/eventTypes";
 
 @Injectable({ scope: Scope.REQUEST })
 export class CommentsService implements ICommentsService {
     private readonly _logger = new Logger(CommentsService.name);
 
+    private readonly _eventEmitter: EventEmitter2;
     private readonly _request: Request;
     private readonly _dbContext: DatabaseContext;
     private readonly _autoModerationService: IAutoModerationService;
     private readonly _postService: IPostsService;
-    private readonly _pusherService: IPusherService;
 
     constructor(
+        eventEmitter: EventEmitter2,
         @Inject(REQUEST) request: Request,
         @Inject(_$.IDatabaseContext) databaseContext: DatabaseContext,
         @Inject(_$.IAutoModerationService) autoModerationService: IAutoModerationService,
-        @Inject(_$.IPostsService) postsService: IPostsService,
-        @Inject(_$.IPusherService) pusherService: IPusherService
+        @Inject(_$.IPostsService) postsService: IPostsService
     ) {
+        this._eventEmitter = eventEmitter;
         this._request = request;
         this._dbContext = databaseContext;
         this._autoModerationService = autoModerationService;
         this._postService = postsService;
-        this._pusherService = pusherService;
     }
 
     public async authorNewComment(commentPayload: CommentCreationPayloadDto): Promise<Comment> {
@@ -64,26 +65,17 @@ export class CommentsService implements ICommentsService {
             );
             await foundPost.getAuthorUser();
             await foundPost.getPostType();
-            this._pusherService
-                .triggerUser(
-                    ChannelTypesEnum.IGAQ_Notification,
-                    EventTypes.NewCommentOnPost,
-                    foundPost.authorUser.userId,
-                    {
-                        username: user.username,
-                        avatar: user.avatar,
-                        commentContent: createdComment.commentContent,
-                        postTypeName: foundPost.postType.postTypeName,
-                    }
-                )
-                .then(() =>
-                    this._logger.verbose(
-                        `Event ${EventTypes.NewCommentOnPost} got pushed to ${user.username}`
-                    )
-                )
-                .catch(e =>
-                    this._logger.error(`Event ${EventTypes.NewCommentOnPost} ERRORED: `, e)
-                );
+            this._eventEmitter.emit(
+                EventTypes.NewCommentOnPost,
+                new NewCommentEvent({
+                    subscriberId: foundPost.authorUser.userId,
+                    username: user.username,
+                    avatar: user.avatar,
+                    commentContent: createdComment.commentContent,
+                    postTypeName: foundPost.postType.postTypeName,
+                })
+            );
+
             return createdComment;
         }
 
@@ -98,23 +90,15 @@ export class CommentsService implements ICommentsService {
             })
         );
         await foundParentComment.getAuthorUser();
-        this._pusherService
-            .triggerUser(
-                ChannelTypesEnum.IGAQ_Notification,
-                EventTypes.NewCommentOnComment,
-                foundParentComment.authorUser.userId,
-                {
-                    username: user.username,
-                    avatar: user.avatar,
-                    commentContent: createdComment.commentContent,
-                }
-            )
-            .then(() =>
-                this._logger.verbose(
-                    `Event ${EventTypes.NewCommentOnComment} got pushed to ${user.username}`
-                )
-            )
-            .catch(e => this._logger.error(`Event ${EventTypes.NewCommentOnComment} ERRORED: `, e));
+        this._eventEmitter.emit(
+            EventTypes.NewCommentOnComment,
+            new NewCommentEvent({
+                subscriberId: foundParentComment.authorUser.userId,
+                username: user.username,
+                avatar: user.avatar,
+                commentContent: createdComment.commentContent,
+            })
+        );
     }
 
     public async findCommentById(commentId: UUID): Promise<Comment> {
@@ -228,18 +212,17 @@ export class CommentsService implements ICommentsService {
 
         // don't wait for the push notification.
         setTimeout(async () => {
-            const parentPost = await this.findParentPost(comment.commentId);
-            this._pusherService
-                .triggerUser(ChannelTypesEnum.IGAQ_Notification, eventType, user.userId, {
+            const parentPost = await this.acquireParentPost(comment.commentId);
+            this._eventEmitter.emit(
+                eventType,
+                new CommentGotVoteEvent({
+                    subscriberId: user.userId,
                     postId: parentPost.postId,
                     commentId: comment.commentId,
                     username: user.username,
                     avatar: user.avatar,
                 })
-                .then(() =>
-                    this._logger.verbose(`Event ${eventType} got pushed to ${user.username}`)
-                )
-                .catch(e => this._logger.error(`Event ${eventType} ERRORED: `, e));
+            );
         });
     }
 
@@ -272,26 +255,17 @@ export class CommentsService implements ICommentsService {
             }
         );
 
-        this._pusherService
-            .triggerUser(
-                ChannelTypesEnum.IGAQ_Notification,
-                EventTypes.CommentGotPinnedByAuthor,
-                user.userId,
-                {
-                    commentId,
-                    postId: parentPost.postId,
-                    username: user.username,
-                    avatar: user.avatar,
-                }
-            )
-            .then(() =>
-                this._logger.verbose(
-                    `Event ${EventTypes.CommentGotPinnedByAuthor} got pushed to ${user.username}`
-                )
-            )
-            .catch(e =>
-                this._logger.error(`Event ${EventTypes.CommentGotPinnedByAuthor} ERRORED: `, e)
-            );
+        this._eventEmitter.emit(
+            EventTypes.CommentGotPinnedByAuthor,
+            new CommentGotPinnedByAuthorEvent({
+                subscriberId: user.userId,
+                commentId,
+                commentContent: comment.commentContent,
+                postId: parentPost.postId,
+                username: user.username,
+                avatar: user.avatar,
+            })
+        );
     }
 
     public async markAsUnpinned(commentId: UUID): Promise<void> {
@@ -325,21 +299,13 @@ export class CommentsService implements ICommentsService {
     }
 
     // gets the parent post of any nested comment of the post
-    private async findParentPost(commentId: UUID): Promise<Post> {
-        const parentPost = await this._dbContext.neo4jService.tryReadAsync(
-            `
-            MATCH (p:Post)-[:${PostToCommentRelTypes.HAS_COMMENT}]->(c:Comment { commentId: $commentId })
-            RETURN p
-            `,
-            {
-                commentId,
-            }
-        );
+    private async acquireParentPost(commentId: UUID): Promise<Post> {
+        const parentPost = await this._dbContext.Comments.findParentPost(commentId);
 
-        if (parentPost.records.length === 0) {
+        if (!parentPost) {
             throw new HttpException("Post not found", 404);
         }
-        return new Post(parentPost.records[0].get("p").properties, this._dbContext.neo4jService);
+        return parentPost;
     }
 
     // gets the root comment of any nested comment
@@ -363,7 +329,7 @@ export class CommentsService implements ICommentsService {
             );
         } else {
             const rootComment = await this._dbContext.Comments.findCommentById(commentId);
-            return [await this.findParentPost(rootComment.commentId), isNestedComment];
+            return [await this.acquireParentPost(rootComment.commentId), isNestedComment];
         }
     }
 
