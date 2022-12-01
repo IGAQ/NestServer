@@ -1,4 +1,4 @@
-import { HttpException, Inject, Injectable, Scope } from "@nestjs/common";
+import { HttpException, Inject, Injectable, Logger, Scope } from "@nestjs/common";
 import { REQUEST } from "@nestjs/core";
 import { Request } from "express";
 import { Comment } from "../../../comments/models";
@@ -11,21 +11,28 @@ import { VoteType } from "../../../_domain/models/enums";
 import { PostCreationPayloadDto, VotePostPayloadDto } from "../../dtos";
 import { Post, PostTag } from "../../models";
 import { IPostsService, postSortCallback } from "./posts.service.interface";
+import { IPusherService } from "../../../pusher/services/pusher/pusher.service.interface";
+import { ChannelTypesEnum, EventTypes } from "../../../pusher/pusher.types";
 
 @Injectable({ scope: Scope.REQUEST })
 export class PostsService implements IPostsService {
+    private readonly _logger = new Logger(PostsService.name);
+
     private readonly _request: Request;
     private readonly _dbContext: DatabaseContext;
     private readonly _autoModerationService: IAutoModerationService;
+    private readonly _pusherService: IPusherService;
 
     constructor(
         @Inject(REQUEST) request: Request,
         @Inject(_$.IDatabaseContext) databaseContext: DatabaseContext,
-        @Inject(_$.IAutoModerationService) autoModerationService: IAutoModerationService
+        @Inject(_$.IAutoModerationService) autoModerationService: IAutoModerationService,
+        @Inject(_$.IPusherService) pusherService: IPusherService
     ) {
         this._request = request;
         this._dbContext = databaseContext;
         this._autoModerationService = autoModerationService;
+        this._pusherService = pusherService;
     }
 
     public async authorNewPost(postPayload: PostCreationPayloadDto): Promise<Post> {
@@ -308,6 +315,20 @@ export class PostsService implements IPostsService {
                 votedAt: voteProps.votedAt,
             }
         );
+
+        const eventType =
+            votePostPayload.voteType === VoteType.UPVOTES
+                ? EventTypes.PostGotUpVote
+                : EventTypes.PostGotDownVote;
+
+        this._pusherService
+            .triggerUser(ChannelTypesEnum.IGAQ_Notification, eventType, user.userId, {
+                postId: post.postId,
+                username: user.username,
+                avatar: user.avatar,
+            })
+            .then(() => this._logger.verbose(`Event ${eventType} got pushed to ${user.username}`))
+            .catch(e => this._logger.error(`Event ${eventType} ERRORED: `, e));
     }
 
     private getUserFromRequest(): User {

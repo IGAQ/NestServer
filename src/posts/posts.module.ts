@@ -13,6 +13,7 @@ import { PostTypesController } from "./controllers/postTypes.controller";
 import { ModerationModule } from "../moderation/moderation.module";
 import { PostsReportService } from "./services/postReport/postsReport.service";
 import { GoogleCloudRecaptchaEnterpriseModule } from "../google-cloud-recaptcha-enterprise/google-cloud-recaptcha-enterprise.module";
+import { PusherModule } from "../pusher/pusher.module";
 
 @Module({
     imports: [
@@ -20,6 +21,7 @@ import { GoogleCloudRecaptchaEnterpriseModule } from "../google-cloud-recaptcha-
         HttpModule,
         ModerationModule,
         GoogleCloudRecaptchaEnterpriseModule,
+        PusherModule,
     ],
     providers: [
         {
