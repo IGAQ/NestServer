@@ -3,6 +3,8 @@ export class CommentGotApprovedByModeratorEvent {
 
     commentId: UUID;
 
+    postId: UUID;
+
     username: string;
 
     avatar: string;

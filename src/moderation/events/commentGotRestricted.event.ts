@@ -1,7 +1,7 @@
 export class CommentGotRestrictedEvent {
     subscriberUserId: UUID;
 
-    commentId: UUID;
+    commentContent: string;
 
     reason: string;
 
