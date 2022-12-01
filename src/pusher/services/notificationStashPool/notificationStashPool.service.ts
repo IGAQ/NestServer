@@ -37,7 +37,8 @@ export class NotificationStashPoolService implements INotificationStashPoolServi
             return [];
         }
 
-        this.notificationStashPool.delete(userId);
+        this.dropStashNotification(userId);
+
         return foundStash;
     }
 
