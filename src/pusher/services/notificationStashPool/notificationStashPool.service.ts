@@ -5,7 +5,10 @@ import { generateUUID } from "../../../_domain/utils";
 
 @Injectable({ scope: Scope.DEFAULT })
 export class NotificationStashPoolService implements INotificationStashPoolService {
-    private readonly notificationStashPool: Map<UUID, NotificationStashPoolItem[]>;
+    private readonly notificationStashPool: Map<UUID, NotificationStashPoolItem[]> = new Map<
+        UUID,
+        NotificationStashPoolItem[]
+    >();
 
     public async stashNotification(
         userId: UUID,

@@ -1,10 +1,12 @@
-import { Inject, Injectable, Logger } from "@nestjs/common";
+import { Inject, Injectable, Logger, Scope } from "@nestjs/common";
 import { IPusherService } from "../../pusher/services/pusher/pusher.service.interface";
 import { _$ } from "../injectableTokens";
 import { OnEvent } from "@nestjs/event-emitter";
 import { ChannelTypesEnum, PusherEvents } from "../../pusher/pusher.types";
-import { CommentGotApprovedByModeratorEvent } from "../../moderation/events";
-import { CommentGotRestrictedEvent } from "../../moderation/events";
+import {
+    CommentGotApprovedByModeratorEvent,
+    CommentGotRestrictedEvent,
+} from "../../moderation/events";
 import {
     CommentGotPinnedByAuthorEvent,
     CommentGotVoteEvent,
@@ -14,7 +16,7 @@ import { INotificationMessageMakerService } from "../../pusher/services/notifica
 import { EventTypes } from "../eventTypes";
 import { INotificationStashPoolService } from "../../pusher/services/notificationStashPool/notificationStashPool.service.interface";
 
-@Injectable()
+@Injectable({ scope: Scope.DEFAULT })
 export class CommentEventsListener {
     private readonly _logger = new Logger(CommentEventsListener.name);
 
@@ -34,7 +36,7 @@ export class CommentEventsListener {
         this._notificationStashPoolService = notificationStashPoolService;
     }
 
-    @OnEvent(EventTypes.CommentGotUpVote)
+    @OnEvent(EventTypes.CommentGotUpVote, { async: true })
     public async handleCommentGotUpVote(event: CommentGotVoteEvent): Promise<void> {
         const message = this._notificationMessageMakerService.makeForCommentGotUpVote({
             username: event.username,
@@ -51,7 +53,7 @@ export class CommentEventsListener {
         );
     }
 
-    @OnEvent(EventTypes.CommentGotDownVote)
+    @OnEvent(EventTypes.CommentGotDownVote, { async: true })
     public async handleCommentGotDownVote(event: CommentGotVoteEvent): Promise<void> {
         const message = this._notificationMessageMakerService.makeForCommentGotDownVote({
             username: event.username,
@@ -68,7 +70,7 @@ export class CommentEventsListener {
         );
     }
 
-    @OnEvent(EventTypes.CommentGotRestricted)
+    @OnEvent(EventTypes.CommentGotRestricted, { async: true })
     public async handleCommentGotRestricted(event: CommentGotRestrictedEvent): Promise<void> {
         const message = this._notificationMessageMakerService.makeForCommentGotRestricted({
             commentContent: event.commentContent,
@@ -84,7 +86,7 @@ export class CommentEventsListener {
         );
     }
 
-    @OnEvent(EventTypes.CommentGotPinnedByAuthor)
+    @OnEvent(EventTypes.CommentGotPinnedByAuthor, { async: true })
     public async handleCommentGotPinnedByAuthor(
         event: CommentGotPinnedByAuthorEvent
     ): Promise<void> {
@@ -104,7 +106,7 @@ export class CommentEventsListener {
         );
     }
 
-    @OnEvent(EventTypes.CommentGotApprovedByModerator)
+    @OnEvent(EventTypes.CommentGotApprovedByModerator, { async: true })
     public async handleCommentGotApprovedByModerator(
         event: CommentGotApprovedByModeratorEvent
     ): Promise<void> {
@@ -123,7 +125,7 @@ export class CommentEventsListener {
         );
     }
 
-    @OnEvent(EventTypes.NewCommentOnComment)
+    @OnEvent(EventTypes.NewCommentOnComment, { async: true })
     public async handleNewCommentOnComment(event: NewCommentEvent): Promise<void> {
         const message = this._notificationMessageMakerService.makeForNewCommentOnComment({
             username: event.username,
@@ -139,7 +141,7 @@ export class CommentEventsListener {
         );
     }
 
-    @OnEvent(EventTypes.NewCommentOnPost)
+    @OnEvent(EventTypes.NewCommentOnPost, { async: true })
     public async handleNewCommentOnPost(event: NewCommentEvent): Promise<void> {
         const message = this._notificationMessageMakerService.makeForNewCommentOnPost({
             username: event.username,
