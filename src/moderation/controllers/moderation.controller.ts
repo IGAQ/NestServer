@@ -151,4 +151,13 @@ export class ModerationController {
         const decoratedPosts = posts.map(post => post.toJSON());
         return await Promise.all(decoratedPosts);
     }
+
+    @Get("/deletedPosts")
+    @Roles(Role.MODERATOR)
+    @UseGuards(AuthGuard("jwt"), RolesGuard)
+    public async getDeletedPosts() {
+        const posts = await this._moderationActionsService.getDeletedPosts();
+        const decoratedPosts = posts.map(post => post.toJSON());
+        return await Promise.all(decoratedPosts);
+    }
 }

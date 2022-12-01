@@ -8,6 +8,7 @@ export interface IPostsService {
     authorNewPost(postPayload: PostCreationPayloadDto): Promise<Post>;
 
     getQueeriesOfTheDay(): Promise<Post[]>;
+
     getStoriesOfTheDay(): Promise<Post[]>;
 
     findAllQueeries(): Promise<Post[]>;

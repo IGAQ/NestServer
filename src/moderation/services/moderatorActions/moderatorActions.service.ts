@@ -288,6 +288,11 @@ export class ModeratorActionsService implements IModeratorActionsService {
         return posts;
     }
 
+    public async getDeletedPosts(): Promise<Post[]> {
+        const posts = await this._dbContext.Posts.getDeletedPosts();
+        return posts;
+    }
+
     /**
      * @description
      * This method is to find a comment from the database and throw an error if it does not exist. if it does exist, it will return the comment.
