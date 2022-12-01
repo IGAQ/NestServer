@@ -241,4 +241,17 @@ export class PostsRepository implements IPostsRepository {
         if (records.length === 0) return [];
         return records.map(record => new Post(record.get("p").properties, this._neo4jService));
     }
+
+    public async getDeletedPosts(): Promise<Post[]> {
+        const queryResult = await this._neo4jService.tryReadAsync(
+            `
+            MATCH (p:Post)-[r:${_ToSelfRelTypes.DELETED}]->(p)
+            RETURN p
+            `,
+            {}
+        );
+        const records = queryResult.records;
+        if (records.length === 0) return [];
+        return records.map(record => new Post(record.get("p").properties, this._neo4jService));
+    }
 }
