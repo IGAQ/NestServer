@@ -6,7 +6,9 @@ export interface IPostsRepository {
 
     findPostByPostType(postTypeName: string): Promise<Post[]>;
 
-    findPostById(postId: string): Promise<Post | undefined>;
+    findPostById(postId: UUID): Promise<Post | undefined>;
+
+    findPostsByUserId(userId: UUID): Promise<Post[]>;
 
     getPostHistoryByUserId(userId: UUID): Promise<Post[]>;
 
@@ -14,15 +16,15 @@ export interface IPostsRepository {
 
     updatePost(post: Post): Promise<void>;
 
-    deletePost(postId: string): Promise<void>;
+    deletePost(postId: UUID): Promise<void>;
 
-    markAsDeleted(postId: string, deletedProps: DeletedProps): Promise<void>;
+    markAsDeleted(postId: UUID, deletedProps: DeletedProps): Promise<void>;
 
-    removeDeletedMark(postId: string): Promise<void>;
+    removeDeletedMark(postId: UUID): Promise<void>;
 
-    restrictPost(postId: string, restrictedProps: RestrictedProps): Promise<void>;
+    restrictPost(postId: UUID, restrictedProps: RestrictedProps): Promise<void>;
 
-    unrestrictPost(postId: string): Promise<void>;
+    unrestrictPost(postId: UUID): Promise<void>;
 
     getPendingPosts(): Promise<Post[]>;
 
