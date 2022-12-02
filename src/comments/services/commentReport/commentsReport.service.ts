@@ -77,7 +77,7 @@ export class CommentsReportService implements ICommentsReportService {
         });
     }
 
-    private async checkIfUserReportedComment(commentId: UUID, userId: UUID): Promise<Boolean> {
+    private async checkIfUserReportedComment(commentId: UUID, userId: UUID): Promise<boolean> {
         const queryResult = await this._dbContext.neo4jService.tryReadAsync(
             `
             MATCH (p:Comment { commentId: $commentId })<-[r:${UserToCommentRelTypes.REPORTED}]-(u:User { userId: $userId })
