@@ -99,7 +99,7 @@ export class Post extends Model {
         if (this.neo4jService) {
             await Promise.all([
                 ...(!this.postType ? [this.getPostType()] : []),
-                ...(!this.postTags ? [this.getPostTags()] : []),
+                ...(this.postTags.length === 0 ? [this.getPostTags()] : []),
                 ...(!this.awards ? [this.getAwards()] : []),
                 ...(!this.restrictedProps ? [this.getRestricted()] : []),
                 ...(!this.deletedProps ? [this.getDeletedProps()] : []),
