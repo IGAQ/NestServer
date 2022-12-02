@@ -25,7 +25,7 @@ export class PostsReportService implements IPostsReportService {
     public async reportPost(reportPostPayload: ReportPostPayloadDto): Promise<void> {
         const user = this.getUserFromRequest();
         const post = await this._dbContext.Posts.findPostById(reportPostPayload.postId);
-        if (!post) throw new Error("Post not found");
+        if (!post) throw new HttpException("Post not found", 404);
 
         if (post.pending || post.restrictedProps !== null) {
             throw new HttpException(
@@ -74,7 +74,7 @@ export class PostsReportService implements IPostsReportService {
         });
     }
 
-    private async checkIfUserReportedPost(postId: UUID, userId: UUID): Promise<Boolean> {
+    private async checkIfUserReportedPost(postId: UUID, userId: UUID): Promise<boolean> {
         const queryResult = await this._dbContext.neo4jService.tryReadAsync(
             `
             MATCH (p:Post { postId: $postId })<-[r:${UserToPostRelTypes.REPORTED}]-(u:User { userId: $userId })
@@ -93,8 +93,7 @@ export class PostsReportService implements IPostsReportService {
 
     private getUserFromRequest(): User {
         const user = this._request.user as User;
-        if (user === undefined) throw new Error("User not found");
+        if (user === undefined) throw new HttpException("User not found", 404);
         return user;
     }
 }
-

@@ -28,7 +28,7 @@ export class CommentsReportService implements ICommentsReportService {
         const comment = await this._dbContext.Comments.findCommentById(
             reportCommentPayload.commentId
         );
-        if (!comment) throw new Error("Comment not found");
+        if (!comment) throw new HttpException("Comment not found", 404);
 
         if (comment.pending || comment.restrictedProps !== null) {
             throw new HttpException(
@@ -96,7 +96,7 @@ export class CommentsReportService implements ICommentsReportService {
 
     private getUserFromRequest(): User {
         const user = this._request.user as User;
-        if (user === undefined) throw new Error("User not found");
+        if (user === undefined) throw new HttpException("User not found", 404);
         return user;
     }
 }
