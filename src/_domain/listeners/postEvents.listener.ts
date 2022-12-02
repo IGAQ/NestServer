@@ -8,6 +8,7 @@ import { IPusherService } from "../../pusher/services/pusher/pusher.service.inte
 import { INotificationMessageMakerService } from "../../pusher/services/notificationMessageMaker/notificationMessageMaker.service.interface";
 import { EventTypes } from "../eventTypes";
 import { INotificationStashPoolService } from "../../pusher/services/notificationStashPool/notificationStashPool.service.interface";
+import { generateUUID } from "../utils";
 
 @Injectable({ scope: Scope.DEFAULT })
 export class PostEventsListener {
@@ -32,12 +33,15 @@ export class PostEventsListener {
     @OnEvent(EventTypes.PostGotUpVote, { async: true })
     public async handlePostGotUpVote(event: PostGotVoteEvent): Promise<void> {
         console.log("event listener emitted");
+        const stashToken = generateUUID();
+        this._notificationMessageMakerService.stashToken = stashToken;
         const message = this._notificationMessageMakerService.makeForPostGotUpVote({
             username: event.username,
             postId: event.postId,
         });
 
         await this.stashAndPushNotification(
+            stashToken,
             EventTypes.PostGotUpVote,
             event.subscriberId,
             event.username,
@@ -49,6 +53,8 @@ export class PostEventsListener {
     @OnEvent(EventTypes.PostGotDownVote, { async: true })
     public async handlePostGotDownVote(event: PostGotVoteEvent): Promise<void> {
         console.log("event listener emitted");
+        const stashToken = generateUUID();
+        this._notificationMessageMakerService.stashToken = stashToken;
 
         const message = this._notificationMessageMakerService.makeForPostGotDownVote({
             username: event.username,
@@ -56,6 +62,7 @@ export class PostEventsListener {
         });
 
         await this.stashAndPushNotification(
+            stashToken,
             EventTypes.PostGotDownVote,
             event.subscriberId,
             event.username,
@@ -68,12 +75,15 @@ export class PostEventsListener {
     public async handlePostGotApprovedByModerator(
         event: PostGotApprovedByModeratorEvent
     ): Promise<void> {
+        const stashToken = generateUUID();
+        this._notificationMessageMakerService.stashToken = stashToken;
         const message = this._notificationMessageMakerService.makeForPostGotApprovedByModerator({
             username: event.username,
             postId: event.postId,
         });
 
         await this.stashAndPushNotification(
+            stashToken,
             EventTypes.PostGotApprovedByModerator,
             event.subscriberId,
             event.username,
@@ -84,12 +94,15 @@ export class PostEventsListener {
 
     @OnEvent(EventTypes.PostGotRestricted, { async: true })
     public async handlePostGotRestricted(event: PostGotRestrictedEvent): Promise<void> {
+        const stashToken = generateUUID();
+        this._notificationMessageMakerService.stashToken = stashToken;
         const message = this._notificationMessageMakerService.makeForPostGotRestricted({
             postTitle: event.postTitle,
             reason: event.reason,
         });
 
         await this.stashAndPushNotification(
+            stashToken,
             EventTypes.PostGotRestricted,
             event.subscriberId,
             event.username,
@@ -99,6 +112,7 @@ export class PostEventsListener {
     }
 
     private async stashAndPushNotification(
+        stashToken: UUID,
         evenType: EventTypes,
         subscriberId: UUID,
         username: string,
@@ -106,6 +120,7 @@ export class PostEventsListener {
         message: string
     ): Promise<void> {
         const stashPoolItem = await this._notificationStashPoolService.stashNotification(
+            stashToken,
             subscriberId,
             message
         );
@@ -116,10 +131,11 @@ export class PostEventsListener {
                 PusherEvents.UserReceivesNotification,
                 subscriberId,
                 {
+                    subscriberId,
                     username: username,
                     avatar: avatar,
                     composedMessage: message,
-                    stashToken: stashPoolItem.stashToken,
+                    stashToken: stashToken,
                 }
             )
             .then(() => this._logger.verbose(`Event ${evenType} got pushed to ${username}`))

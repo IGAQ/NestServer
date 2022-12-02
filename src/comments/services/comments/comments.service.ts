@@ -217,7 +217,7 @@ export class CommentsService implements ICommentsService {
 
         // don't wait for the push notification.
         try {
-            const parentPost = await this.acquireParentPost(comment.commentId);
+            const [parentPost] = await this.findParentCommentRoot(comment.commentId);
             await parentPost.getAuthorUser();
             this._eventEmitter.emit(
                 eventType,

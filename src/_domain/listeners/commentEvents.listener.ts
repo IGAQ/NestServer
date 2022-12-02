@@ -15,6 +15,7 @@ import {
 import { INotificationMessageMakerService } from "../../pusher/services/notificationMessageMaker/notificationMessageMaker.service.interface";
 import { EventTypes } from "../eventTypes";
 import { INotificationStashPoolService } from "../../pusher/services/notificationStashPool/notificationStashPool.service.interface";
+import { generateUUID } from "../utils";
 
 @Injectable({ scope: Scope.DEFAULT })
 export class CommentEventsListener {
@@ -38,6 +39,8 @@ export class CommentEventsListener {
 
     @OnEvent(EventTypes.CommentGotUpVote, { async: true })
     public async handleCommentGotUpVote(event: CommentGotVoteEvent): Promise<void> {
+        const stashToken = generateUUID();
+        this._notificationMessageMakerService.stashToken = stashToken;
         const message = this._notificationMessageMakerService.makeForCommentGotUpVote({
             username: event.username,
             postId: event.postId,
@@ -45,6 +48,7 @@ export class CommentEventsListener {
         });
 
         await this.stashAndPushNotification(
+            stashToken,
             EventTypes.CommentGotUpVote,
             event.subscriberId,
             event.username,
@@ -55,6 +59,8 @@ export class CommentEventsListener {
 
     @OnEvent(EventTypes.CommentGotDownVote, { async: true })
     public async handleCommentGotDownVote(event: CommentGotVoteEvent): Promise<void> {
+        const stashToken = generateUUID();
+        this._notificationMessageMakerService.stashToken = stashToken;
         const message = this._notificationMessageMakerService.makeForCommentGotDownVote({
             username: event.username,
             postId: event.postId,
@@ -62,6 +68,7 @@ export class CommentEventsListener {
         });
 
         await this.stashAndPushNotification(
+            stashToken,
             EventTypes.CommentGotDownVote,
             event.subscriberId,
             event.username,
@@ -72,12 +79,15 @@ export class CommentEventsListener {
 
     @OnEvent(EventTypes.CommentGotRestricted, { async: true })
     public async handleCommentGotRestricted(event: CommentGotRestrictedEvent): Promise<void> {
+        const stashToken = generateUUID();
+        this._notificationMessageMakerService.stashToken = stashToken;
         const message = this._notificationMessageMakerService.makeForCommentGotRestricted({
             commentContent: event.commentContent,
             reason: event.reason,
         });
 
         await this.stashAndPushNotification(
+            stashToken,
             EventTypes.CommentGotRestricted,
             event.subscriberUserId,
             event.username,
@@ -90,6 +100,8 @@ export class CommentEventsListener {
     public async handleCommentGotPinnedByAuthor(
         event: CommentGotPinnedByAuthorEvent
     ): Promise<void> {
+        const stashToken = generateUUID();
+        this._notificationMessageMakerService.stashToken = stashToken;
         const message = this._notificationMessageMakerService.makeForCommentGotPinnedByAuthor({
             commentId: event.commentId,
             postId: event.postId,
@@ -98,6 +110,7 @@ export class CommentEventsListener {
         });
 
         await this.stashAndPushNotification(
+            stashToken,
             EventTypes.CommentGotPinnedByAuthor,
             event.subscriberId,
             event.username,
@@ -110,6 +123,8 @@ export class CommentEventsListener {
     public async handleCommentGotApprovedByModerator(
         event: CommentGotApprovedByModeratorEvent
     ): Promise<void> {
+        const stashToken = generateUUID();
+        this._notificationMessageMakerService.stashToken = stashToken;
         const message = this._notificationMessageMakerService.makeForCommentGotApprovedByModerator({
             commentId: event.commentId,
             postId: event.postId,
@@ -117,6 +132,7 @@ export class CommentEventsListener {
         });
 
         await this.stashAndPushNotification(
+            stashToken,
             EventTypes.CommentGotApprovedByModerator,
             event.subscriberId,
             event.username,
@@ -127,12 +143,15 @@ export class CommentEventsListener {
 
     @OnEvent(EventTypes.NewCommentOnComment, { async: true })
     public async handleNewCommentOnComment(event: NewCommentEvent): Promise<void> {
+        const stashToken = generateUUID();
+        this._notificationMessageMakerService.stashToken = stashToken;
         const message = this._notificationMessageMakerService.makeForNewCommentOnComment({
             username: event.username,
             commentContent: event.commentContent,
         });
 
         await this.stashAndPushNotification(
+            stashToken,
             EventTypes.NewCommentOnComment,
             event.subscriberId,
             event.username,
@@ -143,6 +162,8 @@ export class CommentEventsListener {
 
     @OnEvent(EventTypes.NewCommentOnPost, { async: true })
     public async handleNewCommentOnPost(event: NewCommentEvent): Promise<void> {
+        const stashToken = generateUUID();
+        this._notificationMessageMakerService.stashToken = stashToken;
         const message = this._notificationMessageMakerService.makeForNewCommentOnPost({
             username: event.username,
             postTypeName: event.postTypeName,
@@ -150,6 +171,7 @@ export class CommentEventsListener {
         });
 
         await this.stashAndPushNotification(
+            stashToken,
             EventTypes.NewCommentOnPost,
             event.subscriberId,
             event.username,
@@ -159,6 +181,7 @@ export class CommentEventsListener {
     }
 
     private async stashAndPushNotification(
+        stashToken: UUID,
         evenType: EventTypes,
         subscriberId: UUID,
         username: string,
@@ -166,6 +189,7 @@ export class CommentEventsListener {
         message: string
     ): Promise<void> {
         const stashPoolItem = await this._notificationStashPoolService.stashNotification(
+            stashToken,
             subscriberId,
             message,
             avatar,
@@ -178,10 +202,11 @@ export class CommentEventsListener {
                 PusherEvents.UserReceivesNotification,
                 subscriberId,
                 {
+                    subscriberId,
                     username: username,
                     avatar: avatar,
                     composedMessage: message,
-                    stashToken: stashPoolItem.stashToken,
+                    stashToken: stashToken,
                 }
             )
             .then(() => this._logger.verbose(`Event ${evenType} got pushed to ${username}`))
