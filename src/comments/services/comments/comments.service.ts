@@ -98,6 +98,8 @@ export class CommentsService implements ICommentsService {
                 commentContent: createdComment.commentContent,
             })
         );
+
+        return createdComment;
     }
 
     public async findCommentById(commentId: UUID): Promise<Comment> {
