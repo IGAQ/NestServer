@@ -84,7 +84,7 @@ export class PostsController {
 
     @Get("/queery")
     @UseGuards(OptionalJwtAuthGuard)
-    @CacheTTL(5)
+    @CacheTTL(10)
     @UseInterceptors(CacheInterceptor)
     public async getAllQueeries(@AuthedUser() user: User): Promise<PostModel[]> {
         const queeries = await this._postsService.findAllQueeries();
@@ -96,7 +96,7 @@ export class PostsController {
 
     @Get("/story")
     @UseGuards(OptionalJwtAuthGuard)
-    @CacheTTL(5)
+    @CacheTTL(10)
     @UseInterceptors(CacheInterceptor)
     public async getAllStories(@AuthedUser() user: User): Promise<PostModel[]> {
         const stories = await this._postsService.findAllStories();
@@ -125,6 +125,7 @@ export class PostsController {
     }
 
     @Get("/:postId")
+    @CacheTTL(10)
     @UseGuards(OptionalJwtAuthGuard)
     public async getPostById(
         @AuthedUser() user: User,
@@ -135,6 +136,7 @@ export class PostsController {
     }
 
     @Get("/user/:userId")
+    @CacheTTL(20)
     @UseGuards(AuthGuard("jwt"))
     public async getPostsByUserId(
         @AuthedUser() user: User,
