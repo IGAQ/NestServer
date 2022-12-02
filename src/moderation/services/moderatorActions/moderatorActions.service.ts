@@ -299,11 +299,13 @@ export class ModeratorActionsService implements IModeratorActionsService {
 
     public async getPendingPosts(): Promise<Post[]> {
         const posts = await this._dbContext.Posts.getPendingPosts();
+        if (!posts) throw new HttpException("Posts not found", 404);
         return posts;
     }
 
     public async getDeletedPosts(): Promise<Post[]> {
         const posts = await this._dbContext.Posts.getDeletedPosts();
+        if (!posts) throw new HttpException("Posts not found", 404);
         return posts;
     }
 

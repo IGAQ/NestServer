@@ -31,13 +31,28 @@ export class PostsRepository implements IPostsRepository {
         return records.map(record => new Post(record.get("p").properties, this._neo4jService));
     }
 
-    public async findPostById(postId: string): Promise<Post | undefined> {
+    public async findPostById(postId: UUID): Promise<Post | undefined> {
         const post = await this._neo4jService.tryReadAsync(
             `MATCH (p:Post) WHERE p.postId = $postId RETURN p`,
             { postId: postId }
         );
         if (post.records.length === 0) return undefined;
         return new Post(post.records[0].get("p").properties, this._neo4jService);
+    }
+
+    public async findPostsByUserId(userId: string): Promise<Post[]> {
+        const allPosts = await this._neo4jService.tryReadAsync(
+            `
+            MATCH (u:User { userId: $userId})-[r:${UserToPostRelTypes.AUTHORED}]->(p:Post)
+            RETURN p
+            `,
+            {
+                userId: userId,
+            }
+        );
+        const records = allPosts.records;
+        if (records.length === 0) return [];
+        return records.map(record => new Post(record.get("p").properties, this._neo4jService));
     }
 
     public async getPostHistoryByUserId(userId: UUID): Promise<Post[]> {
@@ -169,13 +184,13 @@ export class PostsRepository implements IPostsRepository {
         );
     }
 
-    public async deletePost(postId: string): Promise<void> {
+    public async deletePost(postId: UUID): Promise<void> {
         this._neo4jService.write(`MATCH (p:Post) WHERE p.postId = $postId DETACH DELETE p`, {
             postId: postId,
         });
     }
 
-    public async markAsDeleted(postId: string, deletedProps: DeletedProps): Promise<void> {
+    public async markAsDeleted(postId: UUID, deletedProps: DeletedProps): Promise<void> {
         await this._neo4jService.tryWriteAsync(
             `
             MATCH (p:Post {postId: $postId})
@@ -189,7 +204,7 @@ export class PostsRepository implements IPostsRepository {
         );
     }
 
-    public async removeDeletedMark(postId: string): Promise<void> {
+    public async removeDeletedMark(postId: UUID): Promise<void> {
         await this._neo4jService.tryWriteAsync(
             `
             MATCH (p:Post {postId: $postId})-[r:${_ToSelfRelTypes.DELETED}]->(p)
@@ -201,7 +216,7 @@ export class PostsRepository implements IPostsRepository {
         );
     }
 
-    public async restrictPost(postId: string, restrictedProps: RestrictedProps): Promise<void> {
+    public async restrictPost(postId: UUID, restrictedProps: RestrictedProps): Promise<void> {
         await this._neo4jService.tryWriteAsync(
             `MATCH (p:Post { postId: $postId }) 
             CREATE (p)-[r:${_ToSelfRelTypes.RESTRICTED} {
@@ -218,7 +233,7 @@ export class PostsRepository implements IPostsRepository {
         );
     }
 
-    public async unrestrictPost(postId: string): Promise<void> {
+    public async unrestrictPost(postId: UUID): Promise<void> {
         await this._neo4jService.tryWriteAsync(
             `MATCH (p:Post)-[r:${_ToSelfRelTypes.RESTRICTED}]->(p) WHERE p.postId = $postId DELETE r`,
             {

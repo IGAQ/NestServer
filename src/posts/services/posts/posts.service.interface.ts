@@ -17,6 +17,8 @@ export interface IPostsService {
 
     findPostById(postId: UUID): Promise<Post>;
 
+    findPostsByUserId(userId: UUID): Promise<Post[]>;
+
     findNestedCommentsByPostId(
         postId: UUID,
         topLevelLimit: number,
