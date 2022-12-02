@@ -135,7 +135,7 @@ export class PostsController {
     }
 
     @Get("/user/:userId")
-    @UseGuards(OptionalJwtAuthGuard)
+    @UseGuards(AuthGuard("jwt"))
     public async getPostsByUserId(
         @AuthedUser() user: User,
         @Param("userId", new ParseUUIDPipe()) userId: UUID
