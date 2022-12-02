@@ -32,6 +32,7 @@ export class NotificationStashPoolService implements INotificationStashPoolServi
         }
 
         this.notificationStashPool.set(userId, [...foundStash, createdStash]);
+        return createdStash;
     }
 
     public async popStashNotifications(userId: UUID): Promise<NotificationStashPoolItem[]> {
