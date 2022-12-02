@@ -1,7 +1,6 @@
 import { INotificationStashPoolService } from "./notificationStashPool.service.interface";
 import { Injectable, Scope } from "@nestjs/common";
 import { NotificationStashPoolItem } from "../../models/notificationStashPoolItem.interface";
-import { generateUUID } from "../../../_domain/utils";
 
 @Injectable({ scope: Scope.DEFAULT })
 export class NotificationStashPoolService implements INotificationStashPoolService {
@@ -11,13 +10,14 @@ export class NotificationStashPoolService implements INotificationStashPoolServi
     >();
 
     public async stashNotification(
+        stashToken: UUID,
         userId: UUID,
         message: string,
         avatar?: string,
         username?: string
     ): Promise<NotificationStashPoolItem> {
         const createdStash: NotificationStashPoolItem = {
-            stashToken: generateUUID(), // aka notificationId
+            stashToken, // aka notificationId
             message,
             avatar,
             username,

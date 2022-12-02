@@ -1,6 +1,8 @@
 import { EventTypes } from "../../../_domain/eventTypes";
 
 export interface INotificationMessageMakerService {
+    stashToken: UUID;
+
     templates: { [key in EventTypes]: (p: object) => string };
 
     makeForNewCommentOnPost(p: {

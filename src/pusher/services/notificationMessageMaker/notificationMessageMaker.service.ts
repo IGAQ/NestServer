@@ -16,9 +16,9 @@ export class NotificationMessageMakerService implements INotificationMessageMake
         [EventTypes.NewCommentOnComment]: (p: { username: string; commentContent: string }) =>
             `${p.username} replied to your comment '${p.commentContent?.slice(0, 20) ?? ""}'`,
         [EventTypes.CommentGotUpVote]: (p: { username: string; postId: UUID; commentId: UUID }) =>
-            `${p.username} up voted your comment (uuid:${this.stashToken}:comment:${p.commentId}:post:${p.postId}:text:check it out!)`,
+            `${p.username} up voted your comment (uuid:${this.stashToken}:comm:${p.commentId}:post:${p.postId}:text:check it out!)`,
         [EventTypes.CommentGotDownVote]: (p: { username: string; postId: UUID; commentId: UUID }) =>
-            `${p.username} down voted your comment (uuid:${this.stashToken}:comment:${p.commentId}:post:${p.postId}:text:go to comment)`,
+            `${p.username} down voted your comment (uuid:${this.stashToken}:comm:${p.commentId}:post:${p.postId}:text:go to comment)`,
         [EventTypes.CommentGotRestricted]: (p: { commentContent: string; reason: string }) =>
             `A Moderator has restricted your comment due to: "${
                 p.reason
@@ -28,19 +28,18 @@ export class NotificationMessageMakerService implements INotificationMessageMake
             postId: UUID;
             username: string;
         }) =>
-            `Our moderator, ${p.username}, allowed your comment to be published. (uuid:${this.stashToken}:comment:${p.commentId}:post:${p.postId}:text:go to comment)`,
+            `Our moderator, ${p.username}, allowed your comment to be published. (uuid:${this.stashToken}:comm:${p.commentId}:post:${p.postId}:text:go to comment)`,
         [EventTypes.CommentGotPinnedByAuthor]: (p: {
             commentId: UUID;
             postId: UUID;
             commentContent: string;
             username: string;
         }) =>
-            `${p.username} pinned your comment '${p.commentContent.slice(
-                0,
-                20
-            )}'. <a href="/homepage/${p.postId}/comment/${p.commentId}">Check it out</a>`,
+            `${p.username} pinned your comment '${p.commentContent.slice(0, 20)}'. (uuid:${
+                this.stashToken
+            }:post:${p.postId}:comm:${p.commentId}:text:Check it out)`,
         [EventTypes.PostGotUpVote]: (p: { username: string; postId: UUID }) =>
-            `${p.username} up voted your post <a href="/homepage/${p.postId}">check it out!</a>`,
+            `${p.username} up voted your post (uuid:${this.stashToken}:post:${p.postId}:text:check it out!)`,
         [EventTypes.PostGotDownVote]: (p: { username: string; postId: UUID }) =>
             `${p.username} down voted your post (uuid:${this.stashToken}:post:${p.postId}:text:go to post)`,
         [EventTypes.PostGotRestricted]: (p: { postTitle: string; reason: string }) =>

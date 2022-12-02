@@ -2,6 +2,7 @@ import { NotificationStashPoolItem } from "../../models/notificationStashPoolIte
 
 export interface INotificationStashPoolService {
     stashNotification(
+        stashToken: UUID,
         userId: UUID,
         message: string,
         avatar?: string,
