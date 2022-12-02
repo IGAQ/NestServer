@@ -50,7 +50,7 @@ export class NotificationMessageMakerService implements INotificationMessageMake
         [EventTypes.PostGotUpVote]: (p: { username: string; postId: UUID }) =>
             `${p.username} up voted your post (uuid:${this.stashToken}:post:${p.postId}:text:check it out!)`,
         [EventTypes.PostGotDownVote]: (p: { username: string; postId: UUID }) =>
-            `${p.username} down voted your post (uuid:${this.stashToken}:post:${p.postId}:text:go to post)`,
+            `someone down voted your post (uuid:${this.stashToken}:post:${p.postId}:text:go to post)`,
         [EventTypes.PostGotRestricted]: (p: { postTitle: string; reason: string }) =>
             `A Moderator has restricted your post due to: "${
                 p.reason
