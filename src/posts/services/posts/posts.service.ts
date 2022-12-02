@@ -230,9 +230,9 @@ export class PostsService implements IPostsService {
     }
 
     public async findPostsByUserId(userId: UUID): Promise<Post[]> {
-        const foundPosts = await this._dbContext.Posts.findPostsByUserId(userId);
-        if (!foundPosts) throw new HttpException("Posts not found", 404);
-        return foundPosts;
+        let foundPosts = await this._dbContext.Posts.findPostsByUserId(userId);
+        foundPosts = await this.filterPublicPosts(foundPosts);
+        return this.decoratePosts(foundPosts, (postA, postB) => postB.createdAt - postA.createdAt);
     }
 
     public async findNestedCommentsByPostId(
