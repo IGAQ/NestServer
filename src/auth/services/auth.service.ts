@@ -1,4 +1,4 @@
-import { HttpException, Inject, Injectable } from "@nestjs/common";
+import { HttpException, Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
@@ -17,6 +17,8 @@ import { _$ } from "../../_domain/injectableTokens";
 
 @Injectable({})
 export class AuthService implements IAuthService {
+    private readonly _logger: Logger = new Logger(AuthService.name);
+
     constructor(
         @Inject(_$.IUsersRepository) private _usersRepository: IUsersRepository,
         private _jwtService: JwtService,
@@ -51,7 +53,8 @@ export class AuthService implements IAuthService {
                 access_token: token,
             });
         } catch (error) {
-            throw new Error(error);
+            this._logger.warn(error);
+            throw new HttpException("something wrong happened", 500);
         }
     }
 

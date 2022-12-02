@@ -346,7 +346,7 @@ export class PostsService implements IPostsService {
 
     private getUserFromRequest(): User {
         const user = this._request.user as User;
-        if (user === undefined) throw new Error("User not found");
+        if (user === undefined) throw new HttpException("User not found", 404);
         return user;
     }
 }
