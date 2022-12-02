@@ -120,7 +120,7 @@ export class Comment extends Model {
             `
             MATCH (c:Comment)-[:${
                 CommentToSelfRelTypes.REPLIED
-            }]->(p:Comment) WHERE c.commentId = $parentId 
+            }]->(p:Comment) WHERE p.commentId = $parentId 
             RETURN c
             ${limit > 0 ? `LIMIT $limit` : ""}
             `,
