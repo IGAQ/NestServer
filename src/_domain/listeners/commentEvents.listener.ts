@@ -146,6 +146,8 @@ export class CommentEventsListener {
         const stashToken = generateUUID();
         this._notificationMessageMakerService.stashToken = stashToken;
         const message = this._notificationMessageMakerService.makeForNewCommentOnComment({
+            postId: event.postId,
+            commentId: event.commentId,
             username: event.username,
             commentContent: event.commentContent,
         });
@@ -165,6 +167,8 @@ export class CommentEventsListener {
         const stashToken = generateUUID();
         this._notificationMessageMakerService.stashToken = stashToken;
         const message = this._notificationMessageMakerService.makeForNewCommentOnPost({
+            postId: event.postId,
+            commentId: event.commentId,
             username: event.username,
             postTypeName: event.postTypeName,
             commentContent: event.commentContent,

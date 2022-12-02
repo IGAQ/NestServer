@@ -6,12 +6,19 @@ export interface INotificationMessageMakerService {
     templates: { [key in EventTypes]: (p: object) => string };
 
     makeForNewCommentOnPost(p: {
+        postId: UUID;
+        commentId: UUID;
         username: string;
         postTypeName: string;
         commentContent: string;
     }): string;
 
-    makeForNewCommentOnComment(p: { username: string; commentContent: string }): string;
+    makeForNewCommentOnComment(p: {
+        postId: UUID;
+        commentId: UUID;
+        username: string;
+        commentContent: string;
+    }): string;
 
     makeForCommentGotUpVote(p: { username: string; postId: UUID; commentId: UUID }): string;
 
