@@ -7,14 +7,23 @@ export class NotificationMessageMakerService implements INotificationMessageMake
     public readonly templates = {
         [EventTypes.NewCommentOnPost]: (p: {
             username: string;
+            commentId: UUID;
+            postId: UUID;
             postTypeName: string;
             commentContent: string;
         }) =>
-            `${p.username} replied to your ${p.postTypeName} '${
-                p.commentContent?.slice(0, 20) ?? ""
-            }'`,
-        [EventTypes.NewCommentOnComment]: (p: { username: string; commentContent: string }) =>
-            `someone replied to your comment '${p.commentContent?.slice(0, 20) ?? ""}'`,
+            `someone replied to your ${p.postTypeName} '(uuid:${this.stashToken}:post:${
+                p.postId
+            }:comm:${p.commentId}:text:${p.commentContent?.slice(0, 20) ?? ""})'`,
+        [EventTypes.NewCommentOnComment]: (p: {
+            postId: UUID;
+            commentId: UUID;
+            username: string;
+            commentContent: string;
+        }) =>
+            `${p.username} replied to your comment '(uuid:${this.stashToken}:post:${
+                p.postId
+            }:comm:${p.commentId}:text:${p.commentContent?.slice(0, 20) ?? ""})'`,
         [EventTypes.CommentGotUpVote]: (p: { username: string; postId: UUID; commentId: UUID }) =>
             `someone up voted your comment (uuid:${this.stashToken}:comm:${p.commentId}:post:${p.postId}:text:check it out!)`,
         [EventTypes.CommentGotDownVote]: (p: { username: string; postId: UUID; commentId: UUID }) =>
@@ -53,6 +62,8 @@ export class NotificationMessageMakerService implements INotificationMessageMake
     public stashToken: string;
 
     public makeForNewCommentOnPost(p: {
+        postId: UUID;
+        commentId: UUID;
         username: string;
         postTypeName: string;
         commentContent: string;
@@ -60,7 +71,12 @@ export class NotificationMessageMakerService implements INotificationMessageMake
         return this.templates[EventTypes.NewCommentOnPost](p);
     }
 
-    public makeForNewCommentOnComment(p: { username: string; commentContent: string }): string {
+    public makeForNewCommentOnComment(p: {
+        postId: UUID;
+        commentId: UUID;
+        username: string;
+        commentContent: string;
+    }): string {
         return this.templates[EventTypes.NewCommentOnComment](p);
     }
 

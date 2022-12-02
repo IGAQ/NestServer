@@ -70,6 +70,8 @@ export class CommentsService implements ICommentsService {
                     EventTypes.NewCommentOnPost,
                     new NewCommentEvent({
                         subscriberId: foundPost.authorUser.userId,
+                        postId: foundPost.postId,
+                        commentId: createdComment.commentId,
                         username: user.username,
                         avatar: user.avatar,
                         commentContent: createdComment.commentContent,
@@ -83,7 +85,6 @@ export class CommentsService implements ICommentsService {
             return createdComment;
         }
 
-        const foundParentComment = await this.findCommentById(commentPayload.parentId);
         const createdComment = await this._dbContext.Comments.addCommentToComment(
             new Comment({
                 commentContent: commentPayload.commentContent,
@@ -93,15 +94,23 @@ export class CommentsService implements ICommentsService {
                 parentId: commentPayload.parentId,
             })
         );
-        this._eventEmitter.emit(
-            EventTypes.NewCommentOnComment,
-            new NewCommentEvent({
-                subscriberId: foundParentComment.authorUser.userId,
-                username: user.username,
-                avatar: user.avatar,
-                commentContent: createdComment.commentContent,
-            })
-        );
+        try {
+            const foundParentComment = await this.findCommentById(commentPayload.parentId);
+            const [parentPost] = await this.findParentCommentRoot(foundParentComment.commentId);
+            this._eventEmitter.emit(
+                EventTypes.NewCommentOnComment,
+                new NewCommentEvent({
+                    subscriberId: foundParentComment.authorUser.userId,
+                    postId: parentPost.postId,
+                    commentId: createdComment.commentId,
+                    username: user.username,
+                    avatar: user.avatar,
+                    commentContent: createdComment.commentContent,
+                })
+            );
+        } catch (error) {
+            this._logger.error(error);
+        }
 
         return createdComment;
     }
