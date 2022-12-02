@@ -12,7 +12,7 @@ export class NotificationMessageMakerService implements INotificationMessageMake
             postTypeName: string;
             commentContent: string;
         }) =>
-            `someone replied to your ${p.postTypeName} '(uuid:${this.stashToken}:post:${
+            `${p.username} replied to your ${p.postTypeName} '(uuid:${this.stashToken}:post:${
                 p.postId
             }:comm:${p.commentId}:text:${p.commentContent?.slice(0, 20) ?? ""})'`,
         [EventTypes.NewCommentOnComment]: (p: {
@@ -27,7 +27,7 @@ export class NotificationMessageMakerService implements INotificationMessageMake
         [EventTypes.CommentGotUpVote]: (p: { username: string; postId: UUID; commentId: UUID }) =>
             `someone up voted your comment (uuid:${this.stashToken}:comm:${p.commentId}:post:${p.postId}:text:check it out!)`,
         [EventTypes.CommentGotDownVote]: (p: { username: string; postId: UUID; commentId: UUID }) =>
-            `${p.username} down voted your comment (uuid:${this.stashToken}:comm:${p.commentId}:post:${p.postId}:text:go to comment)`,
+            `someone down voted your comment (uuid:${this.stashToken}:comm:${p.commentId}:post:${p.postId}:text:go to comment)`,
         [EventTypes.CommentGotRestricted]: (p: { commentContent: string; reason: string }) =>
             `A Moderator has restricted your comment due to: "${
                 p.reason
