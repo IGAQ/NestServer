@@ -55,8 +55,11 @@ export class PostsService implements IPostsService {
         }
 
         // auto-moderation
-        const wasOffending = await this._autoModerationService.checkForHateSpeech(
-            postPayload.postTitle + postPayload.postContent
+        const titleWasOffending = await this._autoModerationService.checkForHateSpeech(
+            postPayload.postTitle
+        );
+        const contentWasOffending = await this._autoModerationService.checkForHateSpeech(
+            postPayload.postContent
         );
 
         // if moderation passed, create post and return it.
@@ -67,7 +70,7 @@ export class PostsService implements IPostsService {
                 postTitle: postPayload.postTitle,
                 postContent: postPayload.postContent,
                 authorUser: user,
-                pending: wasOffending,
+                pending: titleWasOffending || contentWasOffending,
             }),
             postPayload.anonymous
         );
@@ -158,13 +161,31 @@ export class PostsService implements IPostsService {
     }
 
     public async findAllQueeries(): Promise<Post[]> {
-        const queeries = await this._dbContext.Posts.findPostByPostType("queery");
+        let queeries = await this._dbContext.Posts.findPostByPostType("queery");
+        queeries = await this.filterPublicPosts(queeries);
         return this.decoratePosts(queeries, (postA, postB) => postB.createdAt - postA.createdAt);
     }
 
     public async findAllStories(): Promise<Post[]> {
-        const stories = await this._dbContext.Posts.findPostByPostType("story");
+        let stories = await this._dbContext.Posts.findPostByPostType("story");
+        stories = await this.filterPublicPosts(stories);
         return this.decoratePosts(stories, (postA, postB) => postB.createdAt - postA.createdAt);
+    }
+
+    private async filterPublicPosts(posts: Post[]): Promise<Post[]> {
+        const filteredPosts = [];
+        for (const post of posts) {
+            if (post.pending) continue;
+
+            await post.getRestricted();
+            if (post.restrictedProps) continue;
+
+            await post.getDeletedProps();
+            if (post.deletedProps) continue;
+
+            filteredPosts.push(post);
+        }
+        return filteredPosts;
     }
 
     private async decoratePosts(posts: Post[], sorted: null | postSortCallback): Promise<Post[]> {
@@ -209,7 +230,7 @@ export class PostsService implements IPostsService {
     }
 
     public async findPostsByUserId(userId: UUID): Promise<Post[]> {
-        let foundPosts = await this._dbContext.Posts.findPostsByUserId(userId);
+        const foundPosts = await this._dbContext.Posts.findPostsByUserId(userId);
         if (!foundPosts) throw new HttpException("Posts not found", 404);
         return foundPosts;
     }
