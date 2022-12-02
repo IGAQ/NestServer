@@ -4,6 +4,5 @@ export enum UserActionsEnum {
     CreatePost = "CreatePost",
     Login = "Login",
     SignUp = "SignUp",
-    ReportComment = "ReportComment",
-    ReportPost = "ReportPost",
+    ContentReport = "ContentReport",
 }
