@@ -21,6 +21,7 @@ import { EventTypes } from "../../../_domain/eventTypes";
  */
 @Injectable({ scope: Scope.REQUEST })
 export class ModeratorActionsService implements IModeratorActionsService {
+    private readonly _logger: Logger = new Logger(ModeratorActionsService.name);
     private readonly _eventEmitter: EventEmitter2;
     private readonly _dbContext: DatabaseContext;
 
@@ -148,17 +149,21 @@ export class ModeratorActionsService implements IModeratorActionsService {
         await this._dbContext.Comments.restrictComment(payload.id, restrictedProps);
         comment.restrictedProps = restrictedProps;
 
-        await comment.getAuthorUser();
-        this._eventEmitter.emit(
-            EventTypes.CommentGotRestricted,
-            new CommentGotRestrictedEvent({
-                subscriberUserId: comment.authorUser.userId,
-                commentContent: comment.commentContent,
-                reason: payload.reason,
-                username: comment.authorUser.username,
-                avatar: comment.authorUser.avatar,
-            })
-        );
+        try {
+            await comment.getAuthorUser();
+            this._eventEmitter.emit(
+                EventTypes.CommentGotRestricted,
+                new CommentGotRestrictedEvent({
+                    subscriberUserId: comment.authorUser.userId,
+                    commentContent: comment.commentContent,
+                    reason: payload.reason,
+                    username: comment.authorUser.username,
+                    avatar: comment.authorUser.avatar,
+                })
+            );
+        } catch (error) {
+            this._logger.error(error);
+        }
 
         return comment;
     }
@@ -179,17 +184,21 @@ export class ModeratorActionsService implements IModeratorActionsService {
         await this._dbContext.Posts.restrictPost(payload.id, restrictedProps);
         post.restrictedProps = restrictedProps;
 
-        await post.getAuthorUser();
-        this._eventEmitter.emit(
-            EventTypes.PostGotRestricted,
-            new PostGotRestrictedEvent({
-                subscriberId: post.authorUser.userId,
-                postTitle: post.postTitle,
-                reason: payload.reason,
-                username: post.authorUser.username,
-                avatar: post.authorUser.avatar,
-            })
-        );
+        try {
+            await post.getAuthorUser();
+            this._eventEmitter.emit(
+                EventTypes.PostGotRestricted,
+                new PostGotRestrictedEvent({
+                    subscriberId: post.authorUser.userId,
+                    postTitle: post.postTitle,
+                    reason: payload.reason,
+                    username: post.authorUser.username,
+                    avatar: post.authorUser.avatar,
+                })
+            );
+        } catch (error) {
+            this._logger.error(error);
+        }
 
         return post;
     }
@@ -233,7 +242,7 @@ export class ModeratorActionsService implements IModeratorActionsService {
         await this._dbContext.Comments.updateComment(comment);
 
         // don't wait
-        setTimeout(async () => {
+        try {
             await comment.getAuthorUser();
             const post = await this._dbContext.Comments.findParentPost(comment.commentId);
             this._eventEmitter.emit(
@@ -246,7 +255,9 @@ export class ModeratorActionsService implements IModeratorActionsService {
                     avatar: comment.authorUser.avatar,
                 })
             );
-        });
+        } catch (error) {
+            this._logger.error(error);
+        }
 
         return comment;
     }
@@ -269,17 +280,20 @@ export class ModeratorActionsService implements IModeratorActionsService {
         );
         post.pending = false;
 
-        await post.getAuthorUser();
-        this._eventEmitter.emit(
-            EventTypes.PostGotApprovedByModerator,
-            new PostGotApprovedByModeratorEvent({
-                subscriberId: post.authorUser.userId,
-                postId: post.postId,
-                username: post.authorUser.username,
-                avatar: post.authorUser.avatar,
-            })
-        );
-
+        try {
+            await post.getAuthorUser();
+            this._eventEmitter.emit(
+                EventTypes.PostGotApprovedByModerator,
+                new PostGotApprovedByModeratorEvent({
+                    subscriberId: post.authorUser.userId,
+                    postId: post.postId,
+                    username: post.authorUser.username,
+                    avatar: post.authorUser.avatar,
+                })
+            );
+        } catch (error) {
+            this._logger.error(error);
+        }
         return post;
     }
 

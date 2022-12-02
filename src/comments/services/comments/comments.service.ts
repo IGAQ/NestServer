@@ -63,18 +63,22 @@ export class CommentsService implements ICommentsService {
                     parentId: foundPost.postId,
                 })
             );
-            await foundPost.getAuthorUser();
-            await foundPost.getPostType();
-            this._eventEmitter.emit(
-                EventTypes.NewCommentOnPost,
-                new NewCommentEvent({
-                    subscriberId: foundPost.authorUser.userId,
-                    username: user.username,
-                    avatar: user.avatar,
-                    commentContent: createdComment.commentContent,
-                    postTypeName: foundPost.postType.postTypeName,
-                })
-            );
+            try {
+                await foundPost.getAuthorUser();
+                await foundPost.getPostType();
+                this._eventEmitter.emit(
+                    EventTypes.NewCommentOnPost,
+                    new NewCommentEvent({
+                        subscriberId: foundPost.authorUser.userId,
+                        username: user.username,
+                        avatar: user.avatar,
+                        commentContent: createdComment.commentContent,
+                        postTypeName: foundPost.postType.postTypeName,
+                    })
+                );
+            } catch (error) {
+                this._logger.error(error);
+            }
 
             return createdComment;
         }
@@ -212,8 +216,9 @@ export class CommentsService implements ICommentsService {
                 : EventTypes.CommentGotDownVote;
 
         // don't wait for the push notification.
-        setTimeout(async () => {
+        try {
             const parentPost = await this.acquireParentPost(comment.commentId);
+            await parentPost.getAuthorUser();
             this._eventEmitter.emit(
                 eventType,
                 new CommentGotVoteEvent({
@@ -224,7 +229,9 @@ export class CommentsService implements ICommentsService {
                     avatar: user.avatar,
                 })
             );
-        });
+        } catch (error) {
+            this._logger.error(error);
+        }
     }
 
     public async markAsPinned(commentId: UUID): Promise<void> {
@@ -256,18 +263,22 @@ export class CommentsService implements ICommentsService {
             }
         );
 
-        await comment.getAuthorUser();
-        this._eventEmitter.emit(
-            EventTypes.CommentGotPinnedByAuthor,
-            new CommentGotPinnedByAuthorEvent({
-                subscriberId: comment.authorUser.userId,
-                commentId,
-                commentContent: comment.commentContent,
-                postId: parentPost.postId,
-                username: user.username,
-                avatar: user.avatar,
-            })
-        );
+        try {
+            await comment.getAuthorUser();
+            this._eventEmitter.emit(
+                EventTypes.CommentGotPinnedByAuthor,
+                new CommentGotPinnedByAuthorEvent({
+                    subscriberId: comment.authorUser.userId,
+                    commentId,
+                    commentContent: comment.commentContent,
+                    postId: parentPost.postId,
+                    username: user.username,
+                    avatar: user.avatar,
+                })
+            );
+        } catch (error) {
+            this._logger.error(error);
+        }
     }
 
     public async markAsUnpinned(commentId: UUID): Promise<void> {

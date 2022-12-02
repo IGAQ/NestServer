@@ -322,16 +322,20 @@ export class PostsService implements IPostsService {
                 ? EventTypes.PostGotUpVote
                 : EventTypes.PostGotDownVote;
 
-        await post.getAuthorUser();
-        this._eventEmitter.emit(
-            eventType,
-            new PostGotVoteEvent({
-                subscriberId: post.authorUser.userId,
-                postId: post.postId,
-                username: user.username,
-                avatar: user.avatar,
-            })
-        );
+        try {
+            await post.getAuthorUser();
+            this._eventEmitter.emit(
+                eventType,
+                new PostGotVoteEvent({
+                    subscriberId: post.authorUser.userId,
+                    postId: post.postId,
+                    username: user.username,
+                    avatar: user.avatar,
+                })
+            );
+        } catch (error) {
+            this._logger.error(error);
+        }
     }
 
     private getUserFromRequest(): User {
