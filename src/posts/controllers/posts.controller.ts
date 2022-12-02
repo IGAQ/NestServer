@@ -134,6 +134,19 @@ export class PostsController {
         return await post.toJSON({ authenticatedUserId: user?.userId ?? undefined });
     }
 
+    @Get("/user/:userId")
+    @UseGuards(OptionalJwtAuthGuard)
+    public async getPostsByUserId(
+        @AuthedUser() user: User,
+        @Param("userId", new ParseUUIDPipe()) userId: UUID
+    ): Promise<PostModel[]> {
+        const posts = await this._postsService.findPostsByUserId(userId);
+        const decoratedPosts = posts.map(post =>
+            post.toJSON({ authenticatedUserId: user?.userId ?? undefined })
+        );
+        return await Promise.all(decoratedPosts);
+    }
+
     @Post("/create")
     @UseGuards(CaptchaGuard)
     @UseGuards(AuthGuard("jwt"))
