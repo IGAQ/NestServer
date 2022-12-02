@@ -98,14 +98,14 @@ export class Post extends Model {
     public async toJSON(props: ToJSONProps = {}) {
         if (this.neo4jService) {
             await Promise.all([
-                this.getPostType(),
-                this.getPostTags(),
-                this.getAwards(),
-                this.getRestricted(),
-                this.getDeletedProps(),
-                this.getCreatedAt(),
-                this.getTotalVotes(),
-                this.getAuthorUser(),
+                ...(!this.postType ? [this.getPostType()] : []),
+                ...(!this.postTags ? [this.getPostTags()] : []),
+                ...(!this.awards ? [this.getAwards()] : []),
+                ...(!this.restrictedProps ? [this.getRestricted()] : []),
+                ...(!this.deletedProps ? [this.getDeletedProps()] : []),
+                ...(!this.createdAt ? [this.getCreatedAt()] : []),
+                ...(!this.totalVotes ? [this.getTotalVotes()] : []),
+                ...(!this.authorUser ? [this.getAuthorUser()] : []),
                 ...(props.authenticatedUserId ? [this.getUserVote(props.authenticatedUserId)] : []),
             ]);
         }
