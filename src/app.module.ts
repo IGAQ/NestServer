@@ -10,10 +10,22 @@ import { PostsModule } from "./posts/posts.module";
 import { UsersModule } from "./users/users.module";
 import { AppLoggerMiddleware } from "./_domain/middlewares/appLogger.middleware";
 import { neo4jCredentials } from "./_domain/constants";
-import { ModerationModule } from './moderation/moderation.module';
+import { ModerationModule } from "./moderation/moderation.module";
+import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
+import { APP_GUARD } from "@nestjs/core";
+import { GoogleCloudRecaptchaEnterpriseModule } from "./google-cloud-recaptcha-enterprise/google-cloud-recaptcha-enterprise.module";
+import { PusherModule } from "./pusher/pusher.module";
+import { EventEmitterModule } from "@nestjs/event-emitter";
+import { DomainModule } from "./_domain/_domain.module";
 
 @Module({
     imports: [
+        EventEmitterModule.forRoot({}),
+        DomainModule,
+        ThrottlerModule.forRoot({
+            ttl: 69,
+            limit: 42,
+        }),
         Neo4jModule.forRootAsync({
             imports: [ConfigModule],
             inject: [ConfigService],
@@ -38,6 +50,14 @@ import { ModerationModule } from './moderation/moderation.module';
         CommentsModule,
         DatabaseAccessLayerModule,
         ModerationModule,
+        GoogleCloudRecaptchaEnterpriseModule,
+        PusherModule,
+    ],
+    providers: [
+        {
+            provide: APP_GUARD,
+            useClass: ThrottlerGuard,
+        },
     ],
 })
 export class AppModule {

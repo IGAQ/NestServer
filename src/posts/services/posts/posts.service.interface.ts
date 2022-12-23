@@ -1,4 +1,5 @@
-import { PostCreationPayloadDto } from "../../dtos";
+import { Comment } from "../../../comments/models";
+import { PostCreationPayloadDto, VotePostPayloadDto } from "../../dtos";
 import { Post } from "../../models";
 
 export type postSortCallback = (postA: Post, postB: Post) => number;
@@ -6,13 +7,26 @@ export type postSortCallback = (postA: Post, postB: Post) => number;
 export interface IPostsService {
     authorNewPost(postPayload: PostCreationPayloadDto): Promise<Post>;
 
-    getQueeryOfTheDay(): Promise<Post>;
+    getQueeriesOfTheDay(): Promise<Post[]>;
 
-    findAllQueeries(sorted: null | postSortCallback): Promise<Post[]>;
+    getStoriesOfTheDay(): Promise<Post[]>;
 
-    findAllStories(sorted: null | postSortCallback): Promise<Post[]>;
+    findAllQueeries(): Promise<Post[]>;
 
-    findPostById(postId: string): Promise<Post>;
+    findAllStories(): Promise<Post[]>;
 
-    markAsDeleted(postId: string): Promise<void>;
+    findPostById(postId: UUID): Promise<Post>;
+
+    findPostsByUserId(userId: UUID): Promise<Post[]>;
+
+    findNestedCommentsByPostId(
+        postId: UUID,
+        topLevelLimit: number,
+        nestedLimit: number,
+        nestedLevel: number
+    ): Promise<Comment[]>;
+
+    getNestedComments(comments: Comment[], nestedLevel: number, nestedLimit: number): Promise<void>;
+
+    votePost(votePostPayload: VotePostPayloadDto): Promise<void>;
 }

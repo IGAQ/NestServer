@@ -1,14 +1,14 @@
-import { ApiProperty } from "@nestjs/swagger";
 import { RelationshipProps } from "../../../neo4j/neo4j.helper.types";
+import { IsNumber, IsString } from "class-validator";
 
 export class WasOffendingProps implements RelationshipProps {
-    @ApiProperty({ type: Number })
+    @IsNumber()
     timestamp: number;
 
-    @ApiProperty({ type: String })
+    @IsString()
     userContent: string;
 
-    @ApiProperty({ type: Number })
+    @IsNumber()
     autoModConfidenceLevel: number;
 
     constructor(partial?: Partial<WasOffendingProps>) {

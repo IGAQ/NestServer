@@ -8,6 +8,7 @@ import { IGenderRepository } from "../users/repositories/gender/gender.repositor
 import { ISexualityRepository } from "../users/repositories/sexuality/sexuality.repository.interface";
 import { IUsersRepository } from "../users/repositories/users/users.repository.interface";
 import { _$ } from "../_domain/injectableTokens";
+import { IOpennessRepository } from "../users/repositories/openness/openness.repository.interface";
 
 @Injectable()
 export class DatabaseContext {
@@ -21,6 +22,7 @@ export class DatabaseContext {
         @Inject(_$.IUsersRepository) usersRepository: IUsersRepository,
         @Inject(_$.ISexualityRepository) sexualityRepository: ISexualityRepository,
         @Inject(_$.IGenderRepository) genderRepository: IGenderRepository,
+        @Inject(_$.IOpennessRepository) opennessRepository: IOpennessRepository,
         @Inject(_$.ICommentsRepository) commentsRepository: ICommentsRepository
     ) {
         this.neo4jService = neo4jService;
@@ -30,6 +32,7 @@ export class DatabaseContext {
         this.PostTags = postTagsRepository;
         this.Users = usersRepository;
         this.Sexualities = sexualityRepository;
+        this.Openness = opennessRepository;
         this.Genders = genderRepository;
         this.Comments = commentsRepository;
     }
@@ -39,6 +42,7 @@ export class DatabaseContext {
     public PostTags: IPostTagsRepository;
     public Users: IUsersRepository;
     public Sexualities: ISexualityRepository;
+    public Openness: IOpennessRepository;
     public Genders: IGenderRepository;
     public Comments: ICommentsRepository;
 }

@@ -1,11 +1,11 @@
-import { ApiProperty } from "@nestjs/swagger";
 import { RelationshipProps } from "../../../neo4j/neo4j.helper.types";
+import { IsBoolean, IsNumber } from "class-validator";
 
 export class AuthoredProps implements RelationshipProps {
-    @ApiProperty({ type: Number })
+    @IsNumber()
     authoredAt: number;
 
-    @ApiProperty({ type: Boolean })
+    @IsBoolean()
     anonymously: boolean;
 
     constructor(partial?: Partial<AuthoredProps>) {

@@ -1,8 +1,6 @@
 import { HttpModule } from "@nestjs/axios";
 import { forwardRef, Module } from "@nestjs/common";
 import { DatabaseAccessLayerModule } from "../database-access-layer/database-access-layer.module";
-import { GenderRepository } from "../users/repositories/gender/gender.repository";
-import { SexualityRepository } from "../users/repositories/sexuality/sexuality.repository";
 import { _$ } from "../_domain/injectableTokens";
 import { PostsController } from "./controllers/posts.controller";
 import { PostTagsController } from "./controllers/postTags.controller";
@@ -13,9 +11,18 @@ import { PostTypesRepository } from "./repositories/postType/postTypes.repositor
 import { PostAwardRepository } from "./repositories/postAward/postAward.repository";
 import { PostTypesController } from "./controllers/postTypes.controller";
 import { ModerationModule } from "../moderation/moderation.module";
+import { PostsReportService } from "./services/postReport/postsReport.service";
+import { GoogleCloudRecaptchaEnterpriseModule } from "../google-cloud-recaptcha-enterprise/google-cloud-recaptcha-enterprise.module";
+import { PusherModule } from "../pusher/pusher.module";
 
 @Module({
-    imports: [forwardRef(() => DatabaseAccessLayerModule), HttpModule, ModerationModule],
+    imports: [
+        forwardRef(() => DatabaseAccessLayerModule),
+        HttpModule,
+        ModerationModule,
+        GoogleCloudRecaptchaEnterpriseModule,
+        PusherModule,
+    ],
     providers: [
         {
             provide: _$.IPostsRepository,
@@ -34,16 +41,12 @@ import { ModerationModule } from "../moderation/moderation.module";
             useClass: PostTypesRepository,
         },
         {
-            provide: _$.IGenderRepository,
-            useClass: GenderRepository,
-        },
-        {
-            provide: _$.ISexualityRepository,
-            useClass: SexualityRepository,
-        },
-        {
             provide: _$.IPostAwardRepository,
             useClass: PostAwardRepository,
+        },
+        {
+            provide: _$.IPostsReportService,
+            useClass: PostsReportService,
         },
     ],
     exports: [
@@ -64,16 +67,12 @@ import { ModerationModule } from "../moderation/moderation.module";
             useClass: PostTypesRepository,
         },
         {
-            provide: _$.IGenderRepository,
-            useClass: GenderRepository,
-        },
-        {
-            provide: _$.ISexualityRepository,
-            useClass: SexualityRepository,
-        },
-        {
             provide: _$.IPostAwardRepository,
             useClass: PostAwardRepository,
+        },
+        {
+            provide: _$.IPostsReportService,
+            useClass: PostsReportService,
         },
     ],
     controllers: [PostsController, PostTagsController, PostTypesController],

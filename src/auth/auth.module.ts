@@ -7,9 +7,15 @@ import { AuthService } from "./services/auth.service";
 import { JwtStrategy } from "./strategy";
 import { _$ } from "../_domain/injectableTokens";
 import { DatabaseAccessLayerModule } from "../database-access-layer/database-access-layer.module";
+import { GoogleCloudRecaptchaEnterpriseModule } from "../google-cloud-recaptcha-enterprise/google-cloud-recaptcha-enterprise.module";
 
 @Module({
-    imports: [forwardRef(() => DatabaseAccessLayerModule), UsersModule, JwtModule.register({})],
+    imports: [
+        forwardRef(() => DatabaseAccessLayerModule),
+        UsersModule,
+        JwtModule.register({}),
+        GoogleCloudRecaptchaEnterpriseModule,
+    ],
     controllers: [AuthController],
     providers: [
         {

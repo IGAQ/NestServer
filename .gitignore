@@ -37,3 +37,4 @@ bun.lockb
 !.vscode/extensions.json
 
 .env
+igaq-google-application-credentials.json

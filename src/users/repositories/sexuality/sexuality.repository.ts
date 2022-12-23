@@ -8,14 +8,17 @@ export class SexualityRepository implements ISexualityRepository {
     constructor(@Inject(Neo4jService) private _neo4jService: Neo4jService) {}
 
     public async findAll(): Promise<Sexuality[]> {
-        const allSexualities = await this._neo4jService.read(`MATCH (s:Sexuality) RETURN s`, {});
+        const allSexualities = await this._neo4jService.tryReadAsync(
+            `MATCH (s:Sexuality) RETURN s`,
+            {}
+        );
         const records = allSexualities.records;
         if (records.length === 0) return [];
         return records.map(record => new Sexuality(record.get("s").properties));
     }
 
-    public async findSexualityById(sexualityId: string): Promise<Sexuality | undefined> {
-        const sexuality = await this._neo4jService.read(
+    public async findSexualityById(sexualityId: UUID): Promise<Sexuality | undefined> {
+        const sexuality = await this._neo4jService.tryReadAsync(
             `MATCH (s:Sexuality) WHERE s.sexualityId = $sexualityId RETURN s`,
             { sexualityId: sexualityId }
         );
@@ -66,7 +69,7 @@ export class SexualityRepository implements ISexualityRepository {
         );
     }
 
-    public async deleteSexuality(sexualityId: string): Promise<void> {
+    public async deleteSexuality(sexualityId: UUID): Promise<void> {
         await this._neo4jService.tryWriteAsync(
             `
             MATCH (s:Sexuality) WHERE s.sexualityId = $sexualityId

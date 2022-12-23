@@ -1,25 +1,26 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { Neo4jService } from "../../../neo4j/services/neo4j.service";
 import { AuthoredProps, UserToCommentRelTypes } from "../../../users/models/toComment";
-import { RestrictedProps, _ToSelfRelTypes } from "../../../_domain/models/toSelf";
+import { RestrictedProps, _ToSelfRelTypes, DeletedProps } from "../../../_domain/models/toSelf";
 import { Comment } from "../../models";
-import { CommentToSelfRelTypes, RepliedProps } from "../../models/toSelf";
+import { CommentToSelfRelTypes } from "../../models/toSelf";
 import { ICommentsRepository } from "./comments.repository.interface";
 import { PostToCommentRelTypes } from "../../../posts/models/toComment";
+import { Post } from "../../../posts/models";
 
 @Injectable()
 export class CommentsRepository implements ICommentsRepository {
     constructor(@Inject(Neo4jService) private _neo4jService: Neo4jService) {}
 
     public async findAll(): Promise<Comment[]> {
-        const allComments = await this._neo4jService.read(`MATCH (c:Comment) RETURN c`, {});
+        const allComments = await this._neo4jService.tryReadAsync(`MATCH (c:Comment) RETURN c`, {});
         const records = allComments.records;
         if (records.length === 0) return [];
         return records.map(record => new Comment(record.get("c").properties, this._neo4jService));
     }
 
     public async findCommentById(commentId: string): Promise<Comment | undefined> {
-        const comment = await this._neo4jService.read(
+        const comment = await this._neo4jService.tryReadAsync(
             `MATCH (c:Comment) WHERE c.commentId = $commentId RETURN c`,
             { commentId: commentId }
         );
@@ -27,21 +28,27 @@ export class CommentsRepository implements ICommentsRepository {
         return new Comment(comment.records[0].get("c").properties, this._neo4jService);
     }
 
-    public async findChildrenComments(parentId: string): Promise<Comment[]> {
-        const comments = await this._neo4jService.read(
-            `MATCH (c:Comment)-[:${CommentToSelfRelTypes.REPLIED}]->(p:Comment) WHERE p.commentId = $parentId RETURN c`,
-            { parentId: parentId }
+    public async updateComment(comment: Comment): Promise<void> {
+        await this._neo4jService.tryWriteAsync(
+            `
+                MATCH (c:Comment) WHERE c.commentId = $commentId
+                SET c.updatedAt = $updatedAt,
+                    c.commentContent = $commentContent,
+                    c.pending = $pending
+            `,
+            {
+                commentId: comment.commentId,
+                updatedAt: Date.now(),
+                commentContent: comment.commentContent,
+                pending: comment.pending,
+            }
         );
-        const records = comments.records;
-        if (records.length === 0) return [];
-        return records.map(record => new Comment(record.get("c").properties, this._neo4jService));
     }
 
     public async addCommentToComment(comment: Comment): Promise<Comment> {
         if (comment.commentId === undefined) {
             comment.commentId = this._neo4jService.generateId();
         }
-        console.log(comment);
         let restrictedQueryString = "";
         let restrictedQueryParams = {};
         if (comment.restrictedProps !== null) {
@@ -69,7 +76,7 @@ export class CommentsRepository implements ICommentsRepository {
                     commentContent: $commentContent,
                     pending: $pending
                 })${restrictedQueryString}<-[:${UserToCommentRelTypes.AUTHORED} {
-                    authoredAt: $authoredAt
+                    authoredAt: $authoredProps_authoredAt
                 }]-(u),
                 (c)-[:${CommentToSelfRelTypes.REPLIED}]->(commentParent) 
             `,
@@ -78,7 +85,6 @@ export class CommentsRepository implements ICommentsRepository {
                 commentId: comment.commentId,
                 updatedAt: comment.updatedAt,
                 commentContent: comment.commentContent,
-                authoredAt: authoredProps.authoredAt,
 
                 // Parent
                 parentId: comment.parentId,
@@ -121,23 +127,22 @@ export class CommentsRepository implements ICommentsRepository {
         await this._neo4jService.tryWriteAsync(
             `
                 MATCH (u:User { userId: $userId })
-                MATCH (commentParent:Post { postId: $parentId })
+                MATCH (parentPost:Post { postId: $parentId })
                 CREATE (c:Comment {
                     commentId: $commentId,
                     updatedAt: $updatedAt,
                     commentContent: $commentContent,
                     pending: $pending
                 })${restrictedQueryString}<-[:${UserToCommentRelTypes.AUTHORED} {
-                    authoredAt: $authoredAt
+                    authoredAt: $authoredProps_authoredAt
                 }]-(u),
-                (c)<-[:${PostToCommentRelTypes.HAS_COMMENT}]-(commentParent)
+                (c)<-[:${PostToCommentRelTypes.HAS_COMMENT}]-(parentPost)
             `,
             {
                 // Comment properties
                 commentId: comment.commentId,
                 updatedAt: comment.updatedAt,
                 commentContent: comment.commentContent,
-                authoredAt: authoredProps.authoredAt,
 
                 pending: comment.pending,
 
@@ -157,17 +162,14 @@ export class CommentsRepository implements ICommentsRepository {
         return await this.findCommentById(comment.commentId);
     }
 
-    public async deleteComment(commentId: string): Promise<void> {
+    public async deleteComment(commentId: UUID): Promise<void> {
         await this._neo4jService.tryWriteAsync(
             `MATCH (c:Comment { commentId: $commentId }) DETACH DELETE c`,
             { commentId: commentId }
         );
     }
 
-    public async restrictComment(
-        commentId: string,
-        restrictedProps: RestrictedProps
-    ): Promise<void> {
+    public async restrictComment(commentId: UUID, restrictedProps: RestrictedProps): Promise<void> {
         await this._neo4jService.tryWriteAsync(
             `MATCH (c:Comment { commentId: $commentId }) 
              CREATE (c)-[:${_ToSelfRelTypes.RESTRICTED} {
@@ -184,10 +186,53 @@ export class CommentsRepository implements ICommentsRepository {
         );
     }
 
-    public async unrestrictComment(commentId: string): Promise<void> {
+    public async unrestrictComment(commentId: UUID): Promise<void> {
         await this._neo4jService.tryWriteAsync(
             `MATCH (c:Comment { commentId: $commentId })-[r:${_ToSelfRelTypes.RESTRICTED}]->(c) DELETE r`,
             { commentId: commentId }
         );
+    }
+
+    public async markAsDeleted(commentId: UUID, deletedProps: DeletedProps): Promise<void> {
+        await this._neo4jService.tryWriteAsync(
+            `
+            MATCH (c:Comment {commentId: $commentId})
+            MERGE (c)-[r:${_ToSelfRelTypes.DELETED}]->(c)
+            SET r = $deletedProps
+            `,
+            {
+                commentId,
+                deletedProps,
+            }
+        );
+    }
+
+    public async removeDeletedMark(commentId: UUID): Promise<void> {
+        await this._neo4jService.tryWriteAsync(
+            `
+            MATCH (c:Comment {commentId: $commentId})-[r:${_ToSelfRelTypes.DELETED}]->(c)
+            DELETE r
+            `,
+            {
+                commentId,
+            }
+        );
+    }
+    // throw new HttpException("Post not found", 404);
+    public async findParentPost(commentId: UUID): Promise<Post | undefined> {
+        const parentPost = await this._neo4jService.tryReadAsync(
+            `
+            MATCH (p:Post)-[:${PostToCommentRelTypes.HAS_COMMENT}]->(c:Comment { commentId: $commentId })
+            RETURN p
+            `,
+            {
+                commentId,
+            }
+        );
+
+        if (parentPost.records.length === 0) {
+            return undefined;
+        }
+        return new Post(parentPost.records[0].get("p").properties, this._neo4jService);
     }
 }

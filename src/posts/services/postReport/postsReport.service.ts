@@ -24,9 +24,8 @@ export class PostsReportService implements IPostsReportService {
 
     public async reportPost(reportPostPayload: ReportPostPayloadDto): Promise<void> {
         const user = this.getUserFromRequest();
-
         const post = await this._dbContext.Posts.findPostById(reportPostPayload.postId);
-        if (post === undefined) throw new Error("Post not found");
+        if (!post) throw new HttpException("Post not found", 404);
 
         if (post.pending || post.restrictedProps !== null) {
             throw new HttpException(
@@ -35,10 +34,10 @@ export class PostsReportService implements IPostsReportService {
             );
         }
 
-        const reports = await this.getReportsForPost(post.postId);
+        const report = await this.checkIfUserReportedPost(post.postId, user.userId);
 
-        if (reports.some(r => r.reportedBy.userId === user.userId)) {
-            throw new HttpException("Post already reported", 400);
+        if (report === true) {
+            throw new HttpException("You have already reported this post", 400);
         }
 
         await post.getAuthorUser();
@@ -49,36 +48,52 @@ export class PostsReportService implements IPostsReportService {
         await this._dbContext.neo4jService.tryWriteAsync(
             `
 			MATCH (p:Post { postId: $postId }), (u:User { userId: $userId })
-				MERGE (u)-[r:${UserToPostRelTypes.REPORTED}]->(p)
+				MERGE (u)-[r:${UserToPostRelTypes.REPORTED}{reportedAt: $reportedAt, reason: $reason}]->(p)
 			`,
             {
+                reportedAt: Date.now(),
+                reason: reportPostPayload.reason,
                 postId: post.postId,
                 userId: user.userId,
             }
         );
     }
 
-    public async getReportsForPost(postId: string): Promise<ReportedProps[]> {
+    public async getReportsForPost(postId: UUID): Promise<ReportedProps[]> {
         const queryResult = await this._dbContext.neo4jService.tryReadAsync(
             `
-			MATHC (p:Post { postId: $postId })<-[r:${UserToPostRelTypes.REPORTED}]-(u:User)`,
+			MATCH (p:Post { postId: $postId })<-[r:${UserToPostRelTypes.REPORTED}]-(u:User)
+            RETURN r, u`,
             {
                 postId: postId,
             }
         );
         return queryResult.records.map(record => {
             const reportedProps = new ReportedProps(record.get("r").properties);
-            reportedProps.reportedBy = new User(
-                record.get("u").properties,
-                this._dbContext.neo4jService
-            );
             return reportedProps;
         });
     }
 
+    private async checkIfUserReportedPost(postId: UUID, userId: UUID): Promise<boolean> {
+        const queryResult = await this._dbContext.neo4jService.tryReadAsync(
+            `
+            MATCH (p:Post { postId: $postId })<-[r:${UserToPostRelTypes.REPORTED}]-(u:User { userId: $userId })
+            RETURN r
+            `,
+            {
+                postId: postId,
+                userId: userId,
+            }
+        );
+        if (queryResult.records.length > 0) {
+            return true;
+        }
+        return false;
+    }
+
     private getUserFromRequest(): User {
         const user = this._request.user as User;
-        if (user === undefined) throw new Error("User not found");
+        if (user === undefined) throw new HttpException("User not found", 404);
         return user;
     }
 }

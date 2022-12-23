@@ -1,15 +1,16 @@
 import { ApiProperty } from "@nestjs/swagger";
-
-export enum VoteType {
-    UPVOTES = "UPVOTES",
-    DOWN_VOTES = "DOWN_VOTES",
-}
+import { IsEnum, IsNotEmpty, IsUUID } from "class-validator";
+import { VoteType } from "../../_domain/models/enums";
 
 export class VotePostPayloadDto {
     @ApiProperty({ type: String, format: "uuid" })
-    postId: string;
+    @IsNotEmpty()
+    @IsUUID()
+    postId: UUID;
 
-    @ApiProperty({ type: VoteType })
+    @ApiProperty({ enum: VoteType })
+    @IsNotEmpty()
+    @IsEnum(VoteType)
     voteType: VoteType;
 
     constructor(partial?: Partial<VotePostPayloadDto>) {

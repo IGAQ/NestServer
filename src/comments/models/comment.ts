@@ -1,61 +1,84 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { Exclude } from "class-transformer";
+import { Exclude, Type } from "class-transformer";
+import {
+    IsArray,
+    IsBoolean,
+    IsEnum,
+    IsInstance,
+    IsNumber,
+    IsOptional,
+    IsString,
+    IsUUID,
+} from "class-validator";
+import neo4j from "neo4j-driver";
 import { Labels, NodeProperty } from "../../neo4j/neo4j.decorators";
 import { Model } from "../../neo4j/neo4j.helper.types";
 import { Neo4jService } from "../../neo4j/services/neo4j.service";
+import { PostToCommentRelTypes } from "../../posts/models/toComment";
+import { PublicUserDto } from "../../users/dtos";
 import { User } from "../../users/models";
 import { AuthoredProps, UserToCommentRelTypes } from "../../users/models/toComment";
-import { RestrictedProps, _ToSelfRelTypes } from "../../_domain/models/toSelf";
-import { CommentToSelfRelTypes, DeletedProps } from "./toSelf";
-import { PublicUserDto } from "../../users/dtos";
+import { VoteType } from "../../_domain/models/enums";
+import { DeletedProps, RestrictedProps, _ToSelfRelTypes } from "../../_domain/models/toSelf";
+import { CommentToSelfRelTypes } from "./toSelf";
 
 @Labels("Comment")
 export class Comment extends Model {
-    @ApiProperty({ type: String, format: "uuid" })
     @NodeProperty()
-    commentId: string;
+    @IsUUID()
+    commentId: UUID;
 
     /**
      * The time the comment was created. Its value will be derived from the relationship
      * properties of (u:User)-[authored:AUTHORED]->(c:Comment) RETURN c, authored
      * where authored.createdAt is the value of this property.
      */
-    @ApiProperty({ type: Number })
+    @IsNumber()
     createdAt: number;
 
-    @ApiProperty({ type: String })
     @NodeProperty()
+    @IsString()
     commentContent: string;
 
-    @ApiProperty({ type: String, format: "uuid" })
-    parentId: Nullable<string>;
+    @IsUUID()
+    @IsOptional()
+    parentId: Nullable<UUID>;
 
-    @ApiProperty({ type: Boolean })
+    @IsBoolean()
     pinned: boolean;
 
-    @ApiProperty({ type: String })
     @NodeProperty()
+    @IsString()
     updatedAt: number;
 
-    @ApiProperty({ type: User })
+    @IsInstance(User)
     authorUser: User | any;
 
-    @ApiProperty({ type: Boolean })
     @NodeProperty()
+    @IsBoolean()
     pending: boolean;
 
-    @ApiProperty({ type: Number })
+    @IsNumber()
     totalVotes: number;
 
-    @ApiProperty({ type: RestrictedProps })
+    @IsNumber()
+    @IsOptional()
+    totalComments: number | undefined;
+
+    @IsInstance(RestrictedProps)
+    @IsOptional()
     restrictedProps: Nullable<RestrictedProps> = null;
 
-    @ApiProperty({ type: Comment })
+    @IsArray({ each: true })
+    @Type(() => RestrictedProps)
     childComments: Comment[];
 
-    @ApiProperty({ type: Boolean })
+    @IsEnum(VoteType)
+    @IsOptional()
+    userVote: Nullable<VoteType> | undefined = undefined;
+
     @NodeProperty()
     @Exclude()
+    @IsBoolean()
     deletedProps: Nullable<DeletedProps> = null;
 
     constructor(partial?: Partial<Comment>, neo4jService?: Neo4jService) {
@@ -63,13 +86,16 @@ export class Comment extends Model {
         Object.assign(this, partial);
     }
 
-    public async toJSON() {
+    public async toJSON(props: ToJSONProps = {}) {
         if (this.neo4jService) {
             await Promise.all([
                 this.getRestricted(),
+                this.getDeletedProps(),
                 this.getCreatedAt(),
                 this.getTotalVotes(),
                 this.getAuthorUser(),
+                this.getPinStatus(),
+                ...(props.authenticatedUserId ? [this.getUserVote(props.authenticatedUserId)] : []),
             ]);
         }
 
@@ -77,6 +103,76 @@ export class Comment extends Model {
 
         this.neo4jService = undefined;
         return { ...this };
+    }
+
+    public async toJSONNested(props: ToJSONProps = {}) {
+        if (!this.childComments) {
+            return this.toJSON(props);
+        }
+        for (const i in this.childComments) {
+            this.childComments[i] = await this.childComments[i].toJSONNested(props);
+        }
+        return this.toJSON(props);
+    }
+
+    public async getChildrenComments(limit = 0): Promise<Comment[]> {
+        const queryResult = await this.neo4jService.tryReadAsync(
+            `
+            MATCH (c:Comment)-[:${
+                CommentToSelfRelTypes.REPLIED
+            }]->(p:Comment) WHERE p.commentId = $parentId 
+            RETURN c
+            ${limit > 0 ? `LIMIT $limit` : ""}
+            `,
+            {
+                parentId: this.commentId,
+                ...(limit > 0 ? { limit: neo4j.int(limit) } : {}),
+            }
+        );
+        const records = queryResult.records;
+        if (records.length === 0) return [];
+        this.childComments = records.map(
+            record => new Comment(record.get("c").properties, this.neo4jService)
+        );
+        return this.childComments;
+    }
+
+    public async getPinStatus(): Promise<boolean> {
+        const queryResult = await this.neo4jService.tryReadAsync(
+            `
+            MATCH (n)-[r:${PostToCommentRelTypes.PINNED_COMMENT}]->(c:Comment { commentId: $commentId })
+            RETURN r, c
+            `,
+            {
+                commentId: this.commentId,
+            }
+        );
+
+        this.pinned = queryResult.records.length > 0;
+        return this.pinned;
+    }
+
+    public async getUserVote(userId): Promise<Nullable<VoteType>> {
+        const queryResult = await this.neo4jService.tryReadAsync(
+            `
+            MATCH (u:User { userId: $userId })-[r:${UserToCommentRelTypes.UPVOTES}|${UserToCommentRelTypes.DOWN_VOTES}]->(c:Comment { commentId: $commentId }) 
+            RETURN r
+            `,
+            {
+                userId,
+                commentId: this.commentId,
+            }
+        );
+
+        if (queryResult.records.length > 0) {
+            // user has already voted on this comment
+            const relType = queryResult.records[0].get("r").type as VoteType;
+            this.userVote = relType;
+            return relType;
+        }
+
+        this.userVote = null;
+        return null;
     }
 
     public async getTotalVotes(): Promise<number> {
@@ -137,7 +233,7 @@ export class Comment extends Model {
     public async getDeletedProps(): Promise<DeletedProps> {
         const queryResult = await this.neo4jService.tryReadAsync(
             `
-            MATCH (c:Comment {commentId: $commentId})-[r:${CommentToSelfRelTypes.DELETED}]->(c)
+            MATCH (c:Comment {commentId: $commentId})-[r:${_ToSelfRelTypes.DELETED}]->(c)
             RETURN r
             `,
             {
@@ -154,7 +250,7 @@ export class Comment extends Model {
         await this.neo4jService.tryWriteAsync(
             `
             MATCH (c:Comment {commentId: $commentId})
-            MERGE (c)-[r:${CommentToSelfRelTypes.DELETED}]->(c)
+            MERGE (c)-[r:${_ToSelfRelTypes.DELETED}]->(c)
             SET r = $deletedProps
             `,
             {
@@ -180,4 +276,8 @@ export class Comment extends Model {
         this.restrictedProps = result;
         return result;
     }
+}
+
+interface ToJSONProps {
+    authenticatedUserId?: string;
 }

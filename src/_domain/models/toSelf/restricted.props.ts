@@ -6,7 +6,7 @@ export class RestrictedProps implements RelationshipProps {
     restrictedAt: number;
 
     @ApiProperty({ type: String })
-    moderatorId: string;
+    moderatorId: UUID;
 
     @ApiProperty({ type: String })
     reason: string;

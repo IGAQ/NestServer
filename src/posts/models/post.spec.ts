@@ -9,6 +9,8 @@ import { IPostsRepository } from "../repositories/post/posts.repository.interfac
 import { Post } from "./post";
 import { _$ } from "../../_domain/injectableTokens";
 
+const postIdToFindInTest = "bcddeb57-939d-441b-b4ea-71e1d2055f32";
+
 describe("Post Model Unit Test", () => {
     let postsRepository: IPostsRepository;
 
@@ -43,7 +45,7 @@ describe("Post Model Unit Test", () => {
 
     describe("given a post instance", () => {
         beforeAll(async () => {
-            post = await postsRepository.findPostById("b73edbf4-ba84-4b11-a91c-e1d8b1366974");
+            post = await postsRepository.findPostById(postIdToFindInTest);
         });
 
         it("post instance must exist", async () => {
@@ -67,9 +69,7 @@ describe("Post Model Unit Test", () => {
         describe("given post.getRestricted() called", () => {
             describe("given the post is not restricted", () => {
                 beforeEach(async () => {
-                    post = await postsRepository.findPostById(
-                        "b73edbf4-ba84-4b11-a91c-e1d8b1366974"
-                    );
+                    post = await postsRepository.findPostById(postIdToFindInTest);
                 });
 
                 it("should return null", async () => {
@@ -80,9 +80,7 @@ describe("Post Model Unit Test", () => {
 
             describe("given the post is restricted", () => {
                 beforeEach(async () => {
-                    post = await postsRepository.findPostById(
-                        "596632ac-dd54-4700-a783-688618d99fa9"
-                    );
+                    post = await postsRepository.findPostById(postIdToFindInTest);
                 });
 
                 it("should return an object consisting the proper props", async () => {
@@ -97,7 +95,7 @@ describe("Post Model Unit Test", () => {
 
         describe("given post.getAuthorUser() called", () => {
             beforeEach(async () => {
-                post = await postsRepository.findPostById("b73edbf4-ba84-4b11-a91c-e1d8b1366974");
+                post = await postsRepository.findPostById(postIdToFindInTest);
             });
 
             it("should return an object consisting the proper props", async () => {
@@ -117,7 +115,7 @@ describe("Post Model Unit Test", () => {
 
         describe("given post.getCreatedAt() called", () => {
             beforeEach(async () => {
-                post = await postsRepository.findPostById("b73edbf4-ba84-4b11-a91c-e1d8b1366974");
+                post = await postsRepository.findPostById(postIdToFindInTest);
             });
 
             it("should return a number that represents timestamp", async () => {
@@ -128,7 +126,7 @@ describe("Post Model Unit Test", () => {
 
         describe("given post.getPostType() called", () => {
             beforeEach(async () => {
-                post = await postsRepository.findPostById("b73edbf4-ba84-4b11-a91c-e1d8b1366974");
+                post = await postsRepository.findPostById(postIdToFindInTest);
             });
 
             it("should return an object with proper properties", async () => {
@@ -140,7 +138,7 @@ describe("Post Model Unit Test", () => {
 
         describe("given post.getPostTags() called", () => {
             beforeEach(async () => {
-                post = await postsRepository.findPostById("b73edbf4-ba84-4b11-a91c-e1d8b1366974");
+                post = await postsRepository.findPostById(postIdToFindInTest);
             });
 
             it("should return an array that consists valid objects with proper props", async () => {

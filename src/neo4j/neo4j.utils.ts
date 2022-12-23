@@ -20,3 +20,10 @@ export const createDriver = async (config: Neo4jConfig) => {
     // If everything is OK, return the driver
     return driver;
 };
+
+export const fixNeo4jIntegers = (obj: any, propertyNames: string[]): any => {
+    for (const propertyName of propertyNames) {
+        obj[propertyName] = obj[propertyName]?.low ?? obj[propertyName];
+    }
+    return obj;
+};

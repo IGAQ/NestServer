@@ -1,27 +1,36 @@
-import { HttpException, Inject, Injectable, Scope } from "@nestjs/common";
-import { PostCreationPayloadDto, VotePostPayloadDto, VoteType } from "../../dtos";
-import { User } from "../../../users/models";
-import { Post, PostTag } from "../../models";
-import { IPostsService, postSortCallback } from "./posts.service.interface";
-import { _$ } from "../../../_domain/injectableTokens";
-import { DatabaseContext } from "../../../database-access-layer/databaseContext";
-import { DeletedProps } from "../../models/toSelf";
+import { HttpException, Inject, Injectable, Logger, Scope } from "@nestjs/common";
 import { REQUEST } from "@nestjs/core";
 import { Request } from "express";
-import { UserToPostRelTypes } from "../../../users/models/toPost";
+import { Comment } from "../../../comments/models";
+import { DatabaseContext } from "../../../database-access-layer/databaseContext";
 import { IAutoModerationService } from "../../../moderation/services/autoModeration/autoModeration.service.interface";
+import { User } from "../../../users/models";
+import { UserToPostRelTypes, VoteProps } from "../../../users/models/toPost";
+import { _$ } from "../../../_domain/injectableTokens";
+import { VoteType } from "../../../_domain/models/enums";
+import { PostCreationPayloadDto, VotePostPayloadDto } from "../../dtos";
+import { Post, PostTag } from "../../models";
+import { IPostsService, postSortCallback } from "./posts.service.interface";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { PostGotVoteEvent } from "../../events";
+import { EventTypes } from "../../../_domain/eventTypes";
 
 @Injectable({ scope: Scope.REQUEST })
 export class PostsService implements IPostsService {
+    private readonly _logger = new Logger(PostsService.name);
+
+    private readonly _eventEmitter: EventEmitter2;
     private readonly _request: Request;
     private readonly _dbContext: DatabaseContext;
     private readonly _autoModerationService: IAutoModerationService;
 
     constructor(
+        eventEmitter: EventEmitter2,
         @Inject(REQUEST) request: Request,
         @Inject(_$.IDatabaseContext) databaseContext: DatabaseContext,
         @Inject(_$.IAutoModerationService) autoModerationService: IAutoModerationService
     ) {
+        this._eventEmitter = eventEmitter;
         this._request = request;
         this._dbContext = databaseContext;
         this._autoModerationService = autoModerationService;
@@ -46,8 +55,11 @@ export class PostsService implements IPostsService {
         }
 
         // auto-moderation
-        const wasOffending = await this._autoModerationService.checkForHateSpeech(
-            postPayload.postTitle + postPayload.postContent
+        const titleWasOffending = await this._autoModerationService.checkForHateSpeech(
+            postPayload.postTitle
+        );
+        const contentWasOffending = await this._autoModerationService.checkForHateSpeech(
+            postPayload.postContent
         );
 
         // if moderation passed, create post and return it.
@@ -58,100 +70,229 @@ export class PostsService implements IPostsService {
                 postTitle: postPayload.postTitle,
                 postContent: postPayload.postContent,
                 authorUser: user,
-                pending: wasOffending,
+                pending: titleWasOffending || contentWasOffending,
             }),
             postPayload.anonymous
         );
     }
 
-    public async getQueeryOfTheDay(): Promise<Post> {
-        const allPosts = await this._dbContext.Posts.findAll();
-        if (allPosts.length === 0)
+    public async getQueeriesOfTheDay(): Promise<Post[]> {
+        let user: User = null;
+        try {
+            user = this.getUserFromRequest();
+        } catch (e) {
+            // do nothing
+        }
+
+        const allQueeries = await this._dbContext.Posts.findPostByPostType("queery");
+        if (allQueeries.length === 0)
             throw new HttpException(
                 "No posts found in the database. Please checkout this application's usage tutorials.",
                 404
             );
 
-        const queeryPosts: Post[] = [];
-        for (const i in allPosts) {
-            if (!allPosts[i].pending) continue;
+        const queeries: Post[] = [];
+        for (const i in allQueeries) {
+            if (allQueeries[i].pending) continue;
 
-            await allPosts[i].getDeletedProps();
-            if (allPosts[i].deletedProps !== null) continue;
+            await allQueeries[i].getDeletedProps();
+            if (allQueeries[i].deletedProps !== null) continue;
 
-            await allPosts[i].getRestricted();
-            if (allPosts[i].restrictedProps !== null) continue;
+            await allQueeries[i].getRestricted();
+            if (allQueeries[i].restrictedProps !== null) continue;
 
-            await allPosts[i].getPostType();
-            if (allPosts[i].postType.postTypeName === "Queery") {
-                queeryPosts.push(allPosts[i]);
-            }
+            allQueeries[i].totalComments = await this.getTotalComments(allQueeries[i]);
+
+            allQueeries[i] = await allQueeries[i].toJSON({
+                authenticatedUserId: user?.userId ?? undefined,
+            });
+
+            queeries.push(allQueeries[i]);
         }
 
-        if (queeryPosts.length === 0) throw new HttpException("No Queery posts found", 404);
+        queeries.sort(
+            (postA, postB) =>
+                postA.totalComments + postA.totalVotes - (postB.totalComments + postB.totalVotes)
+        );
 
-        const queeryOfTheDayIndex = Math.floor(Math.random() * queeryPosts.length);
-        return queeryPosts[queeryOfTheDayIndex];
+        return queeries.slice(0, 5);
     }
 
-    public async findAllQueeries(sorted: null | postSortCallback): Promise<Post[]> {
-        const queeries = await this._dbContext.Posts.findPostByPostType("queery");
-        if (sorted !== null) {
-            queeries.sort(sorted);
+    public async getStoriesOfTheDay(): Promise<Post[]> {
+        let user: User = null;
+        try {
+            user = this.getUserFromRequest();
+        } catch (e) {
+            // do nothing
         }
-        return queeries;
-    }
 
-    public async findAllStories(sorted: null | postSortCallback): Promise<Post[]> {
-        const stories = await this._dbContext.Posts.findPostByPostType("story");
-        if (sorted !== null) {
-            stories.sort(sorted);
+        const allStories = await this._dbContext.Posts.findPostByPostType("story");
+        if (allStories.length === 0)
+            throw new HttpException(
+                "No posts found in the database. Please checkout this application's usage tutorials.",
+                404
+            );
+
+        const stories: Post[] = [];
+        for (const i in allStories) {
+            if (allStories[i].pending) continue;
+
+            await allStories[i].getDeletedProps();
+            if (allStories[i].deletedProps !== null) continue;
+
+            await allStories[i].getRestricted();
+            if (allStories[i].restrictedProps !== null) continue;
+
+            allStories[i].totalComments = await this.getTotalComments(allStories[i]);
+
+            allStories[i] = await allStories[i].toJSON({
+                authenticatedUserId: user?.userId ?? undefined,
+            });
+
+            stories.push(allStories[i]);
         }
-        return stories;
+
+        stories.sort(
+            (postA, postB) =>
+                postA.totalComments + postA.totalVotes - (postB.totalComments + postB.totalVotes)
+        );
+
+        return stories.slice(0, 5);
     }
 
-    public async findPostById(postId: string): Promise<Post> {
-        const foundPost = await this._dbContext.Posts.findPostById(postId);
-        if (foundPost === null) throw new HttpException("Post not found", 404);
-
-        if (foundPost.pending)
-            throw new HttpException("Post cannot be shown publicly due to striking policies", 403);
-
-        await foundPost.getDeletedProps();
-        if (foundPost.deletedProps !== null) throw new HttpException("Post was deleted", 404);
-
-        await foundPost.getRestricted();
-        if (foundPost.restrictedProps !== null) throw new HttpException("Post is restricted", 404);
-
-        return await foundPost.toJSON();
+    public async findAllQueeries(): Promise<Post[]> {
+        let queeries = await this._dbContext.Posts.findPostByPostType("queery");
+        queeries = await this.filterPublicPosts(queeries);
+        return this.decoratePosts(queeries, (postA, postB) => postB.createdAt - postA.createdAt);
     }
 
-    public async markAsDeleted(postId: string): Promise<void> {
-        const post = await this._dbContext.Posts.findPostById(postId);
-        if (post === undefined) throw new Error("Post not found");
+    public async findAllStories(): Promise<Post[]> {
+        let stories = await this._dbContext.Posts.findPostByPostType("story");
+        stories = await this.filterPublicPosts(stories);
+        return this.decoratePosts(stories, (postA, postB) => postB.createdAt - postA.createdAt);
+    }
 
-        await post.getDeletedProps();
-        if (post.deletedProps !== null) throw new Error("Post already deleted");
+    private async filterPublicPosts(posts: Post[]): Promise<Post[]> {
+        const filteredPosts = [];
+        for (const post of posts) {
+            if (post.pending) continue;
 
-        await post.getAuthorUser();
+            await post.getRestricted();
+            if (post.restrictedProps) continue;
 
-        await post.setDeletedProps(
-            new DeletedProps({
-                deletedAt: new Date().getTime(),
-                deletedByUserId: post.authorUser.userId,
+            await post.getDeletedProps();
+            if (post.deletedProps) continue;
+
+            filteredPosts.push(post);
+        }
+        return filteredPosts;
+    }
+
+    private async decoratePosts(posts: Post[], sorted: null | postSortCallback): Promise<Post[]> {
+        posts = await Promise.all(
+            posts.map(async post => {
+                post.totalComments = await this.getTotalComments(post);
+                return post;
             })
         );
+        if (sorted !== null) {
+            posts.sort(sorted);
+        }
+        return posts;
+    }
+
+    private async getTotalComments(post: Post, comments = null, result = 0): Promise<number> {
+        if (comments === null) {
+            comments = await this.findNestedCommentsByPostId(post.postId, 0, 0, Infinity);
+        }
+
+        if (comments.length === 0) return result;
+        result += comments.length;
+        for (const comment of comments) {
+            result = await this.getTotalComments(post, comment.childComments ?? [], result);
+        }
+        return result;
+    }
+
+    public async findPostById(postId: UUID): Promise<Post> {
+        let foundPost = await this._dbContext.Posts.findPostById(postId);
+        if (!foundPost) throw new HttpException("Post not found", 404);
+
+        if (foundPost.pending)
+            throw new HttpException(
+                "Post cannot be shown publicly at the moment. please try again later.",
+                403
+            );
+
+        foundPost = (await this.decoratePosts([foundPost], null))[0];
+
+        return foundPost;
+    }
+
+    public async findPostsByUserId(userId: UUID): Promise<Post[]> {
+        let foundPosts = await this._dbContext.Posts.findPostsByUserId(userId);
+        foundPosts = await this.filterPublicPosts(foundPosts);
+        return this.decoratePosts(foundPosts, (postA, postB) => postB.createdAt - postA.createdAt);
+    }
+
+    public async findNestedCommentsByPostId(
+        postId: UUID,
+        topLevelLimit: number,
+        nestedLimit: number,
+        nestedLevel: number
+    ): Promise<Comment[]> {
+        const foundPost = await this._dbContext.Posts.findPostById(postId);
+        if (!foundPost) throw new HttpException("Post not found", 404);
+
+        // level 0 means no nesting
+        const comments = await foundPost.getComments(topLevelLimit);
+        if (nestedLevel === 0) return comments;
+
+        await this.getNestedComments(comments, nestedLevel, nestedLimit);
+
+        return comments;
+    }
+
+    /**
+     * Recursively gets the total number of every comment's child comments that are **available**.
+     * @param comment
+     * @param result
+     * @private
+     */
+    private async getTotalCommentsByComment(comment: Comment, result = 0): Promise<number> {
+        if (!comment.childComments || comment.childComments.length === 0) return result;
+        result += comment.childComments.length;
+        for (const childComment of comment.childComments) {
+            result = await this.getTotalCommentsByComment(childComment, result);
+            childComment.totalComments = await this.getTotalCommentsByComment(childComment, 0);
+        }
+        return result;
+    }
+
+    public async getNestedComments(
+        comments: Comment[],
+        nestedLevel: number,
+        nestedLimit: number
+    ): Promise<void> {
+        if (nestedLevel === 0) return;
+        for (const i in comments) {
+            const comment: Comment = comments[i];
+            await comment.getChildrenComments(nestedLimit);
+            // comment.totalComments = await this.getTotalCommentsByComment(comment);
+            await this.getNestedComments(comment.childComments, nestedLevel - 1, nestedLimit);
+        }
     }
 
     public async votePost(votePostPayload: VotePostPayloadDto): Promise<void> {
         const user = this.getUserFromRequest();
 
         const post = await this._dbContext.Posts.findPostById(votePostPayload.postId);
-        if (post === undefined) throw new HttpException("Post not found", 404);
+        if (!post) throw new HttpException("Post not found", 404);
 
         const queryResult = await this._dbContext.neo4jService.tryReadAsync(
             `
-            MATCH (u:User { userId: $userId })-[r:${UserToPostRelTypes.UPVOTES}|${UserToPostRelTypes.DOWN_VOTES}]->(p:Post { postId: $postId })
+            MATCH (u:User { userId: $userId })-[r:${UserToPostRelTypes.UPVOTES}|${UserToPostRelTypes.DOWN_VOTES}]->(p:Post { postId: $postId }) 
+            RETURN r
             `,
             {
                 userId: user.userId,
@@ -160,46 +301,73 @@ export class PostsService implements IPostsService {
         );
 
         if (queryResult.records.length > 0) {
+            // user has already voted on this post
             const relType = queryResult.records[0].get("r").type;
-            if (
-                relType === UserToPostRelTypes.UPVOTES &&
-                votePostPayload.voteType === VoteType.UPVOTES
-            ) {
-                throw new HttpException("User already upvoted this post", 400);
-            } else if (
-                relType === UserToPostRelTypes.DOWN_VOTES &&
-                votePostPayload.voteType === VoteType.DOWN_VOTES
-            ) {
-                throw new HttpException("User already downvoted this post", 400);
-            } else {
-                await this._dbContext.neo4jService.tryWriteAsync(
-                    `
+
+            // remove the existing vote
+            await this._dbContext.neo4jService.tryWriteAsync(
+                `
                     MATCH (u:User { userId: $userId })-[r:${relType}]->(p:Post { postId: $postId })
                     DELETE r
                     `,
-                    {
-                        userId: user.userId,
-                        postId: votePostPayload.postId,
-                    }
-                );
+                {
+                    userId: user.userId,
+                    postId: votePostPayload.postId,
+                }
+            );
+
+            // don't add a new vote if the user is removing their vote (stop)
+            if (
+                (relType === UserToPostRelTypes.UPVOTES &&
+                    votePostPayload.voteType === VoteType.UPVOTES) ||
+                (relType === UserToPostRelTypes.DOWN_VOTES &&
+                    votePostPayload.voteType === VoteType.DOWN_VOTES)
+            ) {
+                return;
             }
         }
 
+        // add the new vote
+        const voteProps = new VoteProps({
+            votedAt: new Date().getTime(),
+        });
         await this._dbContext.neo4jService.tryWriteAsync(
             `
             MATCH (u:User { userId: $userId }), (p:Post { postId: $postId })
-            MERGE (u)-[r:${votePostPayload.voteType}]->(p)
+            MERGE (u)-[r:${votePostPayload.voteType} { votedAt: $votedAt }]->(p)
             `,
             {
                 userId: user.userId,
                 postId: votePostPayload.postId,
+
+                votedAt: voteProps.votedAt,
             }
         );
+
+        const eventType =
+            votePostPayload.voteType === VoteType.UPVOTES
+                ? EventTypes.PostGotUpVote
+                : EventTypes.PostGotDownVote;
+
+        try {
+            await post.getAuthorUser();
+            this._eventEmitter.emit(
+                eventType,
+                new PostGotVoteEvent({
+                    subscriberId: post.authorUser.userId,
+                    postId: post.postId,
+                    username: user.username,
+                    avatar: user.avatar,
+                })
+            );
+        } catch (error) {
+            this._logger.error(error);
+        }
     }
 
     private getUserFromRequest(): User {
         const user = this._request.user as User;
-        if (user === undefined) throw new Error("User not found");
+        if (user === undefined) throw new HttpException("User not found", 404);
         return user;
     }
 }

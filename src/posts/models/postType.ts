@@ -1,10 +1,10 @@
-import { ApiProperty } from "@nestjs/swagger";
 import { Labels, NodeProperty } from "../../neo4j/neo4j.decorators";
+import { IsString } from "class-validator";
 
 @Labels("PostType")
 export class PostType {
-    @ApiProperty({ type: String })
     @NodeProperty()
+    @IsString()
     postTypeName: string;
 
     constructor(partial?: Partial<PostType>) {

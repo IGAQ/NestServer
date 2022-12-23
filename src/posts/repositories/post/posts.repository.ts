@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { IPostsRepository } from "./posts.repository.interface";
 import { Neo4jService } from "../../../neo4j/services/neo4j.service";
-import { _ToSelfRelTypes, RestrictedProps } from "../../../_domain/models/toSelf";
+import { _ToSelfRelTypes, DeletedProps, RestrictedProps } from "../../../_domain/models/toSelf";
 import { PostToPostTypeRelTypes } from "../../models/toPostType";
 import { PostToPostTagRelTypes } from "../../models/toTags";
 import { HasAwardProps, PostToAwardRelTypes } from "../../models/toAward";
@@ -13,7 +13,7 @@ export class PostsRepository implements IPostsRepository {
     constructor(@Inject(Neo4jService) private _neo4jService: Neo4jService) {}
 
     public async findAll(): Promise<Post[]> {
-        const allPosts = await this._neo4jService.read(`MATCH (p:Post) RETURN p`, {});
+        const allPosts = await this._neo4jService.tryReadAsync(`MATCH (p:Post) RETURN p`, {});
         const records = allPosts.records;
         if (records.length === 0) return [];
         return records.map(record => new Post(record.get("p").properties, this._neo4jService));
@@ -31,13 +31,42 @@ export class PostsRepository implements IPostsRepository {
         return records.map(record => new Post(record.get("p").properties, this._neo4jService));
     }
 
-    public async findPostById(postId: string): Promise<Post | undefined> {
-        const post = await this._neo4jService.read(
+    public async findPostById(postId: UUID): Promise<Post | undefined> {
+        const post = await this._neo4jService.tryReadAsync(
             `MATCH (p:Post) WHERE p.postId = $postId RETURN p`,
             { postId: postId }
         );
         if (post.records.length === 0) return undefined;
         return new Post(post.records[0].get("p").properties, this._neo4jService);
+    }
+
+    public async findPostsByUserId(userId: string): Promise<Post[]> {
+        const allPosts = await this._neo4jService.tryReadAsync(
+            `
+            MATCH (u:User { userId: $userId})-[r:${UserToPostRelTypes.AUTHORED}]->(p:Post)
+            RETURN p
+            `,
+            {
+                userId: userId,
+            }
+        );
+        const records = allPosts.records;
+        if (records.length === 0) return [];
+        return records.map(record => new Post(record.get("p").properties, this._neo4jService));
+    }
+
+    public async getPostHistoryByUserId(userId: UUID): Promise<Post[]> {
+        const userPosts = await this._neo4jService.tryReadAsync(
+            `MATCH (u:User { userId: $userId })-[:${UserToPostRelTypes.AUTHORED}]->(p:Post)
+                RETURN p`,
+            {
+                userId,
+            }
+        );
+        if (userPosts.records.length === 0) return [];
+        return userPosts.records.map(
+            record => new Post(record.get("p").properties, this._neo4jService)
+        );
     }
 
     public async addPost(post: Post, anonymous: boolean): Promise<Post> {
@@ -147,7 +176,7 @@ export class PostsRepository implements IPostsRepository {
             `,
             {
                 postId: post.postId,
-                updatedAt: post.updatedAt,
+                updatedAt: Date.now(),
                 postTitle: post.postTitle,
                 postContent: post.postContent,
                 pending: post.pending,
@@ -155,15 +184,41 @@ export class PostsRepository implements IPostsRepository {
         );
     }
 
-    public async deletePost(postId: string): Promise<void> {
+    public async deletePost(postId: UUID): Promise<void> {
         this._neo4jService.write(`MATCH (p:Post) WHERE p.postId = $postId DETACH DELETE p`, {
             postId: postId,
         });
     }
 
-    public async restrictPost(postId: string, restrictedProps: RestrictedProps): Promise<void> {
+    public async markAsDeleted(postId: UUID, deletedProps: DeletedProps): Promise<void> {
         await this._neo4jService.tryWriteAsync(
-            `MATCH (p:Post) WHERE p.postId = $postId 
+            `
+            MATCH (p:Post {postId: $postId})
+            MERGE (p)-[r:${_ToSelfRelTypes.DELETED}]->(p)
+            SET r = $deletedProps
+            `,
+            {
+                postId,
+                deletedProps,
+            }
+        );
+    }
+
+    public async removeDeletedMark(postId: UUID): Promise<void> {
+        await this._neo4jService.tryWriteAsync(
+            `
+            MATCH (p:Post {postId: $postId})-[r:${_ToSelfRelTypes.DELETED}]->(p)
+            DELETE r
+            `,
+            {
+                postId,
+            }
+        );
+    }
+
+    public async restrictPost(postId: UUID, restrictedProps: RestrictedProps): Promise<void> {
+        await this._neo4jService.tryWriteAsync(
+            `MATCH (p:Post { postId: $postId }) 
             CREATE (p)-[r:${_ToSelfRelTypes.RESTRICTED} {
                 restrictedAt: $restrictedAt,
                 moderatorId: $moderatorId,
@@ -178,12 +233,40 @@ export class PostsRepository implements IPostsRepository {
         );
     }
 
-    public async unrestrictPost(postId: string): Promise<void> {
+    public async unrestrictPost(postId: UUID): Promise<void> {
         await this._neo4jService.tryWriteAsync(
             `MATCH (p:Post)-[r:${_ToSelfRelTypes.RESTRICTED}]->(p) WHERE p.postId = $postId DELETE r`,
             {
                 postId: postId,
             }
         );
+    }
+
+    public async getPendingPosts(): Promise<Post[]> {
+        const queryResult = await this._neo4jService.tryReadAsync(
+            `
+            MATCH (p:Post { pending: $pending })
+            RETURN p
+            `,
+            {
+                pending: true,
+            }
+        );
+        const records = queryResult.records;
+        if (records.length === 0) return [];
+        return records.map(record => new Post(record.get("p").properties, this._neo4jService));
+    }
+
+    public async getDeletedPosts(): Promise<Post[]> {
+        const queryResult = await this._neo4jService.tryReadAsync(
+            `
+            MATCH (p:Post)-[r:${_ToSelfRelTypes.DELETED}]->(p)
+            RETURN p
+            `,
+            {}
+        );
+        const records = queryResult.records;
+        if (records.length === 0) return [];
+        return records.map(record => new Post(record.get("p").properties, this._neo4jService));
     }
 }

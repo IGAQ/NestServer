@@ -6,10 +6,19 @@ import { DatabaseAccessLayerModule } from "../database-access-layer/database-acc
 import { forwardRef, Module } from "@nestjs/common";
 import { HttpModule } from "@nestjs/axios";
 import { ModerationModule } from "../moderation/moderation.module";
+import { PostsModule } from "../posts/posts.module";
+import { CommentsReportService } from "./services/commentReport/commentsReport.service";
+import { GoogleCloudRecaptchaEnterpriseModule } from "../google-cloud-recaptcha-enterprise/google-cloud-recaptcha-enterprise.module";
 
 @Module({
     controllers: [CommentsController],
-    imports: [forwardRef(() => DatabaseAccessLayerModule), HttpModule, ModerationModule],
+    imports: [
+        forwardRef(() => DatabaseAccessLayerModule),
+        HttpModule,
+        ModerationModule,
+        PostsModule,
+        GoogleCloudRecaptchaEnterpriseModule,
+    ],
     providers: [
         {
             provide: _$.ICommentsService,
@@ -18,6 +27,10 @@ import { ModerationModule } from "../moderation/moderation.module";
         {
             provide: _$.ICommentsRepository,
             useClass: CommentsRepository,
+        },
+        {
+            provide: _$.ICommentsReportService,
+            useClass: CommentsReportService,
         },
     ],
     exports: [
@@ -28,6 +41,10 @@ import { ModerationModule } from "../moderation/moderation.module";
         {
             provide: _$.ICommentsRepository,
             useClass: CommentsRepository,
+        },
+        {
+            provide: _$.ICommentsReportService,
+            useClass: CommentsReportService,
         },
     ],
 })

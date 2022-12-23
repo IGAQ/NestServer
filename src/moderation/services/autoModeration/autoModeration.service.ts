@@ -5,7 +5,7 @@ import { ConfigService } from "@nestjs/config";
 import { catchError, lastValueFrom, map, throwError } from "rxjs";
 import { HttpService } from "@nestjs/axios";
 import { IAutoModerationService } from "./autoModeration.service.interface";
-import { HateSpeechRequestPayloadDto, HateSpeechResponseDto } from "../../../posts/dtos";
+import { HateSpeechRequestPayloadDto, HateSpeechResponseDto } from "../../dtos";
 import { WasOffendingProps } from "../../../users/models/toSelf";
 import { User } from "../../../users/models";
 
@@ -51,7 +51,7 @@ export class AutoModerationService implements IAutoModerationService {
 
         // if moderation failed, throw error
         if (hateSpeechResponseDto.class === "flag") {
-            if (hateSpeechResponseDto.confidence >= 0.9) {
+            if (hateSpeechResponseDto.confidence >= 0.9001) {
                 // TODO: create a ticket for the admin to review
 
                 await user.addWasOffendingRecord(
@@ -92,7 +92,7 @@ export class AutoModerationService implements IAutoModerationService {
 
     private getUserFromRequest(): User {
         const user = this._request.user as User;
-        if (user === undefined) throw new Error("User not found");
+        if (user === undefined) throw new HttpException("User not found", 404);
         return user;
     }
 }

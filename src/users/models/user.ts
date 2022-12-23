@@ -1,4 +1,3 @@
-import { ApiProperty } from "@nestjs/swagger";
 import { Exclude } from "class-transformer";
 import { Comment } from "../../comments/models";
 import { Labels, NodeProperty } from "../../neo4j/neo4j.decorators";
@@ -15,83 +14,115 @@ import { Openness } from "./openness";
 import { Role } from "./role";
 import { Sexuality } from "./sexuality";
 import { AuthoredProps as UserToCommentAuthoredProps, UserToCommentRelTypes } from "./toComment";
-import { UserToGenderRelTypes } from "./toGender";
-import { UserToOpennessRelTypes } from "./toOpenness";
+import { HasGenderProps, UserToGenderRelTypes } from "./toGender";
+import { HasOpennessProps, UserToOpennessRelTypes } from "./toOpenness";
 import { AuthoredProps, FavoritesProps, UserToPostRelTypes } from "./toPost";
-import { UserToSelfRelTypes, WasOffendingProps } from "./toSelf";
-import { UserToSexualityRelTypes } from "./toSexuality";
+import { GotBannedProps, UserToSelfRelTypes, WasOffendingProps } from "./toSelf";
+import { HasSexualityProps, UserToSexualityRelTypes } from "./toSexuality";
+import {
+    IsArray,
+    IsBoolean,
+    IsEnum,
+    IsInstance,
+    IsNumber,
+    IsOptional,
+    IsString,
+    IsUUID,
+} from "class-validator";
 
-export type AvatarUrl = string;
-export type AvatarAscii = string;
+type AvatarUrl = string;
+type AvatarAscii = string;
+export type UserAvatar = AvatarUrl | AvatarAscii;
 
 @Labels("User")
 export class User extends Model {
-    @ApiProperty({ type: String, format: "uuid" })
     @NodeProperty()
-    userId: string;
+    @IsUUID()
+    userId: UUID;
 
-    @ApiProperty({ type: Date })
     @NodeProperty()
+    @IsNumber()
     createdAt: number;
-    @ApiProperty({ type: Date })
     @NodeProperty()
+    @IsNumber()
     updatedAt: number;
 
-    @ApiProperty({ type: String })
     @NodeProperty()
-    avatar: AvatarAscii | AvatarUrl;
+    @IsString()
+    avatar: UserAvatar;
 
-    @ApiProperty({ type: String })
     @NodeProperty()
+    @IsString()
+    bio: string;
+
+    @NodeProperty()
+    @IsString()
     email: string;
-    @ApiProperty({ type: Boolean })
     @NodeProperty()
+    @IsBoolean()
     emailVerified: boolean;
 
-    @ApiProperty({ type: String })
     @NodeProperty()
+    @IsString()
+    @IsOptional()
     phoneNumber: Nullable<string>;
-    @ApiProperty({ type: Boolean })
     @NodeProperty()
+    @IsBoolean()
     phoneNumberVerified: boolean;
 
-    @ApiProperty({ type: String })
     @NodeProperty()
+    @IsString()
     username: string;
-    @ApiProperty({ type: String })
     @NodeProperty()
+    @IsString()
     normalizedUsername: string;
 
-    @ApiProperty({ type: String })
     @NodeProperty()
+    @IsString()
     @Exclude()
     passwordHash: string;
 
-    @ApiProperty({ type: Number })
     @NodeProperty()
+    @IsNumber()
     level: number;
 
-    @ApiProperty({ type: Role })
+    @IsEnum(Role)
     roles: Role[];
 
-    @ApiProperty({ type: Post, isArray: true })
+    @IsOptional()
     posts: RichRelatedEntities<Post, UserToPostRelTypes>;
 
-    @ApiProperty({ type: Comment, isArray: true })
+    @IsOptional()
     comments: RichRelatedEntities<Comment, UserToPostRelTypes>;
 
-    @ApiProperty({ type: Sexuality })
+    @IsInstance(Sexuality)
+    @IsOptional()
     sexuality: Nullable<Sexuality>;
+    @IsBoolean()
+    @IsOptional()
+    isSexualityPrivate: boolean;
 
-    @ApiProperty({ type: Gender })
+    @IsInstance(Gender)
+    @IsOptional()
     gender: Nullable<Gender>;
+    @IsBoolean()
+    @IsOptional()
+    isGenderPrivate: boolean;
 
-    @ApiProperty({ type: Openness })
+    @IsInstance(Openness)
+    @IsOptional()
     openness: Nullable<Openness>;
+    @IsBoolean()
+    @IsOptional()
+    isOpennessPrivate: boolean;
 
-    @ApiProperty({ type: WasOffendingProps, isArray: true })
-    @Exclude()
-    wasOffendingRecords: WasOffendingProps[] = [];
+    @IsArray()
+    @IsOptional()
+    wasOffendingRecords: WasOffendingProps[];
+
+    @IsInstance(GotBannedProps)
+    @IsOptional()
+    gotBannedProps: Nullable<GotBannedProps>;
 
     constructor(partial?: Partial<User>, neo4jService?: Neo4jService) {
         super(neo4jService);
@@ -107,6 +138,29 @@ export class User extends Model {
         delete this.neo4jService;
         delete this.wasOffendingRecords;
         return { ...this };
+    }
+
+    /**
+     * Checks with the database if the user has a GOT_BANNED relationship, and if it has, it will get its properties
+     * and assigns it to the instance's .gotBannedProps property.
+     * If the user has no GOT_BANNED relationship, it will assign null to the instance's .gotBannedProps property.
+     */
+    public async getGotBannedProps(): Promise<Nullable<GotBannedProps>> {
+        const queryResult = await this.neo4jService.tryReadAsync(
+            `
+            MATCH (u:User { userId: $userId})-[r:${UserToSelfRelTypes.GOT_BANNED}]-(u)
+            RETURN r
+            `,
+            {
+                userId: this.userId,
+            }
+        );
+        if (queryResult.records.length === 0) {
+            this.gotBannedProps = null;
+            return null;
+        }
+        this.gotBannedProps = new GotBannedProps(queryResult.records[0].get("r").properties);
+        return this.gotBannedProps;
     }
 
     public async addWasOffendingRecord(record: WasOffendingProps): Promise<void> {
@@ -207,7 +261,9 @@ export class User extends Model {
         if (queryResult.records.length === 0) {
             return null;
         }
+        const hasSexualityProps = new HasSexualityProps(queryResult.records[0].get("r").properties);
         this.sexuality = new Sexuality(queryResult.records[0].get("s").properties);
+        this.isSexualityPrivate = hasSexualityProps.isPrivate || false;
         return this.sexuality;
     }
 
@@ -261,7 +317,9 @@ export class User extends Model {
         if (queryResult.records.length === 0) {
             return null;
         }
+        const hasGenderProps = new HasGenderProps(queryResult.records[0].get("r").properties);
         this.gender = new Gender(queryResult.records[0].get("g").properties);
+        this.isGenderPrivate = hasGenderProps.isPrivate || false;
         return this.gender;
     }
 
@@ -278,7 +336,9 @@ export class User extends Model {
         if (queryResult.records.length === 0) {
             return null;
         }
+        const hasOpennessProps = new HasOpennessProps(queryResult.records[0].get("r").properties);
         this.openness = new Openness(queryResult.records[0].get("o").properties);
+        this.isOpennessPrivate = hasOpennessProps.isPrivate || false;
         return this.openness;
     }
 }
