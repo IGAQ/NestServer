@@ -3,12 +3,15 @@ import { envKeys } from "./google-cloud-recaptcha-enterprise.constants";
 import { AssessmentDto } from "./models/assessment.dto";
 import { RecaptchaEnterpriseServiceClient } from "@google-cloud/recaptcha-enterprise";
 import { IGoogleCloudRecaptchaEnterpriseService } from "./google-cloud-recaptcha-enterprise.service.interface";
-import { Injectable, Scope } from "@nestjs/common";
+import { Injectable, Logger, Scope } from "@nestjs/common";
+import { google } from "@google-cloud/recaptcha-enterprise/build/protos/protos";
 
 @Injectable({ scope: Scope.REQUEST })
 export class GoogleCloudRecaptchaEnterpriseService
     implements IGoogleCloudRecaptchaEnterpriseService
 {
+    private readonly _logger = new Logger(GoogleCloudRecaptchaEnterpriseService.name);
+
     constructor(private _configService: ConfigService) {}
 
     /**
@@ -45,7 +48,19 @@ export class GoogleCloudRecaptchaEnterpriseService
         };
 
         // client.createAssessment() can return a Promise or take a Callback
-        const [response] = await client.createAssessment(request);
+        let response: google.cloud.recaptchaenterprise.v1.IAssessment;
+        try {
+            const assessment = await client.createAssessment(request);
+
+            response = assessment[0];
+        } catch (e) {
+            this._logger.debug("client.createAssessment errored: ", e); // TODO: Fix this.
+            console.log(e);
+
+            return 1; // just pass the captcha cause it's not user's fault.
+        } finally {
+            await client.close();
+        }
 
         // Check if the token is valid.
         if (!response.tokenProperties.valid) {
