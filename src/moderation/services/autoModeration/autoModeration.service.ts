@@ -25,45 +25,60 @@ export class AutoModerationService implements IAutoModerationService {
         this._httpService = httpService;
     }
 
+    private async validateFromOpenAIModeration(content: string, onModerateCallback: () => Promise<void>) {
+        const user = this.getUserFromRequest();
+
+        const openAIApiKey = this._configService.get<string>("OPENAI_API_KEY") ?? "";
+
+        try {
+            const response = await this._httpService.axiosRef.post("https://api.openai.com/v1/moderations", {
+                input: content
+            }, {
+                headers: {
+                    Authorization: "Bearer " + openAIApiKey,
+                }
+            });
+
+            if (!("results" in response.data) || !Array.isArray(response.data.results) || response.data.results.length < 1) {
+                throw new Error("response.data does not contain `results` property or it's not a valid array with at least one item.");
+            }
+            if (!("flagged" in response.data.results[0])) {
+                throw new Error("could not find the `flagged` property in the response.data.results[0]");
+            }
+
+            if (response.data.results[0].flagged) {
+                await onModerateCallback();
+            }
+        } catch(e) {
+            console.error('validateFromOpenAIModeration', e);
+            throw new HttpException("Hate speech detected", 400);
+        }
+    }
+
     public async checkForHateSpeech(text: string): Promise<boolean> {
         const user = this.getUserFromRequest();
 
-        const autoModerationApiKey = this._configService.get<string>("MODERATE_HATESPEECH_API_KEY");
-        const autoModerationApiUrl = this._configService.get<string>("MODERATE_HATESPEECH_API_URL");
+        // await this.validateFromModerateHateSpeechAPI(text, async (hateSpeechResponseDto) => {
+        //     await user.addWasOffendingRecord(
+        //         new WasOffendingProps({
+        //             timestamp: new Date().getTime(),
+        //             userContent: text,
+        //             autoModConfidenceLevel: hateSpeechResponseDto.confidence,
+        //         })
+        //     );
+        //     throw new HttpException("Hate speech detected", 400);
+        // });
 
-        const hateSpeechResponseDto = await lastValueFrom(
-            this._httpService
-                .post<HateSpeechResponseDto>(
-                    autoModerationApiUrl,
-                    new HateSpeechRequestPayloadDto({
-                        token: autoModerationApiKey,
-                        text,
-                    })
-                )
-                .pipe(
-                    map(response => response.data),
-                    catchError(err => {
-                        this._logger.error(err);
-                        return throwError(() => err);
-                    })
-                )
-        );
-
-        // if moderation failed, throw error
-        if (hateSpeechResponseDto.class === "flag") {
-            if (hateSpeechResponseDto.confidence >= 0.9001) {
-                // TODO: create a ticket for the admin to review
-
-                await user.addWasOffendingRecord(
-                    new WasOffendingProps({
-                        timestamp: new Date().getTime(),
-                        userContent: text,
-                        autoModConfidenceLevel: hateSpeechResponseDto.confidence,
-                    })
-                );
-                throw new HttpException("Hate speech detected", 400);
-            }
-        }
+        await this.validateFromOpenAIModeration(text, async () => {
+            await user.addWasOffendingRecord(
+                new WasOffendingProps({
+                    timestamp: new Date().getTime(),
+                    userContent: text,
+                    autoModConfidenceLevel: 1, // I have full trust in ChatGPT but maybe I shouldn't.
+                })
+            );
+            throw new HttpException("Hate speech detected", 400);
+        });
 
         // get all records of them offending. And, get all posts that this user authored.
         const userOffendingRecords = await user.getWasOffendingRecords();
@@ -94,5 +109,38 @@ export class AutoModerationService implements IAutoModerationService {
         const user = this._request.user as User;
         if (user === undefined) throw new HttpException("User not found", 404);
         return user;
+    }
+
+    // Deprecated
+    private async validateFromModerateHateSpeechAPI(content: string, onModerateCallback: (hateSpeechResponseDto: HateSpeechResponseDto) => Promise<void>) {
+        const user = this.getUserFromRequest();
+
+        const autoModerationApiKey = this._configService.get<string>("MODERATE_HATESPEECH_API_KEY");
+        const autoModerationApiUrl = this._configService.get<string>("MODERATE_HATESPEECH_API_URL");
+
+        const hateSpeechResponseDto = await lastValueFrom(
+            this._httpService
+                .post<HateSpeechResponseDto>(
+                    autoModerationApiUrl,
+                    new HateSpeechRequestPayloadDto({
+                        token: autoModerationApiKey,
+                        text: content,
+                    })
+                )
+                .pipe(
+                    map(response => response.data),
+                    catchError(err => {
+                        this._logger.error(err);
+                        return throwError(() => err);
+                    })
+                )
+        );
+
+        // if moderation failed, throw error
+        if (hateSpeechResponseDto.class === "flag") {
+            if (hateSpeechResponseDto.confidence >= 0.9001) {
+                await onModerateCallback(hateSpeechResponseDto);
+            }
+        }
     }
 }
