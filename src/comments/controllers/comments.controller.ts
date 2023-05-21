@@ -111,7 +111,7 @@ export class CommentsController {
     }
 
     @Post("create")
-    @UseGuards(CaptchaGuard)
+    // @UseGuards(CaptchaGuard)
     @UseGuards(AuthGuard("jwt"))
     public async createComment(
         @Body() commentPayload: CommentCreationPayloadDto

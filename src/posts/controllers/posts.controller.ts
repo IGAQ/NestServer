@@ -150,7 +150,7 @@ export class PostsController {
     }
 
     @Post("/create")
-    @UseGuards(CaptchaGuard)
+    // @UseGuards(CaptchaGuard)
     @UseGuards(AuthGuard("jwt"))
     public async createPost(@Body() postPayload: PostCreationPayloadDto): Promise<PostModel> {
         const post = await this._postsService.authorNewPost(postPayload);
@@ -176,7 +176,7 @@ export class PostsController {
     }
 
     @Post("/report")
-    @UseGuards(CaptchaGuard)
+    // @UseGuards(CaptchaGuard)
     @UseGuards(AuthGuard("jwt"))
     public async reportPost(@Body() reportPostPayload: ReportPostPayloadDto): Promise<void> {
         await this._postsReportService.reportPost(reportPostPayload);
